@@ -1,11 +1,12 @@
 import { useEffect } from 'react'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import { useTruth } from '@/hooks/useData'
+import { usePhase5, useTruth } from '@/hooks/useData'
 import TruthHero from '@/components/truth/TruthHero'
 import DatasetSection from '@/components/truth/DatasetSection'
 import Phase1Section from '@/components/truth/Phase1Section'
 import Phase2Section from '@/components/truth/Phase2Section'
 import Phase3Section from '@/components/truth/Phase3Section'
+import Phase5Section from '@/components/truth/Phase5Section'
 import LedgerSection from '@/components/truth/LedgerSection'
 import PromiseSection from '@/components/truth/PromiseSection'
 import { useLenis } from '@/components/truth/motion'
@@ -18,12 +19,13 @@ import { useLenis } from '@/components/truth/motion'
  */
 export default function Truth() {
   const { data } = useTruth()
+  const { data: phase5 } = usePhase5()
   useLenis()
 
   // Pinned sections change page height after data loads — keep triggers honest.
   useEffect(() => {
-    if (data) ScrollTrigger.refresh()
-  }, [data])
+    if (data || phase5) ScrollTrigger.refresh()
+  }, [data, phase5])
 
   return (
     <div className="w-full">
@@ -32,6 +34,7 @@ export default function Truth() {
       <Phase1Section data={data} />
       <Phase2Section data={data} />
       <Phase3Section data={data} />
+      <Phase5Section data={phase5} />
       <LedgerSection />
       <PromiseSection />
     </div>

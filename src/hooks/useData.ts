@@ -130,3 +130,61 @@ export function useSessions(): DataState<SessionsData> {
 export function useTruth(): DataState<TruthData> {
   return useJson<TruthData>('/data/truth.json')
 }
+
+export interface Phase5Strategy {
+  key: string
+  strategy: string
+  variant: string
+  n_trades: number
+  win_rate: number
+  avg_pips: number
+  total_pips: number
+  profit_factor: number
+  max_dd: number
+  expectancy: number
+  bootstrap_p: number | null
+  bootstrap_test: string | null
+}
+
+export interface Phase5EquityPoint {
+  trade_idx: number
+  equity: number
+  exit_dt: string
+}
+
+export interface Phase5Data {
+  phase: number
+  title: string
+  source: string
+  strategies: Phase5Strategy[]
+  s3_vol_off: {
+    vol_avg_pips: number
+    off_avg_pips: number
+    diff_vol_minus_off: number
+    bootstrap_p: number
+    ci_5_95: [number, number] | number[]
+    rerun_check?: { bootstrap_p: number; ci_5_95: [number, number] | number[] } | null
+    resamples: number
+    seed: number
+    test: string
+  }
+  equity: Record<string, Phase5EquityPoint[]>
+  knockout_fact: {
+    strategy: string
+    n_trades_total: number
+    mean_pips_all_trades: number
+    winners_removed: number
+    top3_winners_pips_total: number
+    share_of_total_pips_from_top3: number
+    mean_pips_after_removal: number
+    n_trades_after_removal: number
+    top3_winners: { exit_dt: string; entry_dt: string; pnl_pips: number; fold: number; year: number }[]
+    interpretation: string
+  }
+  verdicts: Record<string, string>
+  protocol: Record<string, string>
+}
+
+export function usePhase5(): DataState<Phase5Data> {
+  return useJson<Phase5Data>('/data/phase5.json')
+}
