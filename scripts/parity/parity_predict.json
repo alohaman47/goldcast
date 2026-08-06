@@ -1,0 +1,23 @@
+{
+  "asof": "2026-07-17 15:00:00",
+  "session": "ny",
+  "regime": "ranging",
+  "p_high_vol": 0.8459,
+  "expected_range_atr": 1.7659,
+  "expected_range_price": 28.2406,
+  "cone": {
+    "T1": {
+      "half_width": 28.2406
+    },
+    "T2": {
+      "half_width": 39.9383
+    },
+    "T3": {
+      "half_width": 48.9142
+    }
+  },
+  "direction_policy": "drift",
+  "drift_sign": 1,
+  "confidence": 5,
+  "engine_version": "goldcast-gbm-classic/6.0"
+}
