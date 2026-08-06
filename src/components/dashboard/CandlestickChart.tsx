@@ -81,23 +81,23 @@ export default function CandlestickChart({
   const wrapRef = useRef<HTMLDivElement>(null)
   const viewRef = useRef({ end: bars.length, count: Math.min(DEFAULT_VISIBLE, bars.length) })
 
-  /* effective series: static bars + (optional) forming live bar appended */
-  const effBars = useMemo<Bar[]>(
-    () =>
-      live
-        ? [
-            ...bars,
-            {
-              ...live.bar,
-              p_high_vol: live.latest.p_high_vol,
-              exp_range_atr: live.latest.expected_range_atr,
-              regime: live.latest.regime,
-              session: live.session,
-            },
-          ]
-        : bars,
-    [bars, live],
-  )
+  /* effective series: static bars + (optional) forming live bar.
+     Same-hour case: the forming bar replaces the last static bar (same timestamp)
+     instead of duplicating it — mirrors the engine's replace semantics. */
+  const effBars = useMemo<Bar[]>(() => {
+    if (!live) return bars
+    const forming: Bar = {
+      ...live.bar,
+      p_high_vol: live.latest.p_high_vol,
+      exp_range_atr: live.latest.expected_range_atr,
+      regime: live.latest.regime,
+      session: live.session,
+    }
+    if (bars.length > 0 && bars[bars.length - 1].t === forming.t) {
+      return [...bars.slice(0, -1), forming]
+    }
+    return [...bars, forming]
+  }, [bars, live])
   const effLatest = live?.latest ?? latest
   const formingAbs = live ? effBars.length - 1 : -1
   const [toggles, setToggles] = useState({ volDots: true, sessions: true, cone: true })
