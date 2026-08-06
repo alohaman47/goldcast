@@ -1,0 +1,24 @@
+{
+  "asof": "2026-07-17 15:00:00",
+  "session": "ny",
+  "regime": "ranging",
+  "p_high_vol": 0.7991,
+  "expected_range_atr": 1.8149,
+  "expected_range_price": 29.0242,
+  "cone": {
+    "T1": {
+      "half_width": 29.0242
+    },
+    "T2": {
+      "half_width": 41.0464
+    },
+    "T3": {
+      "half_width": 50.2713
+    }
+  },
+  "direction_policy": "drift",
+  "drift_sign": 1,
+  "confidence": 5,
+  "price": 3970.83,
+  "atr14": 15.992
+}
