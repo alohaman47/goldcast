@@ -4,64 +4,59 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 240 10% 3.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 240 10% 3.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 3.9%;
-    --primary: 240 5.9% 10%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 240 4.8% 95.9%;
-    --secondary-foreground: 240 5.9% 10%;
-    --muted: 240 4.8% 95.9%;
-    --muted-foreground: 240 3.8% 46.1%;
-    --accent: 240 4.8% 95.9%;
-    --accent-foreground: 240 5.9% 10%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 5.9% 90%;
-    --input: 240 5.9% 90%;
-    --ring: 240 5.9% 10%;
+    /* shadcn/ui vars mapped to GoldCast dark palette */
+    --background: 216 27% 4%;
+    --foreground: 213 20% 93%;
+    --card: 216 23% 7%;
+    --card-foreground: 213 20% 93%;
+    --popover: 216 23% 7%;
+    --popover-foreground: 213 20% 93%;
+    --primary: 40 79% 57%;
+    --primary-foreground: 216 25% 6%;
+    --secondary: 217 25% 11%;
+    --secondary-foreground: 213 20% 93%;
+    --muted: 217 25% 11%;
+    --muted-foreground: 216 11% 47%;
+    --accent: 217 25% 11%;
+    --accent-foreground: 213 20% 93%;
+    --destructive: 4 88% 60%;
+    --destructive-foreground: 213 20% 93%;
+    --border: 212 26% 16%;
+    --input: 212 26% 16%;
+    --ring: 40 79% 57%;
     --radius: 0.625rem;
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
-  }
+    --sidebar-background: 216 23% 7%;
+    --sidebar-foreground: 213 20% 93%;
+    --sidebar-primary: 40 79% 57%;
+    --sidebar-primary-foreground: 216 25% 6%;
+    --sidebar-accent: 217 25% 11%;
+    --sidebar-accent-foreground: 213 20% 93%;
+    --sidebar-border: 212 26% 16%;
+    --sidebar-ring: 40 79% 57%;
 
-  .dark {
-    --background: 240 10% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 240 10% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 240 10% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 240 5.9% 10%;
-    --secondary: 240 3.7% 15.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
-    --accent: 240 3.7% 15.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
-    --ring: 240 4.9% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    /* GoldCast tokens (design.md §2) */
+    --bg-0: #07090C;
+    --bg-1: #0C1015;
+    --bg-2: #11161D;
+    --bg-3: #171E27;
+    --line: #1E2732;
+    --line-strong: #2A3542;
+    --grid: #151C24;
+    --gold: #E8B23A;
+    --gold-hi: #F5CD6B;
+    --gold-dim: #8A6A2A;
+    --gold-glow: rgba(232, 178, 58, 0.35);
+    --up: #2EBD85;
+    --up-glow: rgba(46, 189, 133, 0.4);
+    --down: #F2493F;
+    --warn: #F5A623;
+    --info: #5B8DEF;
+    --honest: #8A93A3;
+    --text-0: #EAEEF3;
+    --text-1: #A9B4C0;
+    --text-2: #6B7684;
+    --text-3: #454F5B;
+    --terminal-ease: cubic-bezier(0.16, 1, 0.3, 1);
   }
 }
 
@@ -69,7 +64,59 @@
   * {
     @apply border-border;
   }
+  html {
+    color-scheme: dark;
+  }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-bg0 text-text0 font-body antialiased;
+    font-feature-settings: "cv02", "cv03", "cv04";
+  }
+  /* Tabular numerals for all mono data text */
+  .tnum,
+  code,
+  kbd {
+    font-variant-numeric: tabular-nums;
+  }
+  ::selection {
+    background: rgba(232, 178, 58, 0.28);
+    color: #EAEEF3;
+  }
+  :focus-visible {
+    outline: 2px solid #E8B23A;
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  /* Panel chrome (design.md §4) */
+  .panel {
+    @apply rounded-[10px] border border-line bg-bg1;
+  }
+  .panel-gold {
+    box-shadow: inset 0 1px 0 rgba(232, 178, 58, 0.25);
+  }
+  /* Panel header with 3px gold tick */
+  .panel-title {
+    @apply font-display text-[15px] font-semibold uppercase tracking-[0.08em] text-text0;
+  }
+  .panel-title::before {
+    content: "▎";
+    color: #E8B23A;
+    margin-right: 6px;
+  }
+  .label-caps {
+    @apply text-[12px] font-medium uppercase leading-4 tracking-[0.06em] text-text2;
+  }
+  .micro-mono {
+    @apply font-mono text-[10px] font-medium leading-[14px] tracking-[0.04em] text-text2;
+  }
+  .stat-glow {
+    text-shadow: 0 0 24px rgba(232, 178, 58, 0.25);
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
   }
 }
