@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Link } from 'react-router'
 import type { LatestData, SessionsData } from '@/hooks/useData'
@@ -24,7 +24,12 @@ const HOT: [number, number, number] = [245, 166, 35] // #F5A623
 /** D. Session Strip — 24h mini heatmap (dashboard.md §D). */
 export default function SessionStrip({ sessions, latest }: { sessions: SessionsData; latest: LatestData }) {
   const [hovered, setHovered] = useState<number | null>(null)
-  const nowUtcHour = new Date().getUTCHours()
+  /* current UTC hour, kept live so the "now" cell follows the clock */
+  const [nowUtcHour, setNowUtcHour] = useState(() => new Date().getUTCHours())
+  useEffect(() => {
+    const iv = window.setInterval(() => setNowUtcHour(new Date().getUTCHours()), 30_000)
+    return () => window.clearInterval(iv)
+  }, [])
 
   const ranges = sessions.hours.map((h) => h.avg_range_price)
   const valid = ranges.filter((v): v is number => v != null)

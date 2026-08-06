@@ -4,6 +4,7 @@ import { Crosshair } from 'lucide-react'
 import type { LatestData } from '@/hooks/useData'
 import HonestyBadge from '@/components/HonestyBadge'
 import ConfidencePips from '@/components/ConfidencePips'
+import LiveBadge, { type LiveBadgeProps } from '@/components/live/LiveBadge'
 
 const EASE = [0.16, 1, 0.3, 1] as [number, number, number, number]
 
@@ -34,12 +35,22 @@ function CountUp({
 }
 
 /** C. Forecast Strip — 3 stat blocks under the chart (dashboard.md §C). */
-export default function ForecastStrip({ latest }: { latest: LatestData }) {
+export default function ForecastStrip({ latest, live }: { latest: LatestData; live?: LiveBadgeProps }) {
   const pVol = latest.p_high_vol * 100
   const conf = Math.max(0, Math.min(5, Math.round(latest.confidence)))
+  const isLive = live != null && (live.status === 'live' || live.status === 'gap' || live.status === 'stale')
 
   return (
-    <section className="panel grid grid-cols-1 divide-y divide-line sm:grid-cols-3 sm:divide-x sm:divide-y-0" aria-label="Forecast summary">
+    <section className="panel" aria-label="Forecast summary">
+      {live && (
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line px-4 py-2">
+          <LiveBadge {...live} />
+          <span className="micro-mono">
+            {isLive ? 'LIVE ENGINE: browser GBM (parity ✓)' : 'STATIC ENGINE EXPORT — /data/latest.json'}
+          </span>
+        </div>
+      )}
+      <div className="grid grid-cols-1 divide-y divide-line sm:grid-cols-3 sm:divide-x sm:divide-y-0">
       {/* Volatility */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -94,6 +105,7 @@ export default function ForecastStrip({ latest }: { latest: LatestData }) {
         </div>
         <p className="micro-mono mt-2">engine self-rated · session + persistence aligned</p>
       </motion.div>
+      </div>
     </section>
   )
 }

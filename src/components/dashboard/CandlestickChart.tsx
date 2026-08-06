@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { Bar, LatestData } from '@/hooks/useData'
+import type { Bar as EngineBar } from '@/engine/bars'
 import { cn } from '@/lib/utils'
 
 /**
@@ -59,10 +60,46 @@ interface Hover {
   ghostK: number | null // 1..3
 }
 
-export default function CandlestickChart({ bars, latest }: { bars: Bar[]; latest: LatestData }) {
+/** Live overlay: forming H1 bar + live engine prediction (anchored at spot). */
+export interface LiveOverlay {
+  bar: EngineBar
+  session: string
+  latest: LatestData
+  status: 'live' | 'stale' | 'gap' | 'error'
+}
+
+export default function CandlestickChart({
+  bars,
+  latest,
+  live = null,
+}: {
+  bars: Bar[]
+  latest: LatestData
+  live?: LiveOverlay | null
+}) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const wrapRef = useRef<HTMLDivElement>(null)
   const viewRef = useRef({ end: bars.length, count: Math.min(DEFAULT_VISIBLE, bars.length) })
+
+  /* effective series: static bars + (optional) forming live bar appended */
+  const effBars = useMemo<Bar[]>(
+    () =>
+      live
+        ? [
+            ...bars,
+            {
+              ...live.bar,
+              p_high_vol: live.latest.p_high_vol,
+              exp_range_atr: live.latest.expected_range_atr,
+              regime: live.latest.regime,
+              session: live.session,
+            },
+          ]
+        : bars,
+    [bars, live],
+  )
+  const effLatest = live?.latest ?? latest
+  const formingAbs = live ? effBars.length - 1 : -1
   const [toggles, setToggles] = useState({ volDots: true, sessions: true, cone: true })
   const [hover, setHover] = useState<Hover | null>(null)
   const dragRef = useRef<{ startX: number; startEnd: number } | null>(null)
@@ -74,8 +111,10 @@ export default function CandlestickChart({ bars, latest }: { bars: Bar[]; latest
   togglesRef.current = toggles
   const hoverRef = useRef(hover)
   hoverRef.current = hover
+  const liveActiveRef = useRef(live != null)
+  liveActiveRef.current = live != null
 
-  const maxBars = bars.length
+  const maxBars = effBars.length
 
   /* ---------- geometry ---------- */
   const layout = useMemo(() => {
@@ -84,7 +123,7 @@ export default function CandlestickChart({ bars, latest }: { bars: Bar[]; latest
       const plotH = h - PAD_T - TIME_H
       const { end, count } = viewRef.current
       const first = Math.max(0, end - count)
-      const visible = bars.slice(first, end)
+      const visible = effBars.slice(first, end)
       const totalSlots = count + FORECAST_SLOTS
       const spacing = plotW / totalSlots
       const xOf = (absIdx: number) => PAD_L + (absIdx - first + 0.5) * spacing
@@ -98,9 +137,9 @@ export default function CandlestickChart({ bars, latest }: { bars: Bar[]; latest
         if (b.h > hi) hi = b.h
       }
       if (togglesRef.current.cone) {
-        const t3 = latest.cone.T3.half_width
-        lo = Math.min(lo, latest.price - t3)
-        hi = Math.max(hi, latest.price + t3)
+        const t3 = effLatest.cone.T3.half_width
+        lo = Math.min(lo, effLatest.price - t3)
+        hi = Math.max(hi, effLatest.price + t3)
       }
       const pad = (hi - lo) * 0.05 || 1
       lo -= pad
@@ -109,7 +148,7 @@ export default function CandlestickChart({ bars, latest }: { bars: Bar[]; latest
 
       return { plotW, plotH, first, visible, spacing, xOf, ghostX, dividerX, yOf, lo, hi, count, end }
     }
-  }, [bars, latest])
+  }, [effBars, effLatest])
 
   /* ---------- draw ---------- */
   const draw = useMemo(() => {
@@ -201,18 +240,43 @@ export default function CandlestickChart({ bars, latest }: { bars: Bar[]; latest
         const x = g.xOf(g.first + i)
         const up = b.c >= b.o
         const col = up ? C.up : C.down
-        ctx.strokeStyle = up ? 'rgba(46,189,133,0.8)' : 'rgba(242,73,63,0.8)'
-        ctx.lineWidth = 1
-        ctx.beginPath()
-        ctx.moveTo(x, g.yOf(b.h))
-        ctx.lineTo(x, g.yOf(b.l))
-        ctx.stroke()
-        ctx.fillStyle = col
         const yo = g.yOf(b.o)
         const yc = g.yOf(b.c)
         const top = Math.min(yo, yc)
         const hgt = Math.max(1, Math.abs(yc - yo))
-        ctx.fillRect(x - bodyW / 2, top, bodyW, hgt)
+        const isForming = g.first + i === formingAbs
+
+        if (isForming) {
+          /* forming live bar: pulsing semi-transparent candle + dashed gold frame */
+          const pulse = reduced ? 0.6 : 0.5 + 0.3 * Math.sin(performance.now() / 350)
+          ctx.save()
+          ctx.globalAlpha = Math.max(0.25, pulse)
+          ctx.strokeStyle = up ? 'rgba(46,189,133,0.8)' : 'rgba(242,73,63,0.8)'
+          ctx.lineWidth = 1
+          ctx.beginPath()
+          ctx.moveTo(x, g.yOf(b.h))
+          ctx.lineTo(x, g.yOf(b.l))
+          ctx.stroke()
+          ctx.fillStyle = col
+          ctx.fillRect(x - bodyW / 2, top, bodyW, hgt)
+          ctx.restore()
+          ctx.save()
+          ctx.globalAlpha = reduced ? 0.55 : Math.min(1, pulse + 0.25)
+          ctx.strokeStyle = C.gold
+          ctx.setLineDash([3, 3])
+          ctx.lineWidth = 1
+          ctx.strokeRect(x - bodyW / 2 - 1.5, top - 1.5, bodyW + 3, hgt + 3)
+          ctx.restore()
+        } else {
+          ctx.strokeStyle = up ? 'rgba(46,189,133,0.8)' : 'rgba(242,73,63,0.8)'
+          ctx.lineWidth = 1
+          ctx.beginPath()
+          ctx.moveTo(x, g.yOf(b.h))
+          ctx.lineTo(x, g.yOf(b.l))
+          ctx.stroke()
+          ctx.fillStyle = col
+          ctx.fillRect(x - bodyW / 2, top, bodyW, hgt)
+        }
 
         /* vol dot */
         if (t.volDots && b.p_high_vol != null && b.p_high_vol >= 0.5) {
@@ -225,10 +289,10 @@ export default function CandlestickChart({ bars, latest }: { bars: Bar[]; latest
       }
 
       /* forecast zone */
-      const lastBar = bars[g.end - 1]
+      const lastBar = effBars[g.end - 1]
       if (t.cone && coneP > 0 && lastBar) {
         const centers = [1, 2, 3].map((k) => g.ghostX(k))
-        const halves = [latest.cone.T1.half_width, latest.cone.T2.half_width, latest.cone.T3.half_width]
+        const halves = [effLatest.cone.T1.half_width, effLatest.cone.T2.half_width, effLatest.cone.T3.half_width]
         const xLast = g.xOf(g.end - 1)
         const yClose = g.yOf(lastBar.c)
 
@@ -255,8 +319,8 @@ export default function CandlestickChart({ bars, latest }: { bars: Bar[]; latest
 
         /* cone fill */
         const xs = [xLast, ...centers]
-        const upper = [yClose, ...halves.map((hw) => g.yOf(latest.price + hw * coneP))]
-        const lower = [yClose, ...halves.map((hw) => g.yOf(latest.price - hw * coneP))]
+        const upper = [yClose, ...halves.map((hw) => g.yOf(effLatest.price + hw * coneP))]
+        const lower = [yClose, ...halves.map((hw) => g.yOf(effLatest.price - hw * coneP))]
         const grad = ctx.createLinearGradient(xLast, 0, centers[2], 0)
         grad.addColorStop(0, 'rgba(232,178,58,0.07)')
         grad.addColorStop(1, 'rgba(232,178,58,0.01)')
@@ -286,21 +350,21 @@ export default function CandlestickChart({ bars, latest }: { bars: Bar[]; latest
         ctx.textAlign = 'right'
         const labelX = PAD_L + g.plotW - 4
         halves.forEach((hw, i) => {
-          ctx.fillText(`T+${i + 1} ±${hw.toFixed(1)}`, labelX, g.yOf(latest.price + hw * coneP) - 6)
+          ctx.fillText(`T+${i + 1} ±${hw.toFixed(1)}`, labelX, g.yOf(effLatest.price + hw * coneP) - 6)
         })
 
         /* ghost candles T+1..T+3 */
-        const driftCol = latest.drift_sign >= 0 ? C.up : C.down
-        const opacBase = latest.confidence / 5
+        const driftCol = effLatest.drift_sign >= 0 ? C.up : C.down
+        const opacBase = effLatest.confidence / 5
         const ghostBodyW = Math.max(3, Math.min(g.spacing * 0.55, 13))
         ;[0.34, 0.26, 0.2].forEach((op, i) => {
           const k = i + 1
           const gp = reduced ? 1 : easeOut((elapsed - 900 - i * 120) / 300)
           if (gp <= 0) return
           const hw = halves[i] * coneP
-          const nudge = latest.drift_sign * k * latest.cone.T1.half_width * 0.04
+          const nudge = effLatest.drift_sign * k * effLatest.cone.T1.half_width * 0.04
           const cx = centers[i]
-          const cy = g.yOf(latest.price + nudge) + (1 - gp) * 8
+          const cy = g.yOf(effLatest.price + nudge) + (1 - gp) * 8
           const alpha = op * opacBase * gp
           ctx.save()
           ctx.globalAlpha = alpha
@@ -308,8 +372,8 @@ export default function CandlestickChart({ bars, latest }: { bars: Bar[]; latest
           ctx.shadowBlur = 12
           ctx.fillStyle = driftCol
           /* body spans ±0.55*hw around center; wicks to ±hw */
-          const yTop = g.yOf(latest.price + nudge + hw * 0.55) + (1 - gp) * 8
-          const yBot = g.yOf(latest.price + nudge - hw * 0.55) + (1 - gp) * 8
+          const yTop = g.yOf(effLatest.price + nudge + hw * 0.55) + (1 - gp) * 8
+          const yBot = g.yOf(effLatest.price + nudge - hw * 0.55) + (1 - gp) * 8
           ctx.fillRect(cx - ghostBodyW / 2, yTop, ghostBodyW, Math.max(2, yBot - yTop))
           ctx.restore()
           /* border at 70% */
@@ -319,7 +383,7 @@ export default function CandlestickChart({ bars, latest }: { bars: Bar[]; latest
           ctx.lineWidth = 1
           ctx.strokeRect(cx - ghostBodyW / 2, yTop, ghostBodyW, Math.max(2, yBot - yTop))
           /* wicks */
-          const wickHalf = g.yOf(latest.price + nudge - hw) - g.yOf(latest.price + nudge)
+          const wickHalf = g.yOf(effLatest.price + nudge - hw) - g.yOf(effLatest.price + nudge)
           ctx.beginPath()
           ctx.moveTo(cx, cy - wickHalf)
           ctx.lineTo(cx, cy + wickHalf)
@@ -337,7 +401,7 @@ export default function CandlestickChart({ bars, latest }: { bars: Bar[]; latest
 
       /* last price line + tag + countdown */
       if (tagP > 0) {
-        const y = g.yOf(latest.price)
+        const y = g.yOf(effLatest.price)
         ctx.save()
         ctx.globalAlpha = tagP
         ctx.strokeStyle = C.gold
@@ -349,7 +413,7 @@ export default function CandlestickChart({ bars, latest }: { bars: Bar[]; latest
         ctx.stroke()
         ctx.setLineDash([])
         /* tag pill on right axis */
-        const label = fmtPrice(latest.price)
+        const label = fmtPrice(effLatest.price)
         ctx.font = '600 11px "JetBrains Mono", monospace'
         const tw = ctx.measureText(label).width + 12
         const th = 18
@@ -397,18 +461,22 @@ export default function CandlestickChart({ bars, latest }: { bars: Bar[]; latest
         ctx.setLineDash([])
       }
     }
-  }, [bars, latest, layout])
+  }, [effBars, effLatest, live, layout])
 
   const drawRef = useRef(draw)
   drawRef.current = draw
 
   /* ---------- intro animation + 1s countdown redraw ---------- */
+  /* runs once: draw() reads live data via refs, so ticks/cone updates never
+     replay the wipe. While a live forming bar is present (and motion is
+     allowed) a rAF loop keeps the candle pulse smooth. */
   useEffect(() => {
     animStartRef.current = performance.now()
     let raf = 0
     const tick = () => {
       drawRef.current()
-      if (performance.now() - animStartRef.current < 2200 && !reducedRef.current) {
+      const introRunning = performance.now() - animStartRef.current < 2200
+      if (!reducedRef.current && (introRunning || liveActiveRef.current)) {
         raf = requestAnimationFrame(tick)
       }
     }
@@ -418,7 +486,19 @@ export default function CandlestickChart({ bars, latest }: { bars: Bar[]; latest
       cancelAnimationFrame(raf)
       clearInterval(iv)
     }
-  }, [bars, latest])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  /* extend the view to include a newly appended forming bar (unless panned) */
+  const prevLenRef = useRef(effBars.length)
+  useEffect(() => {
+    const v = viewRef.current
+    if (effBars.length === prevLenRef.current + 1 && v.end === prevLenRef.current) {
+      v.end = effBars.length
+      drawRef.current()
+    }
+    prevLenRef.current = effBars.length
+  }, [effBars.length])
 
   /* redraw on toggle/hover change */
   useEffect(() => {
@@ -503,8 +583,9 @@ export default function CandlestickChart({ bars, latest }: { bars: Bar[]; latest
     drawRef.current()
   }
 
-  const hoveredBar = hover?.barIdx != null ? bars[hover.barIdx] : null
-  const ghostHw = hover?.ghostK != null ? latest.cone[(`T${hover.ghostK}`) as 'T1' | 'T2' | 'T3'].half_width : null
+  const hoveredBar = hover?.barIdx != null ? effBars[hover.barIdx] : null
+  const hoveringForming = hover?.barIdx != null && hover.barIdx === formingAbs
+  const ghostHw = hover?.ghostK != null ? effLatest.cone[(`T${hover.ghostK}`) as 'T1' | 'T2' | 'T3'].half_width : null
 
   return (
     <div ref={wrapRef} className="relative h-full w-full">
@@ -574,7 +655,10 @@ export default function CandlestickChart({ bars, latest }: { bars: Bar[]; latest
         >
           {hoveredBar ? (
             <>
-              <div className="text-text2">{hoveredBar.t} UTC</div>
+              <div className="text-text2">
+                {hoveredBar.t} UTC
+                {hoveringForming && <span className="text-gold"> · FORMING — live, not closed</span>}
+              </div>
               <div>
                 O <span className="tnum">{fmtPrice(hoveredBar.o)}</span> H{' '}
                 <span className="tnum">{fmtPrice(hoveredBar.h)}</span>
@@ -605,9 +689,9 @@ export default function CandlestickChart({ bars, latest }: { bars: Bar[]; latest
 
       {/* data-table fallback summary (a11y) */}
       <p id="chart-data-summary" className="sr-only">
-        Showing the last {Math.min(viewRef.current.count, bars.length)} of {bars.length} XAUUSD H1 bars. Latest
-        price {fmtPrice(latest.price)}. Forecast cone half-widths: T+1 ±{latest.cone.T1.half_width.toFixed(1)}, T+2
-        ±{latest.cone.T2.half_width.toFixed(1)}, T+3 ±{latest.cone.T3.half_width.toFixed(1)} USD. Range forecast
+        Showing the last {Math.min(viewRef.current.count, effBars.length)} of {effBars.length} XAUUSD H1 bars. Latest
+        price {fmtPrice(effLatest.price)}. Forecast cone half-widths: T+1 ±{effLatest.cone.T1.half_width.toFixed(1)}, T+2
+        ±{effLatest.cone.T2.half_width.toFixed(1)}, T+3 ±{effLatest.cone.T3.half_width.toFixed(1)} USD. Range forecast
         only — direction not predicted.
       </p>
     </div>

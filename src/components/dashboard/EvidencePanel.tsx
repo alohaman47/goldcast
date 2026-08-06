@@ -4,6 +4,7 @@ import { Activity, ArrowUp, ArrowDown, BarChart2, ChevronRight, Clock, Gauge, In
 import type { LucideIcon } from 'lucide-react'
 import type { LatestData } from '@/hooks/useData'
 import HonestyBadge from '@/components/HonestyBadge'
+import LiveBadge, { type LiveBadgeProps } from '@/components/live/LiveBadge'
 import { cn } from '@/lib/utils'
 
 const EASE = [0.16, 1, 0.3, 1] as [number, number, number, number]
@@ -25,7 +26,7 @@ interface Row {
 }
 
 /** EVIDENCE — Why this forecast (dashboard.md §B). Every row is a real engine input/output. */
-export default function EvidencePanel({ latest }: { latest: LatestData }) {
+export default function EvidencePanel({ latest, live }: { latest: LatestData; live?: LiveBadgeProps }) {
   const sessionName = SESSION_NAMES[latest.session] ?? latest.session
   const rows: Row[] = [
     {
@@ -89,6 +90,17 @@ export default function EvidencePanel({ latest }: { latest: LatestData }) {
           <Info size={14} />
         </span>
       </div>
+
+      {live && (
+        <div className="mt-2 flex flex-wrap items-center justify-between gap-2 border-b border-line/60 pb-2">
+          <LiveBadge {...live} />
+          <span className="micro-mono">
+            {live.status === 'live' || live.status === 'gap' || live.status === 'stale'
+              ? 'LIVE ENGINE: browser GBM (parity ✓)'
+              : 'STATIC ENGINE EXPORT — /data/latest.json'}
+          </span>
+        </div>
+      )}
 
       <div className="mt-2 flex flex-col">
         {rows.map((r, i) => {
