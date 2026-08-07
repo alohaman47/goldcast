@@ -4,6 +4,7 @@ import { Menu, X } from 'lucide-react'
 import { useLatest } from '@/hooks/useData'
 import { useSymbol, symbolDisplayName } from '@/hooks/useSymbol'
 import SymbolToggle from '@/components/symbol/SymbolToggle'
+import TfToggle from '@/components/symbol/TfToggle'
 import { cn } from '@/lib/utils'
 
 const NAV_LINKS = [
@@ -30,15 +31,15 @@ function formatUtc(d: Date) {
 
 export default function Navbar() {
   const { data: latest } = useLatest()
-  const { symbol, config } = useSymbol()
+  const { symbol, config, tf } = useSymbol()
   const now = useUtcClock()
   const [drawerOpen, setDrawerOpen] = useState(false)
 
   /* gold regime chip only — NAS100 has no live feed, so no live regime claim */
   const regime = symbol === 'XAUUSD' ? (latest?.regime ?? null) : null
   const regimeIsTrending = regime === 'trending'
-  /* keep the active symbol on every internal navigation */
-  const symbolQuery = symbol === 'XAUUSD' ? '' : '?symbol=nas100'
+  /* keep the active symbol (and NAS100 timeframe) on every internal navigation */
+  const symbolQuery = symbol === 'XAUUSD' ? '' : tf === 'H4' ? '?symbol=nas100&tf=h4' : '?symbol=nas100'
 
   return (
     <header className="sticky top-0 z-50 h-16 border-b border-line bg-bg0/95 backdrop-blur-sm">
@@ -63,7 +64,7 @@ export default function Navbar() {
           </div>
           <div className="flex items-center gap-1">
             <span className="rounded border border-gold bg-gold/10 px-2 py-0.5 font-mono text-[11px] font-semibold text-gold">
-              H1
+              {config.timeframe ?? 'H1'}
             </span>
             <span className="rounded border border-line px-2 py-0.5 font-mono text-[11px] font-medium text-text2">
               D1
@@ -101,6 +102,7 @@ export default function Navbar() {
             )}
           </div>
           <SymbolToggle className="hidden sm:flex" />
+          <TfToggle className="hidden sm:flex" />
           <nav className="hidden items-center gap-5 md:flex" aria-label="Primary">
             {NAV_LINKS.map((l) => (
               <NavLink
@@ -136,6 +138,7 @@ export default function Navbar() {
         <div className="fixed inset-x-0 top-16 bottom-0 z-50 border-t border-line bg-bg0 md:hidden">
           <nav className="flex flex-col gap-1 p-4" aria-label="Mobile">
             <SymbolToggle className="mb-2 self-start" />
+            <TfToggle className="mb-2 self-start" />
             {NAV_LINKS.map((l, i) => (
               <NavLink
                 key={l.to}

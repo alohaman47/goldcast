@@ -106,6 +106,8 @@ export default function CandlestickChart({
   const effLatest = live?.latest ?? latest
   const formingAbs = live ? effBars.length - 1 : -1
   const priceDecimals = config.priceDecimals
+  /* engine timeframe label (H4 variant for NAS100; H1 everywhere else) */
+  const tf = config.timeframe ?? 'H1'
   const [toggles, setToggles] = useState({ volDots: true, sessions: true, cone: true })
   const [hover, setHover] = useState<Hover | null>(null)
   const dragRef = useRef<{ startX: number; startEnd: number } | null>(null)
@@ -602,7 +604,7 @@ export default function CandlestickChart({
         ref={canvasRef}
         style={{ width: '100%', height: '100%', display: 'block', cursor: 'crosshair', touchAction: 'none' }}
         role="img"
-        aria-label={`${config.symbol} H1 candlestick chart with T+1 to T+3 volatility cone forecast`}
+        aria-label={`${config.symbol} ${tf} candlestick chart with T+1 to T+3 volatility cone forecast`}
         aria-describedby="chart-data-summary"
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
@@ -698,7 +700,7 @@ export default function CandlestickChart({
 
       {/* data-table fallback summary (a11y) */}
       <p id="chart-data-summary" className="sr-only">
-        {`Showing the last ${Math.min(viewRef.current.count, effBars.length)} of ${effBars.length} ${config.symbol} H1 bars. Latest price ${fmtPrice(effLatest.price, priceDecimals)}. Forecast cone half-widths: T+1 ±${effLatest.cone.T1.half_width.toFixed(1)}, T+2 ±${effLatest.cone.T2.half_width.toFixed(1)}, T+3 ±${effLatest.cone.T3.half_width.toFixed(1)} ${priceUnit(config)}. Range forecast only — direction not predicted.`}
+        {`Showing the last ${Math.min(viewRef.current.count, effBars.length)} of ${effBars.length} ${config.symbol} ${tf} bars. Latest price ${fmtPrice(effLatest.price, priceDecimals)}. Forecast cone half-widths: T+1 ±${effLatest.cone.T1.half_width.toFixed(1)}, T+2 ±${effLatest.cone.T2.half_width.toFixed(1)}, T+3 ±${effLatest.cone.T3.half_width.toFixed(1)} ${priceUnit(config)}. Range forecast only — direction not predicted.`}
       </p>
     </div>
   )

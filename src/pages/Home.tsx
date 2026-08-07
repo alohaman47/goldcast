@@ -22,10 +22,18 @@ import SymbolStatusBar from '@/components/symbol/SymbolStatusBar'
 
 const EASE = [0.16, 1, 0.3, 1] as [number, number, number, number]
 
-/** Verified H1 bar counts per dataset (sum of sessions.json bar_count). */
-const BARS_VERIFIED: Record<string, string> = {
-  XAUUSD: '26,836',
-  NAS100: '26,798',
+/**
+ * Verified bar count behind the active config's OOS metrics (gold/NAS100-H1:
+ * sum of sessions.json bar_count; NAS100-H4: the H4 dataset). Rendered with
+ * en-US grouping — identical strings to the old per-symbol map.
+ */
+function barsVerified(config: SymbolConfig): string {
+  return config.validation.bars.toLocaleString('en-US')
+}
+
+/** Chart header timeframe label — keeps the legacy "1H" styling for H1. */
+function chartTfLabel(config: SymbolConfig): string {
+  return config.timeframe === 'H4' ? '4H' : '1H'
 }
 
 /**
@@ -63,7 +71,7 @@ export default function Home() {
   const loading = latest.loading || bars.loading || sessions.loading
   const error = latest.error || bars.error || sessions.error
   const ready = latest.data && bars.data && sessions.data && bars.data.length > 0
-  const statusBar = <SymbolStatusBar latest={null} config={config} barsVerified={BARS_VERIFIED[config.symbol]} />
+  const statusBar = <SymbolStatusBar latest={null} config={config} barsVerified={barsVerified(config)} />
 
   if (loading) {
     return (
@@ -240,7 +248,7 @@ function LiveDashboard({
       </div>
 
       {/* G. Status bar */}
-      <SymbolStatusBar latest={effLatest} liveActive={liveActive} config={config} barsVerified={BARS_VERIFIED[config.symbol]} />
+      <SymbolStatusBar latest={effLatest} liveActive={liveActive} config={config} barsVerified={barsVerified(config)} />
     </>
   )
 }
@@ -294,7 +302,7 @@ function StaticDashboard({
           />
           <div className="relative flex h-full flex-col">
             <div className="flex min-h-10 flex-wrap items-center justify-between gap-x-3 gap-y-1 border-b border-line px-4 py-1">
-              <h1 className="panel-title flex items-center gap-2">{config.symbol} · 1H · OANDA</h1>
+              <h1 className="panel-title flex items-center gap-2">{config.symbol} · {chartTfLabel(config)} · OANDA</h1>
               <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
                 <StaticBadge />
                 <AlertCenter live={NO_FEED_ALERTS_STATE} />
@@ -345,7 +353,7 @@ function StaticDashboard({
       </div>
 
       {/* G. Status bar */}
-      <SymbolStatusBar latest={latest} liveActive={false} config={config} barsVerified={BARS_VERIFIED[config.symbol]} />
+      <SymbolStatusBar latest={latest} liveActive={false} config={config} barsVerified={barsVerified(config)} />
     </>
   )
 }

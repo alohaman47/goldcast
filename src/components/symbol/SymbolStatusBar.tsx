@@ -15,13 +15,13 @@ export default function SymbolStatusBar({
   latest: LatestData | null
   liveActive?: boolean
   config: SymbolConfig
-  /** Pre-formatted verified H1 bar count for the active symbol's dataset. */
+  /** Pre-formatted verified bar count for the active config's dataset. */
   barsVerified: string
 }) {
   return (
     <div className="flex h-10 flex-wrap items-center justify-between gap-x-4 border-t border-line bg-bg0 px-4">
       <span className="micro-mono truncate">
-        Data: OANDA {config.symbol} H1 ·{' '}
+        Data: OANDA {config.symbol} {config.timeframe ?? 'H1'} ·{' '}
         {liveActive ? (
           <>
             <span className="text-down">LIVE</span> browser engine asof {latest?.asof ?? '—'} UTC · LIVE ENGINE:

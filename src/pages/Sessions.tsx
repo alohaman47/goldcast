@@ -141,6 +141,10 @@ function Hero({
           The One True Edge — {config.symbol}
           {!config.hasLiveFeed && <span className="ml-2 text-text2">· static export, no live feed</span>}
         </p>
+        {/* H4 view reuses the H1-derived session profile (sessions_nas100.json) — say so quietly */}
+        {config.timeframe === 'H4' && (
+          <p className="micro-mono mt-2">session profile computed on H1 bars — H4 view reuses it</p>
+        )}
         <h1 className="mt-3 font-display text-[34px] font-bold leading-[42px] tracking-[-0.015em] text-text0 sm:text-[40px] sm:leading-[46px]">
           {headline.split(' ').map((word, i) => (
             <span key={i} className="inline-block overflow-hidden pb-1 align-bottom">

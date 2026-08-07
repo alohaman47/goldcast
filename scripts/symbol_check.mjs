@@ -14,6 +14,13 @@
  *   CHECK 4 — band parity: sessions JSON bands match config.sessionBands hours.
  *   CHECK 5 — honest-mode contract: XAUUSD hasLiveFeed === true (unsuffixed
  *             data files), NAS100 hasLiveFeed === false (_nas100 suffix).
+ *   CHECK 6 — component sources are symbol-aware (ForecastStrip / EvidencePanel
+ *             / CandlestickChart / Navbar / Footer read config, not hardcoded
+ *             gold values).
+ *   CHECK 7 — NAS100 H4 variant (Phase 11 / Track B2): VARIANT_CONFIGS
+ *             ["nas100-h4"] resolves with timeframe "H4", H4 data files
+ *             exist/parse/shape-ok, scorers callable, validation metrics match
+ *             the verified H4 numbers, XAUUSD/NAS100 configs unchanged.
  *
  * Usage: node scripts/symbol_check.mjs   (exit code 0 = PASS, 1 = FAIL)
  */
@@ -215,8 +222,9 @@ const main = async () => {
 
   const chart = await readSrc("components/dashboard/CandlestickChart.tsx");
   check(
-    "CandlestickChart: aria-label + a11y summary use config.symbol / priceUnit (no hardcoded XAUUSD/USD)",
-    chart.includes("aria-label={`${config.symbol} H1 candlestick chart") &&
+    "CandlestickChart: aria-label + a11y summary use config.symbol / tf / priceUnit (no hardcoded XAUUSD/USD)",
+    chart.includes("aria-label={`${config.symbol} ${tf} candlestick chart") &&
+      chart.includes("config.timeframe ?? 'H1'") &&
       !chart.includes('"XAUUSD H1 candlestick chart') &&
       !chart.includes("} XAUUSD H1 bars") &&
       !chart.includes(" USD. Range forecast"),
@@ -241,6 +249,85 @@ const main = async () => {
     "Footer: data-source line symbol-aware (OANDA XAUUSD vs MT5 NAS100)",
     footer.includes("Data: OANDA XAUUSD H1/D1") && footer.includes("Data: MT5 NAS100 H1/D1"),
   );
+
+  // ---- CHECK 7 — NAS100 H4 engine variant (Phase 11 / Track B2) -----------
+  // (the "CHECK 6" slot is the component-source block above; this section is
+  //  appended only — nothing above is re-asserted or weakened)
+  console.log(`\n[NAS100-H4 variant]`);
+  const { VARIANT_CONFIGS } = eng;
+  const h4 = VARIANT_CONFIGS?.["nas100-h4"];
+  check("VARIANT_CONFIGS['nas100-h4'] resolves with timeframe 'H4'", !!h4 && h4.timeframe === "H4");
+  if (h4) {
+    check("H4 variant is NAS100, STATIC mode (no live feed)", h4.symbol === "NAS100" && h4.hasLiveFeed === false);
+    check(
+      "H4 dataFiles: H4 bars/latest + reused NAS100 daily/sessions",
+      h4.dataFiles.bars === "data/bars_nas100_h4.json" &&
+        h4.dataFiles.latest === "data/latest_nas100_h4.json" &&
+        h4.dataFiles.daily === "data/daily_nas100.json" &&
+        h4.dataFiles.sessions === "data/sessions_nas100.json",
+      JSON.stringify(h4.dataFiles),
+    );
+    // validation metrics — the verified H4 numbers the UI must render
+    const hv = h4.validation ?? {};
+    check(
+      "H4 validation: 83.18% OOS accuracy · AUC 0.8715 (4dp) · 8,509 bars",
+      hv.hvolAccuracyPct === 83.18 && hv.hvolAuc === 0.8715 && hv.hvolAucDecimals === 4 && hv.bars === 8509,
+      `got ${JSON.stringify(hv)}`,
+    );
+    check(
+      "H4 validation direction: 52.35% vs 54.33% always-up, drift 2021–2026",
+      hv.directionModelPct === 52.35 && hv.directionAlwaysUpPct === 54.33 && hv.driftPeriod === "2021–2026",
+      `got ${JSON.stringify(hv)}`,
+    );
+    // scorers callable on a 20-feature gbm_price vector
+    const vec = new Array(20).fill(0);
+    const hv4 = h4.scoreHvol(vec);
+    const rg4 = h4.scoreRange(vec);
+    check(
+      "H4 scoreHvol/scoreRange callable, finite output",
+      Number.isFinite(hv4) && Number.isFinite(rg4),
+      `hvol=${hv4} range=${rg4}`,
+    );
+    check(
+      "H4 modelModules point at the H4 engine modules",
+      h4.modelModules.hvol.includes("H4") && h4.modelModules.range.includes("H4"),
+      JSON.stringify(h4.modelModules),
+    );
+    // data files exist / parse / shape-ok under public/
+    for (const kind of ["bars", "daily", "sessions", "latest"]) {
+      const rel = h4.dataFiles[kind];
+      const { exists, json, error } = await loadJson(rel);
+      check(`public/${rel} exists and parses`, exists && json != null, error ?? (exists ? "parse error" : "missing"));
+      if (json == null) continue;
+      if (kind === "latest") {
+        check(
+          "H4 latest: asof + positive price + cone T1..T3",
+          typeof json.asof === "string" && json.price > 0 && json.cone?.T1?.half_width > 0 && json.cone?.T3?.half_width > 0,
+        );
+      } else if (kind === "bars") {
+        const last = json[json.length - 1];
+        check("H4 bars: non-empty, OHLC rows", json.length > 0 && typeof last.o === "number" && typeof last.c === "number", `len=${json.length}`);
+      } else if (kind === "sessions") {
+        check(
+          "H4 sessions (reused H1 profile): 24 hourly rows + 4 bands",
+          Array.isArray(json.hours) && json.hours.length === 24 && ["asia", "london", "ny", "off"].every((k) => json.bands?.[k]),
+        );
+        check(
+          "H4 sessions JSON bands match H4 config.sessionBands hours",
+          ["asia", "london", "ny", "off"].every(
+            (k) => JSON.stringify(json.bands[k].hours) === JSON.stringify(h4.sessionBands[k].hours),
+          ),
+        );
+      } else if (kind === "daily") {
+        check("H4 daily: non-empty OHLC rows", json.length > 0 && typeof json[json.length - 1].c === "number", `len=${json.length}`);
+      }
+    }
+    // XAUUSD / NAS100 base configs stay untouched (no timeframe field — H1 default)
+    check(
+      "XAUUSD/NAS100 configs unchanged (timeframe stays undefined — H1 default)",
+      SYMBOL_CONFIGS.XAUUSD.timeframe === undefined && SYMBOL_CONFIGS.NAS100.timeframe === undefined,
+    );
+  }
 
   await fs.unlink(outfile).catch(() => {});
   console.log(failures === 0 ? "\nSYMBOL CHECK: PASS" : `\nSYMBOL CHECK: FAIL (${failures} failing checks)`);
