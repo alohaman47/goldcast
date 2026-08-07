@@ -1,6 +1,6 @@
 /**
- * GoldCast Phase 6 Stage 1 / Phase 9 Stage 1 — PARITY GATE for BOTH symbols
- * (must print PASS for gold AND nas100 before merge).
+ * GoldCast Phase 6 Stage 1 / Phase 9 Stage 1 / Phase 11 — PARITY GATE for
+ * gold, nas100 AND nas100-h4 (must print PASS for all three before merge).
  *
  * Recomputes, in TS/JS, everything the Python side exported
  * (goldcast_phase1/src/export_parity.py --symbol gold|nas100) and compares,
@@ -47,6 +47,15 @@ const SYMBOLS = [
     scoreCsv: "scripts/parity/parity_nas100_scores.csv",
     predJson: "scripts/parity/parity_nas100_predict.json",
     configExport: "NAS100_CONFIG",
+  },
+  {
+    id: "NAS100-H4",
+    barsJson: "public/data/bars_nas100_h4.json",
+    dailyJson: "public/data/daily_nas100.json", // reused: same D1 window
+    featCsv: "scripts/parity/parity_nas100_h4_features.csv",
+    scoreCsv: "scripts/parity/parity_nas100_h4_scores.csv",
+    predJson: "scripts/parity/parity_nas100_h4_predict.json",
+    configExport: "NAS100_H4_CONFIG",
   },
 ];
 
