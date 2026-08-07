@@ -1,23 +1,35 @@
 import { useEffect, useState } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import { AlertTriangle, Database, Clock3 } from 'lucide-react'
-import { useScalperClock } from '@/hooks/useData'
+import { useScalperClock, scalperClockFile } from '@/hooks/useData'
 import type { ScalperClockData } from '@/hooks/useData'
+import { useSymbol } from '@/hooks/useSymbol'
 import SlotGrid from '@/components/scalper/SlotGrid'
 import HotCards from '@/components/scalper/HotCards'
 import EconPanel from '@/components/scalper/EconPanel'
 import GuidancePanel from '@/components/scalper/GuidancePanel'
 import HourlyStrip from '@/components/scalper/HourlyStrip'
-import { TERMINAL_EASE, fmtAtr, fmtUsd, fmtPct, fmtInt } from '@/components/scalper/utils'
+import {
+  TERMINAL_EASE,
+  SCALPER_VERDICT_CHIP,
+  SCALPER_VERDICT_CHIP_FALLBACK,
+  fmtAtr,
+  fmtUsd,
+  fmtPct,
+  fmtInt,
+} from '@/components/scalper/utils'
 
 const HEADLINE = "Scalper's Clock"
 
 /**
- * NAS100 M15 slot seasonality — 96 fifteen-minute slots of the UTC day,
- * empirical over 100,317 bars. Static research export: no model, no forecast.
+ * M15 slot seasonality for the ACTIVE symbol (XAUUSD gold + NAS100) — 96
+ * fifteen-minute slots of the UTC day, empirical over the full export. Every
+ * value on the page renders from the fetched JSON; static research export:
+ * no model, no forecast.
  */
 export default function ScalperClock() {
   const { data, loading, error } = useScalperClock()
+  const { symbol } = useSymbol()
 
   // Live UTC clock (1s tick) — drives the hero chip and the NOW slot marker.
   const [now, setNow] = useState(() => new Date())
@@ -32,7 +44,7 @@ export default function ScalperClock() {
 
       {error && (
         <div className="panel mt-10 border-l-2 border-l-down p-5 font-mono text-[13px] text-down">
-          Failed to load nas100_m15_slots.json — {error}
+          Failed to load {scalperClockFile(symbol)} — {error}
         </div>
       )}
 
@@ -42,7 +54,7 @@ export default function ScalperClock() {
         <div className="mt-14 flex flex-col gap-14">
           <SlotGrid slots={data.slots} hottestSlotIdx={data.highlights.hottest_slot.slot} now={now} />
           <HotCards highlights={data.highlights} />
-          <EconPanel econ={data.econ} />
+          <EconPanel econ={data.econ} symbol={data.meta.symbol} />
           <GuidancePanel guidance={data.guidance} />
           <HourlyStrip hourly={data.hourly} now={now} />
         </div>
@@ -66,7 +78,7 @@ function Hero({ data, now, loading }: { data: ScalperClockData | null; now: Date
     <header className="grid grid-cols-1 items-start gap-10 lg:grid-cols-[1fr_340px]">
       <div>
         <p className="label-caps text-gold">
-          NAS100 · M15 · 100,317 bars
+          {data ? `${data.meta.symbol} · ${data.meta.timeframe} · ${fmtInt(data.meta.bar_count)} bars` : 'M15 slot map'}
           <span className="ml-2 text-text2">· static research export</span>
         </p>
         <h1 className="mt-3 font-display text-[34px] font-bold leading-[42px] tracking-[-0.015em] text-text0 sm:text-[40px] sm:leading-[46px]">
@@ -94,8 +106,8 @@ function Hero({ data, now, loading }: { data: ScalperClockData | null; now: Date
           transition={{ delay: reducedMotion ? 0 : 0.3, duration: reducedMotion ? 0 : 0.5, ease: TERMINAL_EASE }}
           className="mt-4 max-w-[640px] font-body text-[15px] leading-6 text-text1"
         >
-          Every 15-minute slot of the NAS100 day, measured — not modeled. The clock tells you when the market moves and
-          how far. It has never once told you which way.
+          Every 15-minute slot of the {data ? `${data.meta.symbol} ` : ''}day, measured — not modeled. The clock tells
+          you when the market moves and how far. It has never once told you which way.
         </motion.p>
 
         {/* Honest badge row */}
@@ -111,11 +123,12 @@ function Hero({ data, now, loading }: { data: ScalperClockData | null; now: Date
           </span>
           <span className="inline-flex items-center gap-1.5 rounded border border-linestrong bg-bg1 px-2 py-1 font-mono text-[10px] font-semibold tracking-[0.04em] text-text2">
             <Clock3 size={10} />
-            static export · data ends 2026-05-21
+            {/* meta.note verbatim: "data ends YYYY-MM-DD — static research export, no model, no live feed" */}
+            {data ? data.meta.note : 'static export'}
           </span>
           <span className="inline-flex items-center gap-1.5 rounded border border-warn/50 bg-warn/10 px-2 py-1 font-mono text-[10px] font-semibold tracking-[0.04em] text-warn">
             <AlertTriangle size={10} />
-            no edge to pay the spread — timing only
+            {data ? SCALPER_VERDICT_CHIP[data.meta.symbol] ?? SCALPER_VERDICT_CHIP_FALLBACK : SCALPER_VERDICT_CHIP_FALLBACK}
           </span>
         </motion.div>
       </div>
