@@ -11,10 +11,12 @@ const STRIP_H = 120 // px, bar track height
 interface HourlyStripProps {
   hourly: ScalperClockData['hourly']
   now: Date
+  /** meta.timeframe of the active export — keeps the M15/M5 copy honest. */
+  timeframe: string
 }
 
 /** Secondary overview: 24 hourly bars, height + thermal fill by avg_range_atr. */
-export default function HourlyStrip({ hourly, now }: HourlyStripProps) {
+export default function HourlyStrip({ hourly, now, timeframe }: HourlyStripProps) {
   const [hover, setHover] = useState<number | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const inView = useInView(containerRef, { once: true, amount: 0.3 })
@@ -45,7 +47,7 @@ export default function HourlyStrip({ hourly, now }: HourlyStripProps) {
 
         <div ref={containerRef} className="relative mt-4">
           <div className="flex items-end gap-[3px]" style={{ height: STRIP_H }} role="img"
-            aria-label="Bar chart of average M15 range in ATR by UTC hour. Hour 00 is hollow: session break.">
+            aria-label={`Bar chart of average ${timeframe} range in ATR by UTC hour. Hour 00 is hollow: session break.`}>
             {hourly.hours.map((h) => {
               const isNull = h.avg_range_atr == null || h.bar_count === 0
               const t = isNull ? 0 : extent[1] > extent[0] ? (h.avg_range_atr! - extent[0]) / (extent[1] - extent[0]) : 0.5
@@ -119,7 +121,7 @@ export default function HourlyStrip({ hourly, now }: HourlyStripProps) {
                 </span>
               )
             ) : (
-              <span className="text-text2">hover an hour — bar height &amp; color = avg M15 range in ATR</span>
+              <span className="text-text2">hover an hour — bar height &amp; color = avg {timeframe} range in ATR</span>
             )}
           </div>
         </div>

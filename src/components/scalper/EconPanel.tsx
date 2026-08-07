@@ -5,13 +5,18 @@ import type { ScalperEcon } from '@/hooks/useData'
 import { TERMINAL_EASE, fmtPctAdaptive } from './utils'
 
 /**
- * Framed punchline + verdict label — keyed by meta.symbol. The JSON carries
- * every number plus the long-form econ.verdict verbatim, but no short
- * headline, so these live here as constants from the research findings:
+ * Framed punchline + verdict label — keyed by meta.symbol + meta.timeframe
+ * (`SYMBOL:TF`, bare `SYMBOL` = the M15 line). The JSON carries every number
+ * plus the long-form econ.verdict verbatim, but no short headline, so these
+ * live here as constants from the research findings:
  *  - NAS100 (results/nas100_m15_findings.md): the spread is NOT the killer —
  *    the missing edge is (+1.9pp breakeven tax over the 33.4% reference).
- *  - XAUUSD (results/xauusd_m15_findings.md): the spread tax is survivable
- *    (+0.7pp) — the missing directional edge is still the binding constraint.
+ *  - XAUUSD M15 (results/xauusd_m15_findings.md): the spread tax is
+ *    survivable (+0.7pp) — the missing directional edge is still the binding
+ *    constraint.
+ *  - XAUUSD M5 (results/xauusd_m5_findings.md): the spread tax is NOT
+ *    survivable (+1.5pp, spread is 4.8% of ATR — 1.9× the M15 ratio) —
+ *    prefer M15 timing.
  */
 const PUNCHLINE: Record<string, (spreadPct: string) => ReactNode> = {
   NAS100: (spreadPct) => (
@@ -26,34 +31,51 @@ const PUNCHLINE: Record<string, (spreadPct: string) => ReactNode> = {
       barely moves breakeven; the problem is that this clock carries no directional edge to spend it on.
     </>
   ),
+  'XAUUSD:M5': (spreadPct) => (
+    <>
+      The M5 spread tax is <span className="font-semibold text-text0">NOT</span> survivable on its own — prefer M15
+      timing. At {spreadPct}% of ATR the cost bites 1.9× harder than at M15 and pushes breakeven +1.5pp past what the
+      best verified gold system achieved; no measured directional edge pays it.
+    </>
+  ),
 }
 const PUNCHLINE_FALLBACK: (spreadPct: string) => ReactNode = PUNCHLINE.NAS100
 
 const VERDICT_LABEL: Record<string, string> = {
   NAS100: 'Verdict — M15 no-ship',
   XAUUSD: 'Verdict — M15 econ survivable',
+  'XAUUSD:M5': 'Verdict — M5 econ NOT survivable',
 }
-const VERDICT_LABEL_FALLBACK = 'Verdict — M15 scalping'
+const VERDICT_LABEL_FALLBACK = 'Verdict — scalping economics'
 
 /**
  * "The honest math of scalping" — verified economics from the active
- * symbol's econ block, framed exactly as that symbol's research states it.
+ * export's econ block, framed exactly as that symbol+timeframe's research
+ * states it.
  */
-export default function EconPanel({ econ, symbol }: { econ: ScalperEcon; symbol: string }) {
+export default function EconPanel({
+  econ,
+  symbol,
+  timeframe,
+}: {
+  econ: ScalperEcon
+  symbol: string
+  timeframe: string
+}) {
   const reducedMotion = useReducedMotion()
   const spreadPct = (econ.median_spread_atr * 100).toFixed(1)
   /* Research-cited breakeven gap (pp), rounded half-to-even at 1dp from the
      UNROUNDED inputs of the research CSVs (this export only carries the
      1dp-rounded fields: 34.2 − 33.4 would give 0.8, contradicting the cited
-     +0.7pp for gold), so the econ block carries the cited value explicitly
-     as breakeven_gap_pp. NAS100's cited 1.9 equals 35.3 − 33.4 exactly, so
-     its rendering stays byte-identical. */
+     +0.7pp for gold M15), so the econ block carries the cited value
+     explicitly as breakeven_gap_pp. NAS100's cited 1.9 equals 35.3 − 33.4
+     exactly, so its rendering stays byte-identical. */
   const gap = econ.breakeven_gap_pp.toFixed(1)
-  const punchline = (PUNCHLINE[symbol] ?? PUNCHLINE_FALLBACK)(spreadPct)
+  const punchline = (PUNCHLINE[`${symbol}:${timeframe}`] ?? PUNCHLINE[symbol] ?? PUNCHLINE_FALLBACK)(spreadPct)
 
   const stats = [
     { label: 'median spread', value: `$${econ.median_spread_usd.toFixed(2)}`, sub: 'per round trip, at entry' },
-    { label: 'median ATR(14)', value: `$${econ.median_atr_usd.toFixed(2)}`, sub: 'M15 bar, full history' },
+    { label: 'median ATR(14)', value: `$${econ.median_atr_usd.toFixed(2)}`, sub: `${timeframe} bar, full history` },
     { label: 'spread / ATR', value: `${spreadPct}%`, sub: 'the tax as a share of the move' },
     {
       label: 'bars where spread > 25% ATR',
@@ -114,7 +136,8 @@ export default function EconPanel({ econ, symbol }: { econ: ScalperEcon; symbol:
             <p className="micro-mono mt-1">
               what was actually achieved —{' '}
               {symbol === 'XAUUSD' ? (
-                /* gold research framing: the tax ADDS +0.7pp to breakeven */
+                /* gold research framing (M15 + M5): the tax ADDS to breakeven
+                   (+0.7pp at M15, +1.5pp at M5) */
                 <span className="text-down">+{gap}pp spread tax</span>
               ) : (
                 /* NAS100 framing stays byte-identical: −1.9pp short */
@@ -126,7 +149,9 @@ export default function EconPanel({ econ, symbol }: { econ: ScalperEcon; symbol:
 
         {/* Verdict — verbatim from the research export */}
         <div className="mt-4 rounded-md border-l-[3px] border-l-warn border border-line bg-bg2 p-4">
-          <span className="label-caps text-warn">{VERDICT_LABEL[symbol] ?? VERDICT_LABEL_FALLBACK}</span>
+          <span className="label-caps text-warn">
+            {VERDICT_LABEL[`${symbol}:${timeframe}`] ?? VERDICT_LABEL[symbol] ?? VERDICT_LABEL_FALLBACK}
+          </span>
           <p className="mt-2 font-mono text-[12px] leading-5 text-text1">{econ.verdict}</p>
         </div>
 

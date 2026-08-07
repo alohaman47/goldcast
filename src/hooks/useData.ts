@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
+import { useSearchParams } from 'react-router'
 
 /**
  * GoldCast data contract (design.md §6).
@@ -222,14 +223,15 @@ export function useSymbolData(): SymbolDataState {
 }
 
 /* ------------------------------------------------------------------ */
-/* Scalper's Clock — M15 slot seasonality (Phase 11: NAS100; Phase 12:  */
-/* symbol-aware, follows useSymbol). Real research exports served from  */
-/* /data/. Identical schema for both symbols. No model.                 */
+/* Scalper's Clock — slot seasonality (Phase 11: NAS100; Phase 12:      */
+/* symbol-aware, follows useSymbol; Phase 13: page-local M15|M5 toggle  */
+/* via ?stf — gold only). Real research exports served from /data/.     */
+/* Identical schema for every export. No model.                         */
 /* ------------------------------------------------------------------ */
 
-/** One 15-minute slot of the UTC day (96 total). Null stats = session break. */
+/** One slot of the UTC day (96 at M15, 288 at M5). Null stats = session break. */
 export interface ScalperSlot {
-  slot: number // 0..95
+  slot: number // 0..slots.length-1
   label: string // "HH:MM" UTC
   utc_hour: number
   utc_minute: number
@@ -331,16 +333,98 @@ export interface ScalperClockData {
 }
 
 /**
- * M15 slot-map export for a symbol. Both files share the ScalperClockData
- * schema (meta/slots/hourly/highlights/econ/guidance); values differ per
- * symbol and everything on the page renders from the fetched JSON.
+ * Scalper's Clock timeframe (Phase 13). Page-local — deliberately
+ * INDEPENDENT of the engine `?tf` param in useSymbol (H1/H4), which the
+ * scalper page does not follow.
  */
-export function scalperClockFile(symbol: SymbolId): string {
-  return symbol === 'XAUUSD' ? '/data/xauusd_m15_slots.json' : '/data/nas100_m15_slots.json'
+export type ScalperTf = 'M15' | 'M5'
+
+/**
+ * Parse the page-local `?stf` param. `m15` is the default (clean URLs carry
+ * no param); `m5` is valid ONLY for XAUUSD — NAS100 has no M5 export, so
+ * for NAS100 the param is ignored (resolves M15) and useScalperTf actively
+ * removes it from the URL.
+ */
+export function parseScalperTf(raw: string | null, symbol: SymbolId): ScalperTf {
+  return symbol === 'XAUUSD' && raw != null && raw.toLowerCase() === 'm5' ? 'M5' : 'M15'
 }
 
-/** Scalper's Clock data for the ACTIVE symbol (XAUUSD gold + NAS100). */
-export function useScalperClock(): DataState<ScalperClockData> {
+/**
+ * Slot-map export for a symbol + scalper timeframe. All three files share
+ * the ScalperClockData schema (meta/slots/hourly/highlights/econ/guidance);
+ * values differ per export and everything on the page renders from the
+ * fetched JSON. NAS100 resolves to its M15 file regardless of stf (honest:
+ * there is no NAS100 M5 map).
+ */
+export function scalperClockFile(symbol: SymbolId, stf: ScalperTf = 'M15'): string {
+  if (symbol === 'XAUUSD') return stf === 'M5' ? '/data/xauusd_m5_slots.json' : '/data/xauusd_m15_slots.json'
+  return '/data/nas100_m15_slots.json'
+}
+
+export interface ScalperTfState {
+  stf: ScalperTf
+  setStf: (next: ScalperTf) => void
+}
+
+/**
+ * Page-local scalper timeframe state backed by the `?stf=m5` URL search
+ * param (m15 default → the param is deleted for clean URLs).
+ *
+ * Persistence: the Navbar builds its query string from a WHITELIST of keys
+ * (symbol, tf) — it does not forward the whole search string — so `stf`
+ * does NOT ride along Navbar navigation. Keeping stf page-local (no nav
+ * persistence) is the deliberate Phase-13 choice: the toggle lives on the
+ * Scalper's Clock page only and a refresh / shared link on that page still
+ * restores it.
+ */
+export function useScalperTf(): ScalperTfState {
   const { symbol } = useSymbol()
-  return useJson<ScalperClockData>(scalperClockFile(symbol))
+  const [params, setParams] = useSearchParams()
+  const stf = parseScalperTf(params.get('stf'), symbol)
+
+  /* Honest cleanup: NAS100 has no M5 map — a stale stf param is removed so
+     the URL never claims data the page can't show. */
+  useEffect(() => {
+    if (symbol !== 'XAUUSD' && params.has('stf')) {
+      setParams(
+        (prev) => {
+          if (!prev.has('stf')) return prev
+          const p = new URLSearchParams(prev)
+          p.delete('stf')
+          return p
+        },
+        { replace: true },
+      )
+    }
+  }, [symbol, params, setParams])
+
+  const setStf = useCallback(
+    (next: ScalperTf) => {
+      setParams((prev) => {
+        const p = new URLSearchParams(prev)
+        /* default m15 keeps URLs clean; m5 is dropped for NAS100 by the
+           cleanup effect above even if set here */
+        if (next === 'M15') p.delete('stf')
+        else p.set('stf', 'm5')
+        return p
+      })
+    },
+    [setParams],
+  )
+
+  return { stf, setStf }
+}
+
+export interface ScalperClockState extends DataState<ScalperClockData> {
+  /** Resolved page-local scalper timeframe (M15 for NAS100 regardless of stf). */
+  stf: ScalperTf
+  setStf: (next: ScalperTf) => void
+}
+
+/** Scalper's Clock data for the ACTIVE symbol + page-local scalper TF. */
+export function useScalperClock(): ScalperClockState {
+  const { symbol } = useSymbol()
+  const { stf, setStf } = useScalperTf()
+  const state = useJson<ScalperClockData>(scalperClockFile(symbol, stf))
+  return { ...state, stf, setStf }
 }

@@ -15,8 +15,6 @@ import {
   slotIndexFor,
 } from './utils'
 
-const QUARTERS = [0, 15, 30, 45]
-
 interface HoverState {
   idx: number
   x: number
@@ -25,9 +23,9 @@ interface HoverState {
 
 /**
  * Gold pulse ring for the single hottest slot (driven by
- * highlights.hottest_slot.slot — 16:30 UTC on NAS100, 15:30 UTC on gold).
- * Isolated + memoized so the perpetual boxShadow loop never re-renders the
- * 96-cell grid.
+ * highlights.hottest_slot.slot — 16:30 UTC on NAS100 M15, 15:30 UTC on gold
+ * M15 and gold M5). Isolated + memoized so the perpetual boxShadow loop
+ * never re-renders the slot grid.
  */
 const HotPulse = memo(function HotPulse({ reduced }: { reduced: boolean }) {
   if (reduced) {
@@ -55,8 +53,11 @@ interface SlotGridProps {
 }
 
 /**
- * 96-slot heatmap: 24 hour columns × 4 quarter rows. Thermal fill is
- * avg_range_atr; null slots (00:xx session break) render hollow/dashed.
+ * Slot heatmap: 24 hour columns × (slots.length/24) slot rows — 4 quarter
+ * rows at M15 (96 slots), 12 five-minute rows at M5 (288 slots). Fully
+ * length-agnostic: no 96/288 constants; slot-minutes derive from
+ * 1440/slots.length. Thermal fill is avg_range_atr normalized per dataset;
+ * null slots (00:xx session break) render hollow/dashed.
  */
 export default function SlotGrid({ slots, hottestSlotIdx, now }: SlotGridProps) {
   const [hover, setHover] = useState<HoverState | null>(null)
@@ -71,7 +72,16 @@ export default function SlotGrid({ slots, hottestSlotIdx, now }: SlotGridProps) 
     return m
   }, [slots])
 
-  const nowIdx = slotIndexFor(now)
+  /* Grid geometry derived from the dataset itself (Phase 13 — M5 = 288). */
+  const slotsPerDay = slots.length
+  const rowsPerHour = Math.max(1, Math.round(slotsPerDay / 24))
+  const rowMinutes = useMemo(
+    () => Array.from({ length: rowsPerHour }, (_, r) => Math.round((r * 60) / rowsPerHour)),
+    [rowsPerHour],
+  )
+  const dense = rowsPerHour > 4
+
+  const nowIdx = slotIndexFor(now, slotsPerDay)
   const hoverSlot = hover ? byIdx.get(hover.idx) : undefined
 
   const handleMove = (idx: number) => (e: MouseEvent<HTMLDivElement>) => {
@@ -83,10 +93,10 @@ export default function SlotGrid({ slots, hottestSlotIdx, now }: SlotGridProps) 
   const clock = `${pad2(now.getUTCHours())}:${pad2(now.getUTCMinutes())}:${pad2(now.getUTCSeconds())}`
 
   return (
-    <section aria-label="96 slot volatility heatmap">
+    <section aria-label={`${slotsPerDay}-slot volatility heatmap`}>
       <div className="panel panel-gold relative overflow-hidden p-4 sm:p-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 className="panel-title">The 96-Slot Map — avg range in ATR</h2>
+          <h2 className="panel-title">The {slotsPerDay}-Slot Map — avg range in ATR</h2>
           <span className="inline-flex items-center gap-2 rounded-md border border-linestrong bg-bg2 px-2.5 py-1 font-mono text-[12px] tnum text-text0">
             <span className="h-1.5 w-1.5 animate-pulse-dot rounded-full bg-up" />
             {clock} UTC
@@ -102,28 +112,28 @@ export default function SlotGrid({ slots, hottestSlotIdx, now }: SlotGridProps) 
                 <span className={cn('micro-mono', h % 2 === 0 ? 'text-text2' : 'text-transparent select-none')}>
                   {pad2(h)}
                 </span>
-                {nowIdx >= h * 4 && nowIdx < h * 4 + 4 && (
+                {nowIdx >= h * rowsPerHour && nowIdx < (h + 1) * rowsPerHour && (
                   <span
                     aria-hidden
                     className="absolute -bottom-[3px] h-0 w-0 border-x-[5px] border-t-[6px] border-x-transparent border-t-goldhi"
-                    style={{ left: `calc(${((nowIdx % 4) + 0.5) * 25}% - 5px)` }}
+                    style={{ left: `calc(${((nowIdx % rowsPerHour) + 0.5) * (100 / rowsPerHour)}% - 5px)` }}
                   />
                 )}
               </span>
             ))}
           </div>
 
-          {/* 4 quarter rows × 24 hour columns */}
-          {QUARTERS.map((q, row) => (
+          {/* rowsPerHour slot rows × 24 hour columns (4 at M15, 12 at M5) */}
+          {rowMinutes.map((minute, row) => (
             <div
-              key={q}
-              className="grid gap-[3px]"
+              key={minute}
+              className={cn('grid gap-[3px]', dense && row > 0 && 'mt-[2px]')}
               style={{ gridTemplateColumns: '44px repeat(24, minmax(0,1fr))' }}
               role="row"
             >
-              <span className="micro-mono flex items-center justify-end pr-2">:{pad2(q)}</span>
+              <span className="micro-mono flex items-center justify-end pr-2">:{pad2(minute)}</span>
               {Array.from({ length: 24 }, (_, h) => {
-                const idx = h * 4 + row
+                const idx = h * rowsPerHour + row
                 const s = byIdx.get(idx)
                 const isNull = !s || s.avg_range_atr == null || s.bar_count === 0
                 const isHottest = idx === hottestSlotIdx
@@ -135,19 +145,21 @@ export default function SlotGrid({ slots, hottestSlotIdx, now }: SlotGridProps) 
                     role="gridcell"
                     aria-label={
                       isNull
-                        ? `${s?.label ?? `${pad2(h)}:${pad2(q)}`} UTC — session break, no bars`
+                        ? `${s?.label ?? `${pad2(h)}:${pad2(minute)}`} UTC — session break, no bars`
                         : `${s.label} UTC · ${fmtAtr(s.avg_range_atr)}ATR · range $${fmtUsd(s.avg_range_usd)} · P(high-vol) ${fmtPct(s.p_high_vol_empirical)} · n=${fmtInt(s.bar_count)}`
                     }
                     initial={{ opacity: 0, scale: 0.6 }}
                     animate={inView ? { opacity: dimmed ? 0.35 : 1, scale: 1 } : { opacity: 0, scale: 0.6 }}
                     transition={{
-                      delay: reducedMotion ? 0 : idx * 0.006,
+                      /* denser grids stagger faster so the reveal stays snappy */
+                      delay: reducedMotion ? 0 : idx * (dense ? 0.002 : 0.006),
                       duration: reducedMotion ? 0 : 0.3,
                       ease: TERMINAL_EASE,
                       opacity: dimmed ? { duration: 0.12, delay: 0 } : undefined,
                     }}
                     className={cn(
-                      'relative h-8 cursor-crosshair rounded-[4px] sm:h-9',
+                      'relative cursor-crosshair rounded-[4px]',
+                      dense ? 'h-4 sm:h-5' : 'h-8 sm:h-9',
                       isNull && 'border border-dashed border-text3/80 bg-transparent',
                       isNow && 'outline outline-1 outline-offset-1 outline-goldhi',
                       isHottest && 'z-10',

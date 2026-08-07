@@ -1,13 +1,18 @@
-import { Link, useLocation } from 'react-router'
+import { Link, useLocation, useSearchParams } from 'react-router'
 import { useSymbol } from '@/hooks/useSymbol'
+import { parseScalperTf } from '@/hooks/useData'
 
 export default function Footer() {
   const { symbol, config } = useSymbol()
   const { pathname } = useLocation()
-  /* data-source provenance matrix (Phase 12): /scalper-clock names the static
-     per-symbol M15 research export first (route precedence), then the active
-     symbol/timeframe engine export. Gold H1 + NAS100 H1/H4 lines byte-identical. */
+  const [searchParams] = useSearchParams()
+  /* data-source provenance matrix (Phase 12; Phase 13 stf-aware): /scalper-clock
+     names the static per-symbol slot-map research export first (route
+     precedence) — gold follows the page-local ?stf toggle (M15 default, M5),
+     NAS100 is M15-only regardless of stf — then the active symbol/timeframe
+     engine export. Gold H1 + NAS100 H1/H4 lines byte-identical. */
   const tf = config.timeframe ?? 'H1'
+  const stf = parseScalperTf(searchParams.get('stf'), symbol)
   /* Honest update indicator: the pulsing "Auto-updated" claim is only true
      for the live gold H1 context. Static research exports (scalper-clock
      dataLines) and every config without a live feed get a neutral static
@@ -16,7 +21,9 @@ export default function Footer() {
   const dataLine =
     pathname === '/scalper-clock'
       ? symbol === 'XAUUSD'
-        ? 'Data: MT5 XAUUSD M15 · 99,599 bars · Static research export · As of 2026-07-03 16:00 UTC'
+        ? stf === 'M5'
+          ? 'Data: MT5 XAUUSD M5 · 325,160 bars · Static research export · As of 2026-08-04 16:00 UTC'
+          : 'Data: MT5 XAUUSD M15 · 99,599 bars · Static research export · As of 2026-07-03 16:00 UTC'
         : 'Data: MT5 NAS100 M15 · 100,317 bars · Static research export · As of 2026-05-21 11:00 UTC'
       : symbol === 'XAUUSD'
         ? tf === 'H4'

@@ -26,10 +26,21 @@
  *             the live feed drives gold H1 only), H4 data files
  *             exist/parse/shape-ok (400 bars with predictions), scorers
  *             callable, validation metrics match the verified gold H4 numbers.
+ *   CHECK 9 — XAUUSD M5 scalper slot map (Phase 13): xauusd_m5_slots.json
+ *             exists/parses with 288 slots, meta exact (timeframe M5,
+ *             bar_count 325160, last_bar 2026-08-04 16:00:00, point 0.01),
+ *             slots 0–11 null with bar_count 0 (00:xx session break),
+ *             highlights.hottest_slot = 15:30 UTC at ~2.18x ATR (within
+ *             0.01), econ.breakeven_gap_pp 1.5 (NOT survivable), and a
+ *             zero-key-diff schema match vs xauusd_m15_slots.json.
  *
  * Phase 12 note: the Footer dataLine assertion now pins ALL SIX provenance
  * strings (per-symbol scalper-clock M15 lines + per-symbol H1/H4 engine
  * lines), replacing the previous four-string assertion.
+ *
+ * Phase 13 note: the Footer dataLine assertion now pins ALL SEVEN provenance
+ * strings — the Phase-12 six plus the gold scalper-clock M5 line (selected
+ * by the page-local ?stf=m5 param; NAS100 stays M15-only).
  *
  * v7-fix note: two CHECK-6 assertions were ADDED (nothing existing weakened
  * or removed):
@@ -264,8 +275,9 @@ const main = async () => {
 
   const footer = await readSrc("components/Footer.tsx");
   check(
-    "Footer: data-source provenance matrix — all six exact lines (per-symbol scalper M15 + per-symbol H1/H4 engine)",
+    "Footer: data-source provenance matrix — all seven exact lines (per-symbol scalper M15 + gold scalper M5 + per-symbol H1/H4 engine)",
     footer.includes("Data: MT5 XAUUSD M15 · 99,599 bars · Static research export · As of 2026-07-03 16:00 UTC") &&
+      footer.includes("Data: MT5 XAUUSD M5 · 325,160 bars · Static research export · As of 2026-08-04 16:00 UTC") &&
       footer.includes("Data: MT5 NAS100 M15 · 100,317 bars · Static research export · As of 2026-05-21 11:00 UTC") &&
       footer.includes("Data: OANDA XAUUSD H1/D1 · Precomputed engine export · As of 2026-07-17 15:00 UTC") &&
       footer.includes("Data: OANDA XAUUSD H4/D1 · Precomputed engine export · As of 2026-07-03 16:00 UTC") &&
@@ -455,6 +467,60 @@ const main = async () => {
       } else if (kind === "daily") {
         check("H4 daily (reused gold D1): non-empty OHLC rows", json.length > 0 && typeof json[json.length - 1].c === "number", `len=${json.length}`);
       }
+    }
+  }
+
+  // ---- CHECK 9 — XAUUSD M5 scalper slot map (Phase 13) --------------------
+  // (appended only — nothing above is re-asserted or weakened)
+  console.log(`\n[XAUUSD-M5 scalper slot map]`);
+  const m15 = await loadJson("data/xauusd_m15_slots.json");
+  const m5 = await loadJson("data/xauusd_m5_slots.json");
+  check("public/data/xauusd_m5_slots.json exists and parses", m5.exists && m5.json != null, m5.error ?? (m5.exists ? "parse error" : "missing"));
+  if (m5.json != null) {
+    const d = m5.json;
+    check("M5 export has exactly 288 slots", Array.isArray(d.slots) && d.slots.length === 288, `len=${d.slots?.length}`);
+    check(
+      "M5 meta exact: timeframe M5 · bar_count 325160 · last_bar 2026-08-04 16:00:00 · point 0.01",
+      d.meta?.timeframe === "M5" &&
+        d.meta?.bar_count === 325160 &&
+        d.meta?.last_bar === "2026-08-04 16:00:00" &&
+        d.meta?.point === 0.01,
+      JSON.stringify({ timeframe: d.meta?.timeframe, bar_count: d.meta?.bar_count, last_bar: d.meta?.last_bar, point: d.meta?.point }),
+    );
+    check(
+      "M5 slots 0–11 (00:xx session break) are null with bar_count 0",
+      Array.isArray(d.slots) &&
+        d.slots.slice(0, 12).every((s) => s.avg_range_atr == null && s.avg_range_usd == null && s.bar_count === 0),
+      JSON.stringify(d.slots?.slice(0, 12).map((s) => [s.slot, s.avg_range_atr, s.bar_count])),
+    );
+    const hot = d.highlights?.hottest_slot ?? {};
+    check(
+      "M5 hottest slot from highlights = 15:30 UTC at ~2.18x ATR (label exact, value within 0.01)",
+      hot.label === "15:30" && typeof hot.avg_range_atr === "number" && Math.abs(hot.avg_range_atr - 2.18) <= 0.01,
+      JSON.stringify(hot),
+    );
+    check(
+      "M5 econ breakeven_gap_pp = 1.5 (NOT survivable — prefer M15 timing)",
+      d.econ?.breakeven_gap_pp === 1.5,
+      `got ${d.econ?.breakeven_gap_pp}`,
+    );
+    // zero-key-diff vs the M15 export — identical schema, per-export values
+    if (m15.json != null) {
+      const keyDiff = (a, b) => {
+        const ka = Object.keys(a ?? {}).sort();
+        const kb = Object.keys(b ?? {}).sort();
+        return JSON.stringify(ka) === JSON.stringify(kb);
+      };
+      check(
+        "M5 export zero-key-diff vs xauusd_m15_slots.json (top-level + meta/econ/guidance/highlights/hourly + slot entries)",
+        keyDiff(d, m15.json) &&
+          keyDiff(d.meta, m15.json.meta) &&
+          keyDiff(d.econ, m15.json.econ) &&
+          keyDiff(d.guidance, m15.json.guidance) &&
+          keyDiff(d.highlights, m15.json.highlights) &&
+          keyDiff(d.hourly, m15.json.hourly) &&
+          keyDiff(d.slots?.[0], m15.json.slots?.[0]),
+      );
     }
   }
 

@@ -2,33 +2,36 @@ import { useEffect, useState } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import { AlertTriangle, Database, Clock3 } from 'lucide-react'
 import { useScalperClock, scalperClockFile } from '@/hooks/useData'
-import type { ScalperClockData } from '@/hooks/useData'
+import type { ScalperClockData, ScalperTf } from '@/hooks/useData'
 import { useSymbol } from '@/hooks/useSymbol'
 import SlotGrid from '@/components/scalper/SlotGrid'
 import HotCards from '@/components/scalper/HotCards'
 import EconPanel from '@/components/scalper/EconPanel'
 import GuidancePanel from '@/components/scalper/GuidancePanel'
 import HourlyStrip from '@/components/scalper/HourlyStrip'
+import ScalperTfToggle from '@/components/scalper/ScalperTfToggle'
 import {
   TERMINAL_EASE,
-  SCALPER_VERDICT_CHIP,
+  scalperVerdictChip,
   SCALPER_VERDICT_CHIP_FALLBACK,
   fmtAtr,
   fmtUsd,
   fmtPct,
   fmtInt,
+  slotIndexFor,
 } from '@/components/scalper/utils'
 
 const HEADLINE = "Scalper's Clock"
 
 /**
- * M15 slot seasonality for the ACTIVE symbol (XAUUSD gold + NAS100) — 96
- * fifteen-minute slots of the UTC day, empirical over the full export. Every
+ * Slot seasonality for the ACTIVE symbol (XAUUSD gold + NAS100) at the
+ * page-local scalper timeframe (?stf — M15 default; M5 is gold-only, Phase
+ * 13): every slot of the UTC day, empirical over the full export. Every
  * value on the page renders from the fetched JSON; static research export:
  * no model, no forecast.
  */
 export default function ScalperClock() {
-  const { data, loading, error } = useScalperClock()
+  const { data, loading, error, stf, setStf } = useScalperClock()
   const { symbol } = useSymbol()
 
   // Live UTC clock (1s tick) — drives the hero chip and the NOW slot marker.
@@ -40,11 +43,11 @@ export default function ScalperClock() {
 
   return (
     <div className="mx-auto w-full max-w-[1180px] px-6 pb-24 pt-14">
-      <Hero data={data} now={now} loading={loading} />
+      <Hero data={data} now={now} loading={loading} symbol={symbol} stf={stf} setStf={setStf} />
 
       {error && (
         <div className="panel mt-10 border-l-2 border-l-down p-5 font-mono text-[13px] text-down">
-          Failed to load {scalperClockFile(symbol)} — {error}
+          Failed to load {scalperClockFile(symbol, stf)} — {error}
         </div>
       )}
 
@@ -54,9 +57,9 @@ export default function ScalperClock() {
         <div className="mt-14 flex flex-col gap-14">
           <SlotGrid slots={data.slots} hottestSlotIdx={data.highlights.hottest_slot.slot} now={now} />
           <HotCards highlights={data.highlights} />
-          <EconPanel econ={data.econ} symbol={data.meta.symbol} />
+          <EconPanel econ={data.econ} symbol={data.meta.symbol} timeframe={data.meta.timeframe} />
           <GuidancePanel guidance={data.guidance} />
-          <HourlyStrip hourly={data.hourly} now={now} />
+          <HourlyStrip hourly={data.hourly} now={now} timeframe={data.meta.timeframe} />
         </div>
       )}
     </div>
@@ -67,18 +70,36 @@ export default function ScalperClock() {
 /* Hero                                                                */
 /* ------------------------------------------------------------------ */
 
-function Hero({ data, now, loading }: { data: ScalperClockData | null; now: Date; loading: boolean }) {
+function Hero({
+  data,
+  now,
+  loading,
+  symbol,
+  stf,
+  setStf,
+}: {
+  data: ScalperClockData | null
+  now: Date
+  loading: boolean
+  symbol: string
+  stf: ScalperTf
+  setStf: (next: ScalperTf) => void
+}) {
   const reducedMotion = useReducedMotion()
 
   const clock = `${pad(now.getUTCHours())}:${pad(now.getUTCMinutes())}:${pad(now.getUTCSeconds())}`
-  const nowSlotIdx = now.getUTCHours() * 4 + Math.floor(now.getUTCMinutes() / 15)
+  /* Slot math derives from the dataset length (1440/slots.length minutes per
+     slot — 15 at M15, 5 at M5); no 96/288 constants. */
+  const slotsPerDay = data?.slots.length ?? (stf === 'M5' ? 288 : 96)
+  const slotMinutes = 1440 / slotsPerDay
+  const nowSlotIdx = slotIndexFor(now, slotsPerDay)
   const nowSlot = data?.slots[nowSlotIdx]
 
   return (
     <header className="grid grid-cols-1 items-start gap-10 lg:grid-cols-[1fr_340px]">
       <div>
         <p className="label-caps text-gold">
-          {data ? `${data.meta.symbol} · ${data.meta.timeframe} · ${fmtInt(data.meta.bar_count)} bars` : 'M15 slot map'}
+          {data ? `${data.meta.symbol} · ${data.meta.timeframe} · ${fmtInt(data.meta.bar_count)} bars` : `${stf} slot map`}
           <span className="ml-2 text-text2">· static research export</span>
         </p>
         <h1 className="mt-3 font-display text-[34px] font-bold leading-[42px] tracking-[-0.015em] text-text0 sm:text-[40px] sm:leading-[46px]">
@@ -106,9 +127,20 @@ function Hero({ data, now, loading }: { data: ScalperClockData | null; now: Date
           transition={{ delay: reducedMotion ? 0 : 0.3, duration: reducedMotion ? 0 : 0.5, ease: TERMINAL_EASE }}
           className="mt-4 max-w-[640px] font-body text-[15px] leading-6 text-text1"
         >
-          Every 15-minute slot of the {data ? `${data.meta.symbol} ` : ''}day, measured — not modeled. The clock tells
-          you when the market moves and how far. It has never once told you which way.
+          Every {slotMinutes}-minute slot of the {data ? `${data.meta.symbol} ` : ''}day, measured — not modeled. The
+          clock tells you when the market moves and how far. It has never once told you which way.
         </motion.p>
+
+        {/* Phase-13 page-local M15|M5 toggle (?stf — independent of engine tf).
+            NAS100 gets an honest "M5 map: gold only" note instead of a control. */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: reducedMotion ? 0 : 0.4, duration: reducedMotion ? 0 : 0.4 }}
+          className="mt-5 flex flex-wrap items-center gap-3"
+        >
+          <ScalperTfToggle symbol={symbol} stf={stf} setStf={setStf} meta={data?.meta ?? null} />
+        </motion.div>
 
         {/* Honest badge row */}
         <motion.div
@@ -128,7 +160,7 @@ function Hero({ data, now, loading }: { data: ScalperClockData | null; now: Date
           </span>
           <span className="inline-flex items-center gap-1.5 rounded border border-warn/50 bg-warn/10 px-2 py-1 font-mono text-[10px] font-semibold tracking-[0.04em] text-warn">
             <AlertTriangle size={10} />
-            {data ? SCALPER_VERDICT_CHIP[data.meta.symbol] ?? SCALPER_VERDICT_CHIP_FALLBACK : SCALPER_VERDICT_CHIP_FALLBACK}
+            {data ? scalperVerdictChip(data.meta.symbol, data.meta.timeframe) : SCALPER_VERDICT_CHIP_FALLBACK}
           </span>
         </motion.div>
       </div>
@@ -172,7 +204,7 @@ function Hero({ data, now, loading }: { data: ScalperClockData | null; now: Date
                   </span>
                 </p>
                 <p className="mt-3 font-mono text-[12px] leading-5 text-text1">
-                  ≈ ${fmtUsd(nowSlot?.avg_range_usd ?? null)} per M15 bar
+                  ≈ ${fmtUsd(nowSlot?.avg_range_usd ?? null)} per {data.meta.timeframe} bar
                   <span className="text-text2"> · P(high-vol) </span>
                   {fmtPct(nowSlot?.p_high_vol_empirical ?? null)}
                   <span className="text-text2"> · n=</span>

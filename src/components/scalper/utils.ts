@@ -59,27 +59,45 @@ export function slotFill(atr: number | null, extent: [number, number]): string {
   return thermalColor(t)
 }
 
-/** Slot index (0..95) for a UTC timestamp. */
-export function slotIndexFor(date: Date): number {
-  return date.getUTCHours() * 4 + Math.floor(date.getUTCMinutes() / 15)
+/**
+ * Slot index for a UTC timestamp — length-agnostic: slot-minutes derive from
+ * the day's slot count (1440/96 = 15 min at M15, 1440/288 = 5 min at M5).
+ * No 96/288 constants anywhere on the page.
+ */
+export function slotIndexFor(date: Date, slotsPerDay: number): number {
+  const slotMinutes = 1440 / slotsPerDay
+  return Math.floor((date.getUTCHours() * 60 + date.getUTCMinutes()) / slotMinutes)
 }
 
 /**
  * Verdict chip (hero badge row) — the ONE place short honesty prose is keyed
- * by meta.symbol instead of read from the JSON. The slot-map exports carry
- * every number plus long-form econ.verdict / guidance strings verbatim, but
- * no short chip field, so these constants summarize the research findings:
- *  - NAS100: results/nas100_m15_findings.md — spread tax pushes 1:2-RR
- *    breakeven to 35.3% (+1.9pp over the 33.4% reference); no measured edge
- *    can pay it.
- *  - XAUUSD: results/xauusd_m15_findings.md — econ survivable (+0.7pp
+ * by meta.symbol + meta.timeframe instead of read from the JSON. The slot-map
+ * exports carry every number plus long-form econ.verdict / guidance strings
+ * verbatim, but no short chip field, so these constants summarize the
+ * research findings:
+ *  - NAS100 (M15 only): results/nas100_m15_findings.md — spread tax pushes
+ *    1:2-RR breakeven to 35.3% (+1.9pp over the 33.4% reference); no
+ *    measured edge can pay it.
+ *  - XAUUSD M15: results/xauusd_m15_findings.md — econ survivable (+0.7pp
  *    breakeven tax, spread is 2.5% of ATR) but the export carries no
  *    directional edge, only the clock.
+ *  - XAUUSD M5: results/xauusd_m5_findings.md — econ NOT survivable: spread
+ *    is 4.8% of ATR (1.9× the M15 ratio), breakeven +1.5pp over the 33.4%
+ *    reference — prefer M15 timing.
+ * Keys are `SYMBOL:TF`; the bare `SYMBOL` key is the M15 (and NAS100) line.
  */
 export const SCALPER_VERDICT_CHIP: Record<string, string> = {
   NAS100: 'no edge to pay the spread — timing only',
   XAUUSD: 'spread survivable · still no directional edge — timing only',
+  'XAUUSD:M5': 'M5 spread tax +1.5pp — not survivable · prefer M15 timing',
 }
 
-/** Chip fallback if a future symbol lands without a curated line above. */
+/** Chip fallback if a future symbol+tf lands without a curated line above. */
 export const SCALPER_VERDICT_CHIP_FALLBACK = 'volatility only — no directional edge'
+
+/** Symbol+tf chip lookup: `SYMBOL:TF` first, then bare `SYMBOL`, then fallback. */
+export function scalperVerdictChip(symbol: string, timeframe: string): string {
+  return (
+    SCALPER_VERDICT_CHIP[`${symbol}:${timeframe}`] ?? SCALPER_VERDICT_CHIP[symbol] ?? SCALPER_VERDICT_CHIP_FALLBACK
+  )
+}
