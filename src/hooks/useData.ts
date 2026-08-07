@@ -195,6 +195,7 @@ export function usePhase5(): DataState<Phase5Data> {
 
 import { useSymbol } from '@/hooks/useSymbol'
 import type { DailyBar } from '@/engine/bars'
+import type { SymbolId } from '@/engine/symbols'
 
 export interface SymbolDataState {
   latest: DataState<LatestData>
@@ -221,8 +222,9 @@ export function useSymbolData(): SymbolDataState {
 }
 
 /* ------------------------------------------------------------------ */
-/* NAS100 Scalper's Clock — M15 slot seasonality (APPENDED; hooks above */
-/* are unchanged). Real research export, 100,317 M15 bars. No model.    */
+/* Scalper's Clock — M15 slot seasonality (Phase 11: NAS100; Phase 12:  */
+/* symbol-aware, follows useSymbol). Real research exports served from  */
+/* /data/. Identical schema for both symbols. No model.                 */
 /* ------------------------------------------------------------------ */
 
 /** One 15-minute slot of the UTC day (96 total). Null stats = session break. */
@@ -321,6 +323,17 @@ export interface ScalperClockData {
   }
 }
 
+/**
+ * M15 slot-map export for a symbol. Both files share the ScalperClockData
+ * schema (meta/slots/hourly/highlights/econ/guidance); values differ per
+ * symbol and everything on the page renders from the fetched JSON.
+ */
+export function scalperClockFile(symbol: SymbolId): string {
+  return symbol === 'XAUUSD' ? '/data/xauusd_m15_slots.json' : '/data/nas100_m15_slots.json'
+}
+
+/** Scalper's Clock data for the ACTIVE symbol (XAUUSD gold + NAS100). */
 export function useScalperClock(): DataState<ScalperClockData> {
-  return useJson<ScalperClockData>('/data/nas100_m15_slots.json')
+  const { symbol } = useSymbol()
+  return useJson<ScalperClockData>(scalperClockFile(symbol))
 }

@@ -52,3 +52,23 @@ export function slotFill(atr: number | null, extent: [number, number]): string {
 export function slotIndexFor(date: Date): number {
   return date.getUTCHours() * 4 + Math.floor(date.getUTCMinutes() / 15)
 }
+
+/**
+ * Verdict chip (hero badge row) — the ONE place short honesty prose is keyed
+ * by meta.symbol instead of read from the JSON. The slot-map exports carry
+ * every number plus long-form econ.verdict / guidance strings verbatim, but
+ * no short chip field, so these constants summarize the research findings:
+ *  - NAS100: results/nas100_m15_findings.md — spread tax pushes 1:2-RR
+ *    breakeven to 35.3% (+1.9pp over the 33.4% reference); no measured edge
+ *    can pay it.
+ *  - XAUUSD: results/xauusd_m15_findings.md — econ survivable (+0.7pp
+ *    breakeven tax, spread is 2.5% of ATR) but the export carries no
+ *    directional edge, only the clock.
+ */
+export const SCALPER_VERDICT_CHIP: Record<string, string> = {
+  NAS100: 'no edge to pay the spread — timing only',
+  XAUUSD: 'spread survivable · still no directional edge — timing only',
+}
+
+/** Chip fallback if a future symbol lands without a curated line above. */
+export const SCALPER_VERDICT_CHIP_FALLBACK = 'volatility only — no directional edge'

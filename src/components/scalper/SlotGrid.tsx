@@ -24,8 +24,10 @@ interface HoverState {
 }
 
 /**
- * Gold pulse ring for the single hottest slot (16:30 UTC). Isolated + memoized
- * so the perpetual boxShadow loop never re-renders the 96-cell grid.
+ * Gold pulse ring for the single hottest slot (driven by
+ * highlights.hottest_slot.slot — 16:30 UTC on NAS100, 15:30 UTC on gold).
+ * Isolated + memoized so the perpetual boxShadow loop never re-renders the
+ * 96-cell grid.
  */
 const HotPulse = memo(function HotPulse({ reduced }: { reduced: boolean }) {
   if (reduced) {

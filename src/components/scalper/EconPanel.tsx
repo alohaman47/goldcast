@@ -1,16 +1,49 @@
 import { motion, useReducedMotion } from 'framer-motion'
+import type { ReactNode } from 'react'
 import { Scale } from 'lucide-react'
 import type { ScalperEcon } from '@/hooks/useData'
 import { TERMINAL_EASE } from './utils'
 
 /**
- * "The honest math of scalping" — verified economics, framed exactly as the
- * research states it: the spread is NOT the killer — the missing edge is.
+ * Framed punchline + verdict label — keyed by meta.symbol. The JSON carries
+ * every number plus the long-form econ.verdict verbatim, but no short
+ * headline, so these live here as constants from the research findings:
+ *  - NAS100 (results/nas100_m15_findings.md): the spread is NOT the killer —
+ *    the missing edge is (+1.9pp breakeven tax over the 33.4% reference).
+ *  - XAUUSD (results/xauusd_m15_findings.md): the spread tax is survivable
+ *    (+0.7pp) — the missing directional edge is still the binding constraint.
  */
-export default function EconPanel({ econ }: { econ: ScalperEcon }) {
+const PUNCHLINE: Record<string, (spreadPct: string) => ReactNode> = {
+  NAS100: (spreadPct) => (
+    <>
+      The spread is <span className="font-semibold text-text0">NOT</span> the killer — the missing edge is. At{' '}
+      {spreadPct}% of ATR the cost is real but small; the problem is that no measured directional edge survives it.
+    </>
+  ),
+  XAUUSD: (spreadPct) => (
+    <>
+      The spread is survivable — the missing edge is still the binding constraint. At {spreadPct}% of ATR the tax
+      barely moves breakeven; the problem is that this clock carries no directional edge to spend it on.
+    </>
+  ),
+}
+const PUNCHLINE_FALLBACK: (spreadPct: string) => ReactNode = PUNCHLINE.NAS100
+
+const VERDICT_LABEL: Record<string, string> = {
+  NAS100: 'Verdict — M15 no-ship',
+  XAUUSD: 'Verdict — M15 econ survivable',
+}
+const VERDICT_LABEL_FALLBACK = 'Verdict — M15 scalping'
+
+/**
+ * "The honest math of scalping" — verified economics from the active
+ * symbol's econ block, framed exactly as that symbol's research states it.
+ */
+export default function EconPanel({ econ, symbol }: { econ: ScalperEcon; symbol: string }) {
   const reducedMotion = useReducedMotion()
   const spreadPct = (econ.median_spread_atr * 100).toFixed(1)
   const gap = (econ.breakeven_win_pct_median - econ.gold_reference_win_pct).toFixed(1)
+  const punchline = (PUNCHLINE[symbol] ?? PUNCHLINE_FALLBACK)(spreadPct)
 
   const stats = [
     { label: 'median spread', value: `$${econ.median_spread_usd.toFixed(2)}`, sub: 'per round trip, at entry' },
@@ -37,10 +70,7 @@ export default function EconPanel({ econ }: { econ: ScalperEcon }) {
           <Scale size={16} className="shrink-0 text-gold" />
         </div>
 
-        <p className="mt-3 max-w-[720px] font-body text-[14px] leading-6 text-text1">
-          The spread is <span className="font-semibold text-text0">NOT</span> the killer — the missing edge is. At{' '}
-          {spreadPct}% of ATR the cost is real but small; the problem is that no measured directional edge survives it.
-        </p>
+        <p className="mt-3 max-w-[720px] font-body text-[14px] leading-6 text-text1">{punchline}</p>
 
         <div className="mt-5 grid grid-cols-2 gap-4 lg:grid-cols-4">
           {stats.map((s, i) => (
@@ -83,7 +113,7 @@ export default function EconPanel({ econ }: { econ: ScalperEcon }) {
 
         {/* Verdict — verbatim from the research export */}
         <div className="mt-4 rounded-md border-l-[3px] border-l-warn border border-line bg-bg2 p-4">
-          <span className="label-caps text-warn">Verdict — M15 no-ship</span>
+          <span className="label-caps text-warn">{VERDICT_LABEL[symbol] ?? VERDICT_LABEL_FALLBACK}</span>
           <p className="mt-2 font-mono text-[12px] leading-5 text-text1">{econ.verdict}</p>
         </div>
 
