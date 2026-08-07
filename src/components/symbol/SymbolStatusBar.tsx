@@ -1,5 +1,6 @@
 import type { LatestData } from '@/hooks/useData'
 import type { SymbolConfig } from '@/engine/symbols'
+import { dataSourceLabel } from '@/hooks/useSymbol'
 
 /**
  * Symbol-aware Status Bar (dashboard.md §G) — replaces the footer on the
@@ -21,7 +22,7 @@ export default function SymbolStatusBar({
   return (
     <div className="flex h-10 flex-wrap items-center justify-between gap-x-4 border-t border-line bg-bg0 px-4">
       <span className="micro-mono truncate">
-        Data: OANDA {config.symbol} {config.timeframe ?? 'H1'} ·{' '}
+        Data: {dataSourceLabel(config)} {config.symbol} {config.timeframe ?? 'H1'} ·{' '}
         {liveActive ? (
           <>
             <span className="text-down">LIVE</span> browser engine asof {latest?.asof ?? '—'} UTC · LIVE ENGINE:

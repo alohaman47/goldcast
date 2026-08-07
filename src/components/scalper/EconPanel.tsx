@@ -2,7 +2,7 @@ import { motion, useReducedMotion } from 'framer-motion'
 import type { ReactNode } from 'react'
 import { Scale } from 'lucide-react'
 import type { ScalperEcon } from '@/hooks/useData'
-import { TERMINAL_EASE } from './utils'
+import { TERMINAL_EASE, fmtPctAdaptive } from './utils'
 
 /**
  * Framed punchline + verdict label — keyed by meta.symbol. The JSON carries
@@ -42,7 +42,13 @@ const VERDICT_LABEL_FALLBACK = 'Verdict — M15 scalping'
 export default function EconPanel({ econ, symbol }: { econ: ScalperEcon; symbol: string }) {
   const reducedMotion = useReducedMotion()
   const spreadPct = (econ.median_spread_atr * 100).toFixed(1)
-  const gap = (econ.breakeven_win_pct_median - econ.gold_reference_win_pct).toFixed(1)
+  /* Research-cited breakeven gap (pp), rounded half-to-even at 1dp from the
+     UNROUNDED inputs of the research CSVs (this export only carries the
+     1dp-rounded fields: 34.2 − 33.4 would give 0.8, contradicting the cited
+     +0.7pp for gold), so the econ block carries the cited value explicitly
+     as breakeven_gap_pp. NAS100's cited 1.9 equals 35.3 − 33.4 exactly, so
+     its rendering stays byte-identical. */
+  const gap = econ.breakeven_gap_pp.toFixed(1)
   const punchline = (PUNCHLINE[symbol] ?? PUNCHLINE_FALLBACK)(spreadPct)
 
   const stats = [
@@ -51,7 +57,7 @@ export default function EconPanel({ econ, symbol }: { econ: ScalperEcon; symbol:
     { label: 'spread / ATR', value: `${spreadPct}%`, sub: 'the tax as a share of the move' },
     {
       label: 'bars where spread > 25% ATR',
-      value: `${econ.pct_bars_spread_gt_25pct_atr.toFixed(1)}%`,
+      value: `${fmtPctAdaptive(econ.pct_bars_spread_gt_25pct_atr)}%`,
       sub: 'trade dies at entry',
     },
   ]
@@ -106,7 +112,14 @@ export default function EconPanel({ econ, symbol }: { econ: ScalperEcon; symbol:
               {econ.gold_reference_win_pct.toFixed(1)}%
             </p>
             <p className="micro-mono mt-1">
-              what was actually achieved — <span className="text-down">−{gap}pp short</span>
+              what was actually achieved —{' '}
+              {symbol === 'XAUUSD' ? (
+                /* gold research framing: the tax ADDS +0.7pp to breakeven */
+                <span className="text-down">+{gap}pp spread tax</span>
+              ) : (
+                /* NAS100 framing stays byte-identical: −1.9pp short */
+                <span className="text-down">−{gap}pp short</span>
+              )}
             </p>
           </div>
         </div>

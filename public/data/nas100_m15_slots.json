@@ -1320,6 +1320,7 @@
     "pct_bars_spread_gt_25pct_atr": 1.2,
     "breakeven_win_pct_median": 35.3,
     "gold_reference_win_pct": 33.4,
+    "breakeven_gap_pp": 1.9,
     "verdict": "M15 NO-SHIP: volatility is learnable but direction is a coin flip (best T+1 edge FAILs vs always_up baseline). The spread tax pushes the 1:2-RR breakeven win rate to 35.3% \u2014 +1.9pp over the 33.4% the verified gold system actually achieved \u2014 so no measured edge can pay it."
   },
   "guidance": {

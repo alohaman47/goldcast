@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion'
 import { useSymbolData } from '@/hooks/useData'
 import type { Bar, LatestData, SessionsData } from '@/hooks/useData'
-import { useSymbol, fmtSymPrice } from '@/hooks/useSymbol'
+import { useSymbol, fmtSymPrice, dataSourceLabel } from '@/hooks/useSymbol'
 import type { SymbolConfig } from '@/engine/symbols'
 import { useLivePrice } from '@/hooks/useLivePrice'
 import { useLivePrediction } from '@/hooks/useLivePrediction'
@@ -185,7 +185,7 @@ function LiveDashboard({
           <div className="relative flex h-full flex-col">
             <div className="flex min-h-10 flex-wrap items-center justify-between gap-x-3 gap-y-1 border-b border-line px-4 py-1">
               <h1 className="panel-title flex items-center gap-2">
-                {config.symbol} · 1H · OANDA
+                {config.symbol} · 1H · {dataSourceLabel(config)}
                 <span className="h-2 w-2 rounded-full bg-up animate-pulse-dot" aria-label="live" />
               </h1>
               <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
@@ -302,7 +302,7 @@ function StaticDashboard({
           />
           <div className="relative flex h-full flex-col">
             <div className="flex min-h-10 flex-wrap items-center justify-between gap-x-3 gap-y-1 border-b border-line px-4 py-1">
-              <h1 className="panel-title flex items-center gap-2">{config.symbol} · {chartTfLabel(config)} · OANDA</h1>
+              <h1 className="panel-title flex items-center gap-2">{config.symbol} · {chartTfLabel(config)} · {dataSourceLabel(config)}</h1>
               <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
                 <StaticBadge />
                 <AlertCenter live={NO_FEED_ALERTS_STATE} />

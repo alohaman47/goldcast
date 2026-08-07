@@ -119,3 +119,12 @@ export function rangeDigits(config: SymbolConfig, goldFallback: number): number 
 export function symbolDisplayName(config: SymbolConfig): string {
   return config.symbol === 'NAS100' ? 'Nasdaq 100 Index' : 'Gold / U.S. Dollar'
 }
+
+/**
+ * Data-source label for chart headers / status bars, matching the Footer
+ * provenance matrix (Phase 12): gold engine data is OANDA, NAS100 engine
+ * data is MT5. XAUUSD output stays byte-identical to the legacy hardcode.
+ */
+export function dataSourceLabel(config: SymbolConfig): string {
+  return config.symbol === 'NAS100' ? 'MT5' : 'OANDA'
+}

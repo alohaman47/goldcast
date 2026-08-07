@@ -1317,9 +1317,10 @@
     "median_spread_atr": 0.025,
     "median_spread_usd": 0.09,
     "median_atr_usd": 2.9,
-    "pct_bars_spread_gt_25pct_atr": 0.0,
+    "pct_bars_spread_gt_25pct_atr": 0.02,
     "breakeven_win_pct_median": 34.2,
     "gold_reference_win_pct": 33.4,
+    "breakeven_gap_pp": 0.7,
     "verdict": "M15 ECON SURVIVABLE (unlike NAS100 M15): median spread is 2.5% of ATR, pushing the 1:2-RR breakeven win rate to 34.2% \u2014 only +0.7pp over the 33.4% the verified gold H1 system actually achieved. The spread tax does not kill gold M15 by itself \u2014 but this export carries no directional edge, only the clock."
   },
   "guidance": {

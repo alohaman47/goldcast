@@ -31,6 +31,15 @@
  * strings (per-symbol scalper-clock M15 lines + per-symbol H1/H4 engine
  * lines), replacing the previous four-string assertion.
  *
+ * v7-fix note: two CHECK-6 assertions were ADDED (nothing existing weakened
+ * or removed):
+ *   - per-symbol data-source labels: SymbolStatusBar + Home chart headers
+ *     must use dataSourceLabel(config) (OANDA for XAUUSD / MT5 for NAS100,
+ *     matching the Footer provenance matrix) with no hardcoded "OANDA" left;
+ *   - honest update indicator: Footer must show a neutral "Static export"
+ *     label for static contexts (scalper-clock dataLines / hasLiveFeed ===
+ *     false) while keeping the pulsing "Auto-updated" for live gold H1.
+ *
  * Usage: node scripts/symbol_check.mjs   (exit code 0 = PASS, 1 = FAIL)
  */
 import { promises as fs } from "node:fs";
@@ -262,6 +271,31 @@ const main = async () => {
       footer.includes("Data: OANDA XAUUSD H4/D1 · Precomputed engine export · As of 2026-07-03 16:00 UTC") &&
       footer.includes("Data: MT5 NAS100 H1/D1 · Precomputed engine export · As of 2026-07-17 15:00 UTC") &&
       footer.includes("Data: MT5 NAS100 H4/D1 · Precomputed engine export · As of 2026-07-03 16:00 UTC"),
+  );
+
+  // v7-fix: per-symbol data-source label (OANDA gold / MT5 NAS100, matching
+  // the Footer provenance matrix) — no hardcoded "OANDA" left in the three
+  // call sites; gold rendered strings stay byte-identical via the helper.
+  const statusBar = await readSrc("components/symbol/SymbolStatusBar.tsx");
+  const home = await readSrc("pages/Home.tsx");
+  check(
+    "data-source label: dataSourceLabel(config) in SymbolStatusBar + Home chart headers (no hardcoded OANDA)",
+    statusBar.includes("dataSourceLabel(config)") &&
+      !statusBar.includes("Data: OANDA") &&
+      home.includes("dataSourceLabel(config)") &&
+      !home.includes("· OANDA"),
+  );
+
+  // v7-fix: honest update indicator — pulsing "Auto-updated" only for the
+  // live gold H1 context; static research exports / no-feed configs get a
+  // neutral "Static export" label with no pulse.
+  check(
+    "Footer: 'Static export' for static contexts, pulsing 'Auto-updated' kept for live gold H1",
+    footer.includes("isStaticContext") &&
+      footer.includes("config.hasLiveFeed") &&
+      footer.includes("Static export") &&
+      footer.includes("Auto-updated") &&
+      footer.includes("animate-pulse-dot"),
   );
 
   // ---- CHECK 7 — NAS100 H4 engine variant (Phase 11 / Track B2) -----------

@@ -276,6 +276,13 @@ export interface ScalperEcon {
   pct_bars_spread_gt_25pct_atr: number
   breakeven_win_pct_median: number
   gold_reference_win_pct: number
+  /**
+   * Research-cited breakeven-minus-reference gap in pp, rounded half-to-even
+   * at 1dp from the UNROUNDED research inputs (the 1dp-rounded fields above
+   * reproduce it for NAS100 but not for gold: 34.2 − 33.4 = 0.8 vs the cited
+   * +0.7pp). Matches each symbol's findings doc and this block's verdict.
+   */
+  breakeven_gap_pp: number
   verdict: string
 }
 

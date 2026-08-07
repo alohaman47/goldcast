@@ -20,6 +20,17 @@ export function fmtPct(v: number | null, digits = 1): string {
   return v == null ? '—' : `${(v * 100).toFixed(digits)}%`
 }
 
+/**
+ * Adaptive precision for an already-in-percent stat: 1dp normally, but if
+ * 1dp would collapse a positive value to "0.0", render 2dp so a tiny but
+ * nonzero value doesn't read as zero (gold: 0.02% of bars; NAS100 1.2%
+ * stays "1.2").
+ */
+export function fmtPctAdaptive(v: number): string {
+  const oneDp = v.toFixed(1)
+  return oneDp === '0.0' && v > 0 ? v.toFixed(2) : oneDp
+}
+
 export function fmtAtr(v: number | null): string {
   return v == null ? '—' : `${v.toFixed(2)}×`
 }

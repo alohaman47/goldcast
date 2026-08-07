@@ -8,6 +8,11 @@ export default function Footer() {
      per-symbol M15 research export first (route precedence), then the active
      symbol/timeframe engine export. Gold H1 + NAS100 H1/H4 lines byte-identical. */
   const tf = config.timeframe ?? 'H1'
+  /* Honest update indicator: the pulsing "Auto-updated" claim is only true
+     for the live gold H1 context. Static research exports (scalper-clock
+     dataLines) and every config without a live feed get a neutral static
+     label with no pulse. Gold H1 keeps the pulse byte-identical. */
+  const isStaticContext = pathname === '/scalper-clock' || !config.hasLiveFeed
   const dataLine =
     pathname === '/scalper-clock'
       ? symbol === 'XAUUSD'
@@ -71,7 +76,15 @@ export default function Footer() {
         <div className="mx-auto flex max-w-[1180px] flex-wrap items-center justify-between gap-2 px-6 py-3">
           <span className="micro-mono">{dataLine}</span>
           <span className="micro-mono flex items-center gap-1.5 text-text2">
-            Auto-updated <span className="h-1.5 w-1.5 rounded-full bg-up animate-pulse-dot" />
+            {isStaticContext ? (
+              <>
+                Static export <span className="h-1.5 w-1.5 rounded-full bg-text2" />
+              </>
+            ) : (
+              <>
+                Auto-updated <span className="h-1.5 w-1.5 rounded-full bg-up animate-pulse-dot" />
+              </>
+            )}
           </span>
         </div>
       </div>
