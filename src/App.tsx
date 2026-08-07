@@ -4,6 +4,7 @@ import Home from '@/pages/Home'
 import Sessions from '@/pages/Sessions'
 import Truth from '@/pages/Truth'
 import Methodology from '@/pages/Methodology'
+import ScalperClock from '@/pages/ScalperClock'
 
 export default function App() {
   return (
@@ -13,6 +14,7 @@ export default function App() {
         <Route path="sessions" element={<Sessions />} />
         <Route path="truth" element={<Truth />} />
         <Route path="methodology" element={<Methodology />} />
+        <Route path="scalper-clock" element={<ScalperClock />} />
       </Route>
     </Routes>
   )
