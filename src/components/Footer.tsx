@@ -1,13 +1,20 @@
-import { Link } from 'react-router'
+import { Link, useLocation } from 'react-router'
 import { useSymbol } from '@/hooks/useSymbol'
 
 export default function Footer() {
   const { config } = useSymbol()
-  /* data-source line follows the active symbol (gold text byte-identical) */
+  const { pathname } = useLocation()
+  /* data-source line follows the active symbol/timeframe (gold text byte-identical);
+     on /scalper-clock it names the static NAS100 M15 research export instead */
+  const tf = config.timeframe ?? 'H1'
   const dataLine =
-    config.symbol === 'NAS100'
-      ? 'Data: MT5 NAS100 H1/D1 · Precomputed engine export · As of 2026-07-17 15:00 UTC'
-      : 'Data: OANDA XAUUSD H1/D1 · Precomputed engine export · As of 2026-07-17 15:00 UTC'
+    pathname === '/scalper-clock'
+      ? 'Data: MT5 NAS100 M15 · 100,317 bars · Static research export · As of 2026-05-21 11:00 UTC'
+      : config.symbol === 'NAS100'
+        ? tf === 'H4'
+          ? 'Data: MT5 NAS100 H4/D1 · Precomputed engine export · As of 2026-07-03 16:00 UTC'
+          : 'Data: MT5 NAS100 H1/D1 · Precomputed engine export · As of 2026-07-17 15:00 UTC'
+        : 'Data: OANDA XAUUSD H1/D1 · Precomputed engine export · As of 2026-07-17 15:00 UTC'
   return (
     <footer className="border-t border-line bg-bg0">
       <div className="mx-auto grid max-w-[1180px] gap-10 px-6 py-12 md:grid-cols-3">
@@ -33,6 +40,9 @@ export default function Footer() {
           </Link>
           <Link className="text-[13px] text-text1 transition-colors hover:text-gold" to="/sessions">
             Session Radar
+          </Link>
+          <Link className="text-[13px] text-text1 transition-colors hover:text-gold" to="/scalper-clock">
+            Scalper Clock
           </Link>
           <Link className="text-[13px] text-text1 transition-colors hover:text-gold" to="/truth">
             The Truth

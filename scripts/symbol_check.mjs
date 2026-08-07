@@ -246,8 +246,11 @@ const main = async () => {
 
   const footer = await readSrc("components/Footer.tsx");
   check(
-    "Footer: data-source line symbol-aware (OANDA XAUUSD vs MT5 NAS100)",
-    footer.includes("Data: OANDA XAUUSD H1/D1") && footer.includes("Data: MT5 NAS100 H1/D1"),
+    "Footer: data-source line symbol/timeframe-aware (OANDA XAUUSD vs MT5 NAS100 H1/H4) + scalper-clock static line",
+    footer.includes("Data: OANDA XAUUSD H1/D1 · Precomputed engine export · As of 2026-07-17 15:00 UTC") &&
+      footer.includes("Data: MT5 NAS100 H1/D1 · Precomputed engine export · As of 2026-07-17 15:00 UTC") &&
+      footer.includes("Data: MT5 NAS100 H4/D1 · Precomputed engine export · As of 2026-07-03 16:00 UTC") &&
+      footer.includes("Data: MT5 NAS100 M15 · 100,317 bars · Static research export · As of 2026-05-21 11:00 UTC"),
   );
 
   // ---- CHECK 7 — NAS100 H4 engine variant (Phase 11 / Track B2) -----------
