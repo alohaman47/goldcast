@@ -21,6 +21,15 @@
  *             ["nas100-h4"] resolves with timeframe "H4", H4 data files
  *             exist/parse/shape-ok, scorers callable, validation metrics match
  *             the verified H4 numbers, XAUUSD/NAS100 configs unchanged.
+ *   CHECK 8 — XAUUSD H4 variant (Phase 12): VARIANT_CONFIGS["xauusd-h4"]
+ *             resolves with timeframe "H4" and hasLiveFeed FALSE (STATIC —
+ *             the live feed drives gold H1 only), H4 data files
+ *             exist/parse/shape-ok (400 bars with predictions), scorers
+ *             callable, validation metrics match the verified gold H4 numbers.
+ *
+ * Phase 12 note: the Footer dataLine assertion now pins ALL SIX provenance
+ * strings (per-symbol scalper-clock M15 lines + per-symbol H1/H4 engine
+ * lines), replacing the previous four-string assertion.
  *
  * Usage: node scripts/symbol_check.mjs   (exit code 0 = PASS, 1 = FAIL)
  */
@@ -246,11 +255,13 @@ const main = async () => {
 
   const footer = await readSrc("components/Footer.tsx");
   check(
-    "Footer: data-source line symbol/timeframe-aware (OANDA XAUUSD vs MT5 NAS100 H1/H4) + scalper-clock static line",
-    footer.includes("Data: OANDA XAUUSD H1/D1 · Precomputed engine export · As of 2026-07-17 15:00 UTC") &&
+    "Footer: data-source provenance matrix — all six exact lines (per-symbol scalper M15 + per-symbol H1/H4 engine)",
+    footer.includes("Data: MT5 XAUUSD M15 · 99,599 bars · Static research export · As of 2026-07-03 16:00 UTC") &&
+      footer.includes("Data: MT5 NAS100 M15 · 100,317 bars · Static research export · As of 2026-05-21 11:00 UTC") &&
+      footer.includes("Data: OANDA XAUUSD H1/D1 · Precomputed engine export · As of 2026-07-17 15:00 UTC") &&
+      footer.includes("Data: OANDA XAUUSD H4/D1 · Precomputed engine export · As of 2026-07-03 16:00 UTC") &&
       footer.includes("Data: MT5 NAS100 H1/D1 · Precomputed engine export · As of 2026-07-17 15:00 UTC") &&
-      footer.includes("Data: MT5 NAS100 H4/D1 · Precomputed engine export · As of 2026-07-03 16:00 UTC") &&
-      footer.includes("Data: MT5 NAS100 M15 · 100,317 bars · Static research export · As of 2026-05-21 11:00 UTC"),
+      footer.includes("Data: MT5 NAS100 H4/D1 · Precomputed engine export · As of 2026-07-03 16:00 UTC"),
   );
 
   // ---- CHECK 7 — NAS100 H4 engine variant (Phase 11 / Track B2) -----------
@@ -330,6 +341,87 @@ const main = async () => {
       "XAUUSD/NAS100 configs unchanged (timeframe stays undefined — H1 default)",
       SYMBOL_CONFIGS.XAUUSD.timeframe === undefined && SYMBOL_CONFIGS.NAS100.timeframe === undefined,
     );
+  }
+
+  // ---- CHECK 8 — XAUUSD (GOLD) H4 engine variant (Phase 12) ----------------
+  // (appended only — nothing above is re-asserted or weakened)
+  console.log(`\n[XAUUSD-H4 variant]`);
+  const gh4 = VARIANT_CONFIGS?.["xauusd-h4"];
+  check("VARIANT_CONFIGS['xauusd-h4'] resolves with timeframe 'H4'", !!gh4 && gh4.timeframe === "H4");
+  if (gh4) {
+    // LOUD honesty contract: gold H1 has a live feed, gold H4 does NOT.
+    check("H4 variant is XAUUSD, STATIC mode (no live feed — live feed drives gold H1 only)", gh4.symbol === "XAUUSD" && gh4.hasLiveFeed === false);
+    check(
+      "H4 dataFiles: H4 bars/latest + reused gold daily/sessions",
+      gh4.dataFiles.bars === "data/bars_xauusd_h4.json" &&
+        gh4.dataFiles.latest === "data/latest_xauusd_h4.json" &&
+        gh4.dataFiles.daily === "data/daily.json" &&
+        gh4.dataFiles.sessions === "data/sessions.json",
+      JSON.stringify(gh4.dataFiles),
+    );
+    // validation metrics — the verified gold H4 numbers the UI must render
+    const ghv = gh4.validation ?? {};
+    check(
+      "H4 validation: 76.14% OOS accuracy · AUC 0.735 (3dp) · 6,971 bars",
+      ghv.hvolAccuracyPct === 76.14 && ghv.hvolAuc === 0.735 && ghv.hvolAucDecimals === 3 && ghv.bars === 6971,
+      `got ${JSON.stringify(ghv)}`,
+    );
+    check(
+      "H4 validation direction: 52.21% vs 53.98% always-up, drift 2022–2026",
+      ghv.directionModelPct === 52.21 && ghv.directionAlwaysUpPct === 53.98 && ghv.driftPeriod === "2022–2026",
+      `got ${JSON.stringify(ghv)}`,
+    );
+    // scorers callable on a 20-feature gbm_price vector
+    const vec = new Array(20).fill(0);
+    const ghv4 = gh4.scoreHvol(vec);
+    const grg4 = gh4.scoreRange(vec);
+    check(
+      "H4 scoreHvol/scoreRange callable, finite output",
+      Number.isFinite(ghv4) && Number.isFinite(grg4),
+      `hvol=${ghv4} range=${grg4}`,
+    );
+    check(
+      "H4 modelModules point at the H4 engine modules",
+      gh4.modelModules.hvol.includes("H4") && gh4.modelModules.range.includes("H4"),
+      JSON.stringify(gh4.modelModules),
+    );
+    // data files exist / parse / shape-ok under public/
+    for (const kind of ["bars", "daily", "sessions", "latest"]) {
+      const rel = gh4.dataFiles[kind];
+      const { exists, json, error } = await loadJson(rel);
+      check(`public/${rel} exists and parses`, exists && json != null, error ?? (exists ? "parse error" : "missing"));
+      if (json == null) continue;
+      if (kind === "latest") {
+        check(
+          "H4 latest: asof + positive price + cone T1..T3",
+          typeof json.asof === "string" && json.price > 0 && json.cone?.T1?.half_width > 0 && json.cone?.T3?.half_width > 0,
+        );
+      } else if (kind === "bars") {
+        const last = json[json.length - 1];
+        check(
+          "H4 bars: exactly 400 OHLC rows with predictions (p_high_vol + exp_range_atr)",
+          json.length === 400 &&
+            typeof last.o === "number" &&
+            typeof last.c === "number" &&
+            typeof last.p_high_vol === "number" &&
+            typeof last.exp_range_atr === "number",
+          `len=${json.length}`,
+        );
+      } else if (kind === "sessions") {
+        check(
+          "H4 sessions (reused gold H1 profile): 24 hourly rows + 4 bands",
+          Array.isArray(json.hours) && json.hours.length === 24 && ["asia", "london", "ny", "off"].every((k) => json.bands?.[k]),
+        );
+        check(
+          "H4 sessions JSON bands match H4 config.sessionBands hours",
+          ["asia", "london", "ny", "off"].every(
+            (k) => JSON.stringify(json.bands[k].hours) === JSON.stringify(gh4.sessionBands[k].hours),
+          ),
+        );
+      } else if (kind === "daily") {
+        check("H4 daily (reused gold D1): non-empty OHLC rows", json.length > 0 && typeof json[json.length - 1].c === "number", `len=${json.length}`);
+      }
+    }
   }
 
   await fs.unlink(outfile).catch(() => {});

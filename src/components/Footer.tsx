@@ -2,19 +2,24 @@ import { Link, useLocation } from 'react-router'
 import { useSymbol } from '@/hooks/useSymbol'
 
 export default function Footer() {
-  const { config } = useSymbol()
+  const { symbol, config } = useSymbol()
   const { pathname } = useLocation()
-  /* data-source line follows the active symbol/timeframe (gold text byte-identical);
-     on /scalper-clock it names the static NAS100 M15 research export instead */
+  /* data-source provenance matrix (Phase 12): /scalper-clock names the static
+     per-symbol M15 research export first (route precedence), then the active
+     symbol/timeframe engine export. Gold H1 + NAS100 H1/H4 lines byte-identical. */
   const tf = config.timeframe ?? 'H1'
   const dataLine =
     pathname === '/scalper-clock'
-      ? 'Data: MT5 NAS100 M15 · 100,317 bars · Static research export · As of 2026-05-21 11:00 UTC'
-      : config.symbol === 'NAS100'
+      ? symbol === 'XAUUSD'
+        ? 'Data: MT5 XAUUSD M15 · 99,599 bars · Static research export · As of 2026-07-03 16:00 UTC'
+        : 'Data: MT5 NAS100 M15 · 100,317 bars · Static research export · As of 2026-05-21 11:00 UTC'
+      : symbol === 'XAUUSD'
         ? tf === 'H4'
+          ? 'Data: OANDA XAUUSD H4/D1 · Precomputed engine export · As of 2026-07-03 16:00 UTC'
+          : 'Data: OANDA XAUUSD H1/D1 · Precomputed engine export · As of 2026-07-17 15:00 UTC'
+        : tf === 'H4'
           ? 'Data: MT5 NAS100 H4/D1 · Precomputed engine export · As of 2026-07-03 16:00 UTC'
           : 'Data: MT5 NAS100 H1/D1 · Precomputed engine export · As of 2026-07-17 15:00 UTC'
-        : 'Data: OANDA XAUUSD H1/D1 · Precomputed engine export · As of 2026-07-17 15:00 UTC'
   return (
     <footer className="border-t border-line bg-bg0">
       <div className="mx-auto grid max-w-[1180px] gap-10 px-6 py-12 md:grid-cols-3">

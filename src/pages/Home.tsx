@@ -339,15 +339,15 @@ function StaticDashboard({
         </div>
       </div>
 
-      {/* E/F. Market context is gold research — say so honestly instead of
-          rendering XAUUSD context under a NAS100 dashboard. */}
+      {/* E/F. Market context is gold H1 research — say so honestly instead of
+          rendering live/H1 XAUUSD context under a static dashboard. */}
       <div className="grid gap-4 px-4 pb-4">
         <section className="panel p-4" aria-label="Market context note">
-          <h2 className="panel-title">Market Context — XAUUSD research only</h2>
+          <h2 className="panel-title">Market Context — XAUUSD H1 research only</h2>
           <p className="mt-2 font-mono text-[12px] leading-5 text-text1">
-            The ontology map and DXY / US10Y quote context are XAUUSD research artifacts. The {config.symbol} export
-            is static (no live feed, engine verified OOS) and covers the chart, forecast, and session stats above —
-            nothing more is claimed.
+            The ontology map and DXY / US10Y quote context are XAUUSD H1 research artifacts. The {config.symbol}{' '}
+            {config.timeframe ?? 'H1'} export is static (no live feed, engine verified OOS) and covers the chart,
+            forecast, and session stats above — nothing more is claimed.
           </p>
         </section>
       </div>

@@ -1,23 +1,40 @@
 import { memo } from 'react'
 import { useSymbol } from '@/hooks/useSymbol'
 import type { TimeframeId } from '@/hooks/useSymbol'
+import type { SymbolId } from '@/engine/symbols'
 import { cn } from '@/lib/utils'
 
 /**
  * H1 | H4 segmented control (Navbar, right of the SymbolToggle).
- * Rendered ONLY for NAS100 — gold has no H4 engine. Both timeframes are
- * STATIC exports (no live feed), so the group carries a single STATIC hint
- * chip (same honesty language as the SymbolToggle).
+ * Rendered for BOTH symbols (Phase 12 — gold has an H4 engine now).
+ * Honesty hints are per-symbol:
+ *  - XAUUSD: per-segment chips — H1 is the LIVE engine (green/live language),
+ *    H4 is a STATIC export.
+ *  - NAS100: both timeframes are STATIC exports, so the group keeps its
+ *    single trailing STATIC chip.
  */
 
-const SEGMENTS: { id: TimeframeId; label: string; title: string }[] = [
-  { id: 'H1', label: 'H1', title: 'NAS100 H1 — static export (AUC 0.8726)' },
-  { id: 'H4', label: 'H4', title: 'NAS100 H4 — static export (AUC 0.8715)' },
-]
+interface Segment {
+  id: TimeframeId
+  label: string
+  title: string
+  hint: 'LIVE' | 'STATIC' | null
+}
+
+const SEGMENTS: Record<SymbolId, Segment[]> = {
+  XAUUSD: [
+    { id: 'H1', label: 'H1', title: 'XAUUSD H1 — live engine (AUC 0.778)', hint: 'LIVE' },
+    { id: 'H4', label: 'H4', title: 'XAUUSD H4 — static export (AUC 0.735)', hint: 'STATIC' },
+  ],
+  NAS100: [
+    { id: 'H1', label: 'H1', title: 'NAS100 H1 — static export (AUC 0.8726)', hint: null },
+    { id: 'H4', label: 'H4', title: 'NAS100 H4 — static export (AUC 0.8715)', hint: null },
+  ],
+}
 
 export default memo(function TfToggle({ className }: { className?: string }) {
   const { symbol, tf, setTf } = useSymbol()
-  if (symbol !== 'NAS100') return null
+  const segments = SEGMENTS[symbol]
 
   return (
     <div
@@ -25,7 +42,7 @@ export default memo(function TfToggle({ className }: { className?: string }) {
       aria-label="Timeframe"
       className={cn('flex items-center rounded-md border border-line bg-bg3/80 p-0.5', className)}
     >
-      {SEGMENTS.map((s) => {
+      {segments.map((s) => {
         const active = s.id === tf
         return (
           <button
@@ -40,12 +57,35 @@ export default memo(function TfToggle({ className }: { className?: string }) {
             )}
           >
             {s.label}
+            {s.hint === 'LIVE' && (
+              <span
+                className={cn(
+                  'flex items-center gap-1 rounded border px-1 py-px font-mono text-[8px] font-bold tracking-[0.06em]',
+                  active ? 'border-up/40 text-up' : 'border-up/30 text-up/80',
+                )}
+              >
+                <span className="h-1 w-1 rounded-full bg-up animate-pulse-dot" aria-hidden="true" />
+                LIVE
+              </span>
+            )}
+            {s.hint === 'STATIC' && (
+              <span
+                className={cn(
+                  'rounded border px-1 py-px font-mono text-[8px] font-bold tracking-[0.06em]',
+                  active ? 'border-gold/40 text-gold' : 'border-line text-text3',
+                )}
+              >
+                STATIC
+              </span>
+            )}
           </button>
         )
       })}
-      <span className="mx-1 rounded border border-line px-1 py-px font-mono text-[8px] font-bold tracking-[0.06em] text-text3">
-        STATIC
-      </span>
+      {symbol === 'NAS100' && (
+        <span className="mx-1 rounded border border-line px-1 py-px font-mono text-[8px] font-bold tracking-[0.06em] text-text3">
+          STATIC
+        </span>
+      )}
     </div>
   )
 })

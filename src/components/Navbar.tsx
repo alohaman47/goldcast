@@ -35,11 +35,16 @@ export default function Navbar() {
   const now = useUtcClock()
   const [drawerOpen, setDrawerOpen] = useState(false)
 
-  /* gold regime chip only — NAS100 has no live feed, so no live regime claim */
-  const regime = symbol === 'XAUUSD' ? (latest?.regime ?? null) : null
+  /* live regime chip only for live-feed configs — static exports (NAS100,
+     gold H4) make no live regime claim */
+  const regime = config.hasLiveFeed ? (latest?.regime ?? null) : null
   const regimeIsTrending = regime === 'trending'
-  /* keep the active symbol (and NAS100 timeframe) on every internal navigation */
-  const symbolQuery = symbol === 'XAUUSD' ? '' : tf === 'H4' ? '?symbol=nas100&tf=h4' : '?symbol=nas100'
+  /* keep the active symbol and timeframe on every internal navigation
+     (defaults omitted: gold has no symbol param, H1 has no tf param) */
+  const qs = new URLSearchParams()
+  if (symbol === 'NAS100') qs.set('symbol', 'nas100')
+  if (tf === 'H4') qs.set('tf', 'h4')
+  const symbolQuery = qs.size > 0 ? `?${qs.toString()}` : ''
 
   return (
     <header className="sticky top-0 z-50 h-16 border-b border-line bg-bg0/95 backdrop-blur-sm">
