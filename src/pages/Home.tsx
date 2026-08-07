@@ -201,6 +201,7 @@ function LiveDashboard({
               <CandlestickChart
                 bars={bars}
                 latest={latest}
+                config={config}
                 live={
                   live.data && live.forming
                     ? {
@@ -218,12 +219,12 @@ function LiveDashboard({
 
         {/* B. Evidence panel (right rail) */}
         <div className="order-3 flex xl:order-none xl:col-start-2 xl:row-span-3 xl:row-start-1">
-          <EvidencePanel latest={effLatest} live={badge} />
+          <EvidencePanel latest={effLatest} live={badge} config={config} />
         </div>
 
         {/* C. Forecast strip */}
         <div className="order-2 xl:col-start-1 xl:row-start-2">
-          <ForecastStrip latest={effLatest} live={badge} />
+          <ForecastStrip latest={effLatest} live={badge} config={config} />
         </div>
 
         {/* D. Session strip */}
@@ -309,19 +310,19 @@ function StaticDashboard({
               </div>
             </div>
             <div className="relative min-h-[420px] flex-1 lg:min-h-[520px]">
-              <CandlestickChart bars={bars} latest={latest} live={null} />
+              <CandlestickChart bars={bars} latest={latest} live={null} config={config} />
             </div>
           </div>
         </motion.section>
 
         {/* B. Evidence panel (right rail) — static export, no live badge row */}
         <div className="order-3 flex xl:order-none xl:col-start-2 xl:row-span-3 xl:row-start-1">
-          <EvidencePanel latest={latest} />
+          <EvidencePanel latest={latest} config={config} />
         </div>
 
         {/* C. Forecast strip */}
         <div className="order-2 xl:col-start-1 xl:row-start-2">
-          <ForecastStrip latest={latest} />
+          <ForecastStrip latest={latest} config={config} />
         </div>
 
         {/* D. Session strip (symbol bands + units) */}

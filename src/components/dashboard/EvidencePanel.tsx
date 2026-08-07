@@ -3,6 +3,7 @@ import { Link } from 'react-router'
 import { Activity, ArrowUp, ArrowDown, BarChart2, ChevronRight, Clock, Gauge, Info, TrendingDown, TrendingUp } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import type { LatestData } from '@/hooks/useData'
+import type { SymbolConfig } from '@/engine/symbols'
 import HonestyBadge from '@/components/HonestyBadge'
 import LiveBadge, { type LiveBadgeProps } from '@/components/live/LiveBadge'
 import { cn } from '@/lib/utils'
@@ -26,8 +27,18 @@ interface Row {
 }
 
 /** EVIDENCE — Why this forecast (dashboard.md §B). Every row is a real engine input/output. */
-export default function EvidencePanel({ latest, live }: { latest: LatestData; live?: LiveBadgeProps }) {
+export default function EvidencePanel({
+  latest,
+  live,
+  config,
+}: {
+  latest: LatestData
+  live?: LiveBadgeProps
+  config: SymbolConfig
+}) {
   const sessionName = SESSION_NAMES[latest.session] ?? latest.session
+  const v = config.validation
+  const barsText = v.bars.toLocaleString('en-US')
   const rows: Row[] = [
     {
       icon: Clock,
@@ -191,18 +202,19 @@ export default function EvidencePanel({ latest, live }: { latest: LatestData; li
           <span className="label-caps text-honest">Direction</span>
           <HonestyBadge
             kind="not-predictable"
-            tooltip="Walk-forward OOS, 26,836 bars, verified twice. No model beats always-up on direction."
+            tooltip={`Walk-forward OOS, ${barsText} bars, verified twice. No model beats always-up on direction.`}
           />
         </div>
         <p className="mt-2 text-[12px] leading-5 text-text1">
-          Best ML ensemble: <span className="font-mono tnum text-text0">50.1%</span> next-candle accuracy vs{' '}
-          <span className="font-mono tnum text-text0">52.1%</span> always-up. We don&apos;t print fake
-          probabilities.
+          Best ML ensemble:{' '}
+          <span className="font-mono tnum text-text0">{v.directionModelPct.toFixed(1)}%</span> next-candle
+          accuracy vs <span className="font-mono tnum text-text0">{v.directionAlwaysUpPct.toFixed(1)}%</span>{' '}
+          always-up. We don&apos;t print fake probabilities.
         </p>
         <div className="mt-2 flex items-center gap-2 border-t border-line/60 pt-2">
           <DriftIcon size={14} className="text-gold" />
           <span className="font-mono text-[13px] tnum text-gold">
-            Long-term drift: {latest.drift_sign >= 0 ? 'UP' : 'DOWN'} (2022–2026)
+            Long-term drift: {latest.drift_sign >= 0 ? 'UP' : 'DOWN'} ({v.driftPeriod})
           </span>
         </div>
         <p className="micro-mono mt-1">the only verified directional effect</p>

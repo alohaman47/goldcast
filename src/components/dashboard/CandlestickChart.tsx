@@ -1,6 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { Bar, LatestData } from '@/hooks/useData'
 import type { Bar as EngineBar } from '@/engine/bars'
+import { GOLD_CONFIG } from '@/engine/symbols'
+import type { SymbolConfig } from '@/engine/symbols'
+import { priceUnit } from '@/hooks/useSymbol'
 import { cn } from '@/lib/utils'
 
 /**
@@ -40,8 +43,8 @@ function parseT(t: string): Date {
   return new Date(t.replace(' ', 'T') + 'Z')
 }
 
-function fmtPrice(v: number): string {
-  return v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+function fmtPrice(v: number, decimals = 2): string {
+  return v.toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals })
 }
 
 function niceStep(range: number, target: number): number {
@@ -72,10 +75,12 @@ export default function CandlestickChart({
   bars,
   latest,
   live = null,
+  config = GOLD_CONFIG,
 }: {
   bars: Bar[]
   latest: LatestData
   live?: LiveOverlay | null
+  config?: SymbolConfig
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const wrapRef = useRef<HTMLDivElement>(null)
@@ -100,6 +105,7 @@ export default function CandlestickChart({
   }, [bars, live])
   const effLatest = live?.latest ?? latest
   const formingAbs = live ? effBars.length - 1 : -1
+  const priceDecimals = config.priceDecimals
   const [toggles, setToggles] = useState({ volDots: true, sessions: true, cone: true })
   const [hover, setHover] = useState<Hover | null>(null)
   const dragRef = useRef<{ startX: number; startEnd: number } | null>(null)
@@ -213,7 +219,7 @@ export default function CandlestickChart({
         ctx.stroke()
         ctx.fillStyle = C.axis
         ctx.textAlign = 'left'
-        ctx.fillText(fmtPrice(p), PAD_L + g.plotW + 6, y)
+        ctx.fillText(fmtPrice(p, priceDecimals), PAD_L + g.plotW + 6, y)
       }
 
       /* time axis */
@@ -413,7 +419,7 @@ export default function CandlestickChart({
         ctx.stroke()
         ctx.setLineDash([])
         /* tag pill on right axis */
-        const label = fmtPrice(effLatest.price)
+        const label = fmtPrice(effLatest.price, priceDecimals)
         ctx.font = '600 11px "JetBrains Mono", monospace'
         const tw = ctx.measureText(label).width + 12
         const th = 18
@@ -425,14 +431,17 @@ export default function CandlestickChart({
         ctx.fillStyle = '#0C0F13'
         ctx.textAlign = 'center'
         ctx.fillText(label, tx + tw / 2, y + 0.5)
-        /* countdown chip */
-        const now = Date.now()
-        const msLeft = 3600000 - (now % 3600000)
-        const mm = String(Math.floor(msLeft / 60000)).padStart(2, '0')
-        const ss = String(Math.floor((msLeft % 60000) / 1000)).padStart(2, '0')
-        ctx.font = '500 10px "JetBrains Mono", monospace'
-        ctx.fillStyle = C.axis
-        ctx.fillText(`closes ${mm}:${ss}`, tx + tw / 2, y + th / 2 + 12)
+        /* countdown chip — only when a live forming bar exists (static
+           symbols show no ticking close timer) */
+        if (live) {
+          const now = Date.now()
+          const msLeft = 3600000 - (now % 3600000)
+          const mm = String(Math.floor(msLeft / 60000)).padStart(2, '0')
+          const ss = String(Math.floor((msLeft % 60000) / 1000)).padStart(2, '0')
+          ctx.font = '500 10px "JetBrains Mono", monospace'
+          ctx.fillStyle = C.axis
+          ctx.fillText(`closes ${mm}:${ss}`, tx + tw / 2, y + th / 2 + 12)
+        }
         ctx.restore()
       }
 
@@ -461,7 +470,7 @@ export default function CandlestickChart({
         ctx.setLineDash([])
       }
     }
-  }, [effBars, effLatest, live, layout])
+  }, [effBars, effLatest, live, layout, priceDecimals])
 
   const drawRef = useRef(draw)
   drawRef.current = draw
@@ -593,7 +602,7 @@ export default function CandlestickChart({
         ref={canvasRef}
         style={{ width: '100%', height: '100%', display: 'block', cursor: 'crosshair', touchAction: 'none' }}
         role="img"
-        aria-label="XAUUSD H1 candlestick chart with T+1 to T+3 volatility cone forecast"
+        aria-label={`${config.symbol} H1 candlestick chart with T+1 to T+3 volatility cone forecast`}
         aria-describedby="chart-data-summary"
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
@@ -660,13 +669,13 @@ export default function CandlestickChart({
                 {hoveringForming && <span className="text-gold"> · FORMING — live, not closed</span>}
               </div>
               <div>
-                O <span className="tnum">{fmtPrice(hoveredBar.o)}</span> H{' '}
-                <span className="tnum">{fmtPrice(hoveredBar.h)}</span>
+                O <span className="tnum">{fmtPrice(hoveredBar.o, priceDecimals)}</span> H{' '}
+                <span className="tnum">{fmtPrice(hoveredBar.h, priceDecimals)}</span>
               </div>
               <div>
-                L <span className="tnum">{fmtPrice(hoveredBar.l)}</span> C{' '}
+                L <span className="tnum">{fmtPrice(hoveredBar.l, priceDecimals)}</span> C{' '}
                 <span className={hoveredBar.c >= hoveredBar.o ? 'text-up' : 'text-down'}>
-                  {fmtPrice(hoveredBar.c)}
+                  {fmtPrice(hoveredBar.c, priceDecimals)}
                 </span>{' '}
                 {hoveredBar.c >= hoveredBar.o ? '▲' : '▼'}
               </div>
@@ -689,10 +698,7 @@ export default function CandlestickChart({
 
       {/* data-table fallback summary (a11y) */}
       <p id="chart-data-summary" className="sr-only">
-        Showing the last {Math.min(viewRef.current.count, effBars.length)} of {effBars.length} XAUUSD H1 bars. Latest
-        price {fmtPrice(effLatest.price)}. Forecast cone half-widths: T+1 ±{effLatest.cone.T1.half_width.toFixed(1)}, T+2
-        ±{effLatest.cone.T2.half_width.toFixed(1)}, T+3 ±{effLatest.cone.T3.half_width.toFixed(1)} USD. Range forecast
-        only — direction not predicted.
+        {`Showing the last ${Math.min(viewRef.current.count, effBars.length)} of ${effBars.length} ${config.symbol} H1 bars. Latest price ${fmtPrice(effLatest.price, priceDecimals)}. Forecast cone half-widths: T+1 ±${effLatest.cone.T1.half_width.toFixed(1)}, T+2 ±${effLatest.cone.T2.half_width.toFixed(1)}, T+3 ±${effLatest.cone.T3.half_width.toFixed(1)} ${priceUnit(config)}. Range forecast only — direction not predicted.`}
       </p>
     </div>
   )

@@ -87,10 +87,17 @@ export default function Navbar() {
         <div className="ml-auto flex items-center gap-5">
           <div className="hidden items-center gap-3 lg:flex">
             <span className="font-mono text-[13px] tnum text-text1">{formatUtc(now)}</span>
-            <span className="flex items-center gap-1.5">
-              <span className="h-2 w-2 rounded-full bg-up animate-pulse-dot" />
-              <span className="micro-mono text-text2">Market Open</span>
-            </span>
+            {config.hasLiveFeed ? (
+              <span className="flex items-center gap-1.5">
+                <span className="h-2 w-2 rounded-full bg-up animate-pulse-dot" />
+                <span className="micro-mono text-text2">Market Open</span>
+              </span>
+            ) : (
+              <span className="flex items-center gap-1.5">
+                <span className="h-2 w-2 rounded-full bg-text2" />
+                <span className="micro-mono text-text2">Static export</span>
+              </span>
+            )}
           </div>
           <SymbolToggle className="hidden sm:flex" />
           <nav className="hidden items-center gap-5 md:flex" aria-label="Primary">

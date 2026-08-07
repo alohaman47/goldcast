@@ -1,6 +1,13 @@
 import { Link } from 'react-router'
+import { useSymbol } from '@/hooks/useSymbol'
 
 export default function Footer() {
+  const { config } = useSymbol()
+  /* data-source line follows the active symbol (gold text byte-identical) */
+  const dataLine =
+    config.symbol === 'NAS100'
+      ? 'Data: MT5 NAS100 H1/D1 · Precomputed engine export · As of 2026-07-17 15:00 UTC'
+      : 'Data: OANDA XAUUSD H1/D1 · Precomputed engine export · As of 2026-07-17 15:00 UTC'
   return (
     <footer className="border-t border-line bg-bg0">
       <div className="mx-auto grid max-w-[1180px] gap-10 px-6 py-12 md:grid-cols-3">
@@ -47,9 +54,7 @@ export default function Footer() {
 
       <div className="border-t border-line">
         <div className="mx-auto flex max-w-[1180px] flex-wrap items-center justify-between gap-2 px-6 py-3">
-          <span className="micro-mono">
-            Data: OANDA XAUUSD H1/D1 · Precomputed engine export · As of 2026-07-17 15:00 UTC
-          </span>
+          <span className="micro-mono">{dataLine}</span>
           <span className="micro-mono flex items-center gap-1.5 text-text2">
             Auto-updated <span className="h-1.5 w-1.5 rounded-full bg-up animate-pulse-dot" />
           </span>

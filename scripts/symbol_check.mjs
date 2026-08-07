@@ -43,6 +43,15 @@ const EXPECTED = {
     hasLiveFeed: true,
     suffix: "",
     londonHours: [7, 8, 9, 10],
+    validation: {
+      hvolAccuracyPct: 80.08,
+      hvolAuc: 0.778,
+      hvolAucDecimals: 3,
+      bars: 26836,
+      directionModelPct: 50.1,
+      directionAlwaysUpPct: 52.1,
+      driftPeriod: "2022–2026",
+    },
   },
   NAS100: {
     pointSize: 0.1,
@@ -51,6 +60,15 @@ const EXPECTED = {
     hasLiveFeed: false,
     suffix: "_nas100",
     londonHours: [7, 8, 9, 10, 11],
+    validation: {
+      hvolAccuracyPct: 82.98,
+      hvolAuc: 0.8726,
+      hvolAucDecimals: 4,
+      bars: 26798,
+      directionModelPct: 51.63,
+      directionAlwaysUpPct: 52.91,
+      driftPeriod: "2022–2026",
+    },
   },
 };
 
@@ -109,6 +127,25 @@ const main = async () => {
       `got [${cfg.sessionBands.london.hours}]`,
     );
 
+    // CHECK 1b — validation metrics (ForecastStrip / EvidencePanel source)
+    const ev = exp.validation;
+    const cv = cfg.validation ?? {};
+    check(
+      `validation: ${ev.hvolAccuracyPct}% OOS · AUC ${ev.hvolAuc} (${ev.hvolAucDecimals}dp) · ${ev.bars} bars`,
+      cv.hvolAccuracyPct === ev.hvolAccuracyPct &&
+        cv.hvolAuc === ev.hvolAuc &&
+        cv.hvolAucDecimals === ev.hvolAucDecimals &&
+        cv.bars === ev.bars,
+      `got ${JSON.stringify(cv)}`,
+    );
+    check(
+      `validation direction: ${ev.directionModelPct}% vs ${ev.directionAlwaysUpPct}% always-up, drift ${ev.driftPeriod}`,
+      cv.directionModelPct === ev.directionModelPct &&
+        cv.directionAlwaysUpPct === ev.directionAlwaysUpPct &&
+        cv.driftPeriod === ev.driftPeriod,
+      `got ${JSON.stringify(cv)}`,
+    );
+
     // CHECK 2 — scorers callable (20-feature gbm_price vector)
     const vec = new Array(20).fill(0);
     const hv = cfg.scoreHvol(vec);
@@ -148,6 +185,62 @@ const main = async () => {
       }
     }
   }
+
+  // ---- CHECK 6 — component sources are symbol-aware (verifier bugs 1-5) ---
+  console.log(`\n[component sources]`);
+  const readSrc = async (rel) => fs.readFile(path.join(ROOT, "src", rel), "utf8");
+
+  const forecast = await readSrc("components/dashboard/ForecastStrip.tsx");
+  check(
+    "ForecastStrip: validation metrics sourced from config.validation (no hardcoded gold numbers)",
+    forecast.includes("config.validation") &&
+      !forecast.includes("80.08% OOS accuracy") &&
+      !forecast.includes("26,836 bars") &&
+      !forecast.includes("AUC 0.778"),
+  );
+  check(
+    "ForecastStrip: range unit via priceUnit(config) (no hardcoded USD label)",
+    forecast.includes("priceUnit(config)") && !forecast.includes(">USD<"),
+  );
+
+  const evidence = await readSrc("components/dashboard/EvidencePanel.tsx");
+  check(
+    "EvidencePanel: direction block sourced from config.validation (no hardcoded gold numbers)",
+    evidence.includes("config.validation") &&
+      !evidence.includes("50.1%") &&
+      !evidence.includes("52.1%") &&
+      !evidence.includes("26,836 bars") &&
+      !evidence.includes("(2022–2026)"),
+  );
+
+  const chart = await readSrc("components/dashboard/CandlestickChart.tsx");
+  check(
+    "CandlestickChart: aria-label + a11y summary use config.symbol / priceUnit (no hardcoded XAUUSD/USD)",
+    chart.includes("aria-label={`${config.symbol} H1 candlestick chart") &&
+      !chart.includes('"XAUUSD H1 candlestick chart') &&
+      !chart.includes("} XAUUSD H1 bars") &&
+      !chart.includes(" USD. Range forecast"),
+  );
+  check(
+    "CandlestickChart: bar-close countdown chip gated on live",
+    /if \(live\) \{[\s\S]{0,600}`closes \$\{mm\}:\$\{ss\}`/.test(chart),
+  );
+  check(
+    "CandlestickChart: fmtPrice respects config.priceDecimals",
+    chart.includes("function fmtPrice(v: number, decimals = 2)") && chart.includes("config.priceDecimals"),
+  );
+
+  const navbar = await readSrc("components/Navbar.tsx");
+  check(
+    "Navbar: Market Open pulse only for live-feed symbols, static wording otherwise",
+    navbar.includes("config.hasLiveFeed") && navbar.includes("Static export") && navbar.includes("Market Open"),
+  );
+
+  const footer = await readSrc("components/Footer.tsx");
+  check(
+    "Footer: data-source line symbol-aware (OANDA XAUUSD vs MT5 NAS100)",
+    footer.includes("Data: OANDA XAUUSD H1/D1") && footer.includes("Data: MT5 NAS100 H1/D1"),
+  );
 
   await fs.unlink(outfile).catch(() => {});
   console.log(failures === 0 ? "\nSYMBOL CHECK: PASS" : `\nSYMBOL CHECK: FAIL (${failures} failing checks)`);

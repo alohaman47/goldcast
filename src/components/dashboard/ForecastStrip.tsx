@@ -2,6 +2,8 @@ import { useEffect } from 'react'
 import { motion, useMotionValue, useTransform, animate } from 'framer-motion'
 import { Crosshair } from 'lucide-react'
 import type { LatestData } from '@/hooks/useData'
+import type { SymbolConfig } from '@/engine/symbols'
+import { priceUnit } from '@/hooks/useSymbol'
 import HonestyBadge from '@/components/HonestyBadge'
 import ConfidencePips from '@/components/ConfidencePips'
 import LiveBadge, { type LiveBadgeProps } from '@/components/live/LiveBadge'
@@ -35,10 +37,23 @@ function CountUp({
 }
 
 /** C. Forecast Strip — 3 stat blocks under the chart (dashboard.md §C). */
-export default function ForecastStrip({ latest, live }: { latest: LatestData; live?: LiveBadgeProps }) {
+export default function ForecastStrip({
+  latest,
+  live,
+  config,
+}: {
+  latest: LatestData
+  live?: LiveBadgeProps
+  config: SymbolConfig
+}) {
   const pVol = latest.p_high_vol * 100
   const conf = Math.max(0, Math.min(5, Math.round(latest.confidence)))
   const isLive = live != null && (live.status === 'live' || live.status === 'gap' || live.status === 'stale')
+  const v = config.validation
+  const barsText = v.bars.toLocaleString('en-US')
+  const accText = v.hvolAccuracyPct.toFixed(2)
+  const aucText = v.hvolAuc.toFixed(v.hvolAucDecimals)
+  const unit = priceUnit(config)
 
   return (
     <section className="panel" aria-label="Forecast summary">
@@ -62,13 +77,13 @@ export default function ForecastStrip({ latest, live }: { latest: LatestData; li
           <span className="label-caps">Volatility (Next Candle)</span>
           <HonestyBadge
             kind="verified-oos"
-            tooltip="Walk-forward OOS, 26,836 bars, verified twice. 80.08% accuracy, AUC 0.778."
+            tooltip={`Walk-forward OOS, ${barsText} bars, verified twice. ${accText}% accuracy, AUC ${aucText}.`}
           />
         </div>
         <div className="mt-2 font-mono text-[32px] font-bold leading-9 tnum text-gold stat-glow md:text-[38px]">
           <CountUp to={pVol} format={(v) => `P(HIGH-VOL) = ${v.toFixed(1)}%`} delay={0.4} />
         </div>
-        <p className="micro-mono mt-1">80.08% OOS accuracy · AUC 0.778</p>
+        <p className="micro-mono mt-1">{accText}% OOS accuracy · AUC {aucText}</p>
       </motion.div>
 
       {/* Expected range */}
@@ -84,7 +99,7 @@ export default function ForecastStrip({ latest, live }: { latest: LatestData; li
         </div>
         <div className="mt-2 font-mono text-[32px] font-bold leading-9 tnum text-gold stat-glow md:text-[38px]">
           <CountUp to={latest.expected_range_price} format={(v) => `± ${v.toFixed(1)}`} delay={0.5} />{' '}
-          <span className="text-[16px] font-semibold text-golddim">USD</span>
+          <span className="text-[16px] font-semibold text-golddim">{unit}</span>
         </div>
         <p className="micro-mono mt-1">
           {latest.expected_range_atr.toFixed(2)} × ATR14 · cone T+3 ±{latest.cone.T3.half_width.toFixed(1)}

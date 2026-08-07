@@ -41,6 +41,26 @@ export interface SymbolConfig {
   modelModules: { hvol: string; range: string };
   /** XAUUSD has a live price feed; NAS100 is STATIC mode (no feed — honest). */
   hasLiveFeed: boolean;
+  /**
+   * Walk-forward OOS validation metrics (verified research numbers — additive
+   * display metadata for the UI layer; nothing here feeds the engine).
+   */
+  validation: {
+    /** hvol classifier OOS accuracy in % (rendered with 2 decimals). */
+    hvolAccuracyPct: number;
+    /** hvol classifier OOS AUC (rendered with hvolAucDecimals decimals). */
+    hvolAuc: number;
+    /** decimals used to render hvolAuc (gold 3dp, NAS100 4dp). */
+    hvolAucDecimals: number;
+    /** verified H1 bar count behind the OOS metrics. */
+    bars: number;
+    /** best direction model next-candle OOS accuracy in % (1dp display). */
+    directionModelPct: number;
+    /** always-up baseline next-candle accuracy in % (1dp display). */
+    directionAlwaysUpPct: number;
+    /** long-term drift study window label (H1 dataset range). */
+    driftPeriod: string;
+  };
   /** Bound scorers from modelModules (NaN->0 imputation applied by predict). */
   scoreHvol: (x: number[]) => number;
   scoreRange: (x: number[]) => number;
@@ -65,6 +85,15 @@ export const GOLD_CONFIG: SymbolConfig = {
   },
   modelModules: { hvol: "./modelHvol.js", range: "./modelRange.js" },
   hasLiveFeed: true,
+  validation: {
+    hvolAccuracyPct: 80.08,
+    hvolAuc: 0.778,
+    hvolAucDecimals: 3,
+    bars: 26836,
+    directionModelPct: 50.1,
+    directionAlwaysUpPct: 52.1,
+    driftPeriod: "2022–2026",
+  },
   scoreHvol: goldHvol,
   scoreRange: goldRange,
 };
@@ -88,6 +117,15 @@ export const NAS100_CONFIG: SymbolConfig = {
   },
   modelModules: { hvol: "./modelHvolNas100.js", range: "./modelRangeNas100.js" },
   hasLiveFeed: false,
+  validation: {
+    hvolAccuracyPct: 82.98,
+    hvolAuc: 0.8726,
+    hvolAucDecimals: 4,
+    bars: 26798,
+    directionModelPct: 51.63,
+    directionAlwaysUpPct: 52.91,
+    driftPeriod: "2022–2026",
+  },
   scoreHvol: nas100Hvol,
   scoreRange: nas100Range,
 };
