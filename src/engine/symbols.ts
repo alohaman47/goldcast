@@ -19,6 +19,8 @@ import { score as nas100Hvol } from "./modelHvolNas100.js";
 import { score as nas100Range } from "./modelRangeNas100.js";
 import { score as nas100H4Hvol } from "./modelHvolNas100H4.js";
 import { score as nas100H4Range } from "./modelRangeNas100H4.js";
+import { score as goldH4Hvol } from "./modelHvolGoldH4.js";
+import { score as goldH4Range } from "./modelRangeGoldH4.js";
 
 export type SymbolId = "XAUUSD" | "NAS100";
 
@@ -185,7 +187,56 @@ export const NAS100_H4_CONFIG: SymbolConfig = {
   scoreRange: nas100H4Range,
 };
 
+/**
+ * GoldCast Phase 12 — XAUUSD (GOLD) H4 engine variant.
+ *
+ * Same instrument as GOLD_CONFIG (same point/pip/decimals, same EXACT H1
+ * 20-feature gbm_price set — the Phase-10 convention, re-validated for gold
+ * in Phase 12: H4 uses the H1 feature set with no minofday), but scored by
+ * the H4-trained classic GBM (models/gbm_classic_xauusd_h4.pkl ->
+ * modelHvolGoldH4/modelRangeGoldH4) over H4 bars. `daily` reuses daily.json
+ * (identical D1 source/window as gold H1). `sessions` reuses the gold H1
+ * session profile (display metadata only; nothing here feeds the engine).
+ *
+ * *** hasLiveFeed: false — LOUD OVERRIDE *** GOLD_CONFIG has a live feed,
+ * but the live feed drives GOLD H1 ONLY. The XAUUSD H4 engine is STATIC
+ * (H4 bars are a fixed historical export, last bar 2026-07-03 16:00 UTC);
+ * this field OVERRIDES the `true` inherited from the GOLD_CONFIG spread.
+ *
+ * Registered as a SEPARATE variant key ("xauusd-h4") so the existing
+ * XAUUSD/NAS100/NAS100-H4 configs — and their parity — stay untouched.
+ */
+export const XAUUSD_H4_CONFIG: SymbolConfig = {
+  ...GOLD_CONFIG,
+  timeframe: "H4",
+  dataFiles: {
+    bars: "data/bars_xauusd_h4.json",
+    daily: "data/daily.json", // reused: same D1 window as gold H1
+    sessions: "data/sessions.json", // reused: H1 session profile (display only)
+    latest: "data/latest_xauusd_h4.json",
+  },
+  modelModules: { hvol: "./modelHvolGoldH4.js", range: "./modelRangeGoldH4.js" },
+  // STATIC — live feed drives gold H1 only; overrides GOLD_CONFIG's true.
+  hasLiveFeed: false,
+  validation: {
+    // Phase-12 classic-GBM H4 OOS (results/phase12_gbm_classic_xauusd_h4_oos.csv,
+    // n_test 4182): hvol acc 0.7614 / AUC 0.7352 (HGB reference 0.7585/0.7267).
+    // Direction T+1 (Phase-12 research): Model C 52.21% vs always_up 53.98%
+    // (best baseline htf_trend 54.27%) — NO-SHIP, display-only drift policy.
+    ...GOLD_CONFIG.validation,
+    hvolAccuracyPct: 76.14,
+    hvolAuc: 0.735,
+    bars: 6971,
+    directionModelPct: 52.21,
+    directionAlwaysUpPct: 53.98,
+    driftPeriod: "2022–2026",
+  },
+  scoreHvol: goldH4Hvol,
+  scoreRange: goldH4Range,
+};
+
 /** Timeframe/variant engine configs keyed separately from SYMBOL_CONFIGS. */
-export const VARIANT_CONFIGS: Record<"nas100-h4", SymbolConfig> = {
+export const VARIANT_CONFIGS: Record<"nas100-h4" | "xauusd-h4", SymbolConfig> = {
   "nas100-h4": NAS100_H4_CONFIG,
+  "xauusd-h4": XAUUSD_H4_CONFIG,
 };
