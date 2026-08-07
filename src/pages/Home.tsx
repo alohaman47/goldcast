@@ -10,6 +10,7 @@ import OntologyMap from '@/components/dashboard/OntologyMap'
 import QuoteList from '@/components/dashboard/QuoteList'
 import StatusBar from '@/components/dashboard/StatusBar'
 import LiveBadge, { type LiveBadgeProps, type LiveBadgeStatus } from '@/components/live/LiveBadge'
+import AlertCenter from '@/components/live/AlertCenter'
 import BarCloseCountdown from '@/components/live/BarCloseCountdown'
 import GapBanner from '@/components/live/GapBanner'
 
@@ -133,6 +134,7 @@ export default function Home() {
               </h1>
               <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
                 <LiveBadge {...badge} />
+                <AlertCenter live={live} />
                 <span className="micro-mono hidden sm:inline">
                   bar close <BarCloseCountdown className="text-gold" />
                 </span>
