@@ -17,6 +17,8 @@ import { score as goldHvol } from "./modelHvol.js";
 import { score as goldRange } from "./modelRange.js";
 import { score as nas100Hvol } from "./modelHvolNas100.js";
 import { score as nas100Range } from "./modelRangeNas100.js";
+import { score as nas100H4Hvol } from "./modelHvolNas100H4.js";
+import { score as nas100H4Range } from "./modelRangeNas100H4.js";
 
 export type SymbolId = "XAUUSD" | "NAS100";
 
@@ -41,6 +43,11 @@ export interface SymbolConfig {
   modelModules: { hvol: string; range: string };
   /** XAUUSD has a live price feed; NAS100 is STATIC mode (no feed — honest). */
   hasLiveFeed: boolean;
+  /**
+   * Engine timeframe ("H1" default; "H4" for the Phase-11 NAS100 H4 variant).
+   * Optional so the existing H1 configs stay byte-identical.
+   */
+  timeframe?: "H1" | "H4";
   /**
    * Walk-forward OOS validation metrics (verified research numbers — additive
    * display metadata for the UI layer; nothing here feeds the engine).
@@ -138,3 +145,47 @@ export const SYMBOL_CONFIGS: Record<SymbolId, SymbolConfig> = {
 export function getSymbolConfig(symbol: SymbolId): SymbolConfig {
   return SYMBOL_CONFIGS[symbol];
 }
+
+/**
+ * GoldCast Phase 11 — NAS100 H4 engine variant.
+ *
+ * Same instrument as NAS100_CONFIG (same point/pip/decimals, same STATIC
+ * mode, same EXACT H1 20-feature gbm_price set — Phase 10 verified H4 uses
+ * the H1 feature set with no minofday), but scored by the H4-trained classic
+ * GBM (models/gbm_classic_nas100_h4.pkl -> modelHvolNas100H4/modelRangeNas100H4)
+ * over H4 bars. `sessions` reuses the NAS100 H1 session profile (display
+ * metadata only; nothing here feeds the engine). `daily` reuses
+ * daily_nas100.json (identical D1 source/window).
+ *
+ * Registered as a SEPARATE variant key ("nas100-h4") so the existing
+ * XAUUSD/NAS100 configs — and their parity — stay untouched.
+ */
+export const NAS100_H4_CONFIG: SymbolConfig = {
+  ...NAS100_CONFIG,
+  timeframe: "H4",
+  dataFiles: {
+    bars: "data/bars_nas100_h4.json",
+    daily: "data/daily_nas100.json", // reused: same D1 window as NAS100 H1
+    sessions: "data/sessions_nas100.json", // reused: H1 session profile (display only)
+    latest: "data/latest_nas100_h4.json",
+  },
+  modelModules: { hvol: "./modelHvolNas100H4.js", range: "./modelRangeNas100H4.js" },
+  validation: {
+    // Phase-10 verified HGB H4 numbers (results/nas100_tf_findings.md);
+    // Phase-11 classic-GBM port OOS: acc 0.8318 / AUC 0.8715 (n_test 5100).
+    ...NAS100_CONFIG.validation,
+    hvolAccuracyPct: 83.18,
+    hvolAuc: 0.8715,
+    bars: 8509,
+    directionModelPct: 52.35,
+    directionAlwaysUpPct: 54.33,
+    driftPeriod: "2021–2026",
+  },
+  scoreHvol: nas100H4Hvol,
+  scoreRange: nas100H4Range,
+};
+
+/** Timeframe/variant engine configs keyed separately from SYMBOL_CONFIGS. */
+export const VARIANT_CONFIGS: Record<"nas100-h4", SymbolConfig> = {
+  "nas100-h4": NAS100_H4_CONFIG,
+};
