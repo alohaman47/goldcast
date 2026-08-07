@@ -219,3 +219,108 @@ export function useSymbolData(): SymbolDataState {
     daily: useJson<DailyBar[]>(`/${f.daily}`),
   }
 }
+
+/* ------------------------------------------------------------------ */
+/* NAS100 Scalper's Clock — M15 slot seasonality (APPENDED; hooks above */
+/* are unchanged). Real research export, 100,317 M15 bars. No model.    */
+/* ------------------------------------------------------------------ */
+
+/** One 15-minute slot of the UTC day (96 total). Null stats = session break. */
+export interface ScalperSlot {
+  slot: number // 0..95
+  label: string // "HH:MM" UTC
+  utc_hour: number
+  utc_minute: number
+  avg_range_atr: number | null
+  avg_range_usd: number | null
+  p_high_vol_empirical: number | null
+  bar_count: number
+}
+
+export interface ScalperHour {
+  hour_utc: number
+  avg_range_price: number | null
+  avg_range_atr: number | null
+  avg_abs_ret: number | null
+  p_high_vol_empirical: number | null
+  bar_count: number
+}
+
+export interface ScalperBand {
+  hours: number[]
+  label: string
+  avg_range_price: number
+  avg_range_atr: number
+  p_high_vol_empirical: number
+  bar_count: number
+}
+
+/** Compact highlight entry (no utc_hour/utc_minute — label is canonical). */
+export interface ScalperHighlightSlot {
+  slot: number
+  label: string
+  avg_range_atr: number
+  avg_range_usd: number
+  p_high_vol_empirical: number
+  bar_count: number
+}
+
+export interface ScalperEcon {
+  source: string
+  trade_model: string
+  median_spread_atr: number
+  median_spread_usd: number
+  median_atr_usd: number
+  pct_bars_spread_gt_25pct_atr: number
+  breakeven_win_pct_median: number
+  gold_reference_win_pct: number
+  verdict: string
+}
+
+export interface ScalperClockData {
+  meta: {
+    symbol: string
+    timeframe: string
+    bar_count: number
+    first_bar: string
+    last_bar: string
+    date_range: string
+    point: number
+    atr: string
+    note: string
+    source_csv: string
+    cross_check: {
+      reference: string[]
+      tolerance: number
+      slots_max_abs_diff: number
+      hourly_max_abs_diff: number
+      passed: boolean
+    }
+    definitions: Record<string, string>
+  }
+  slots: ScalperSlot[]
+  hourly: {
+    hours: ScalperHour[]
+    bands: Record<'asia' | 'london' | 'ny' | 'off', ScalperBand>
+    note: string
+  }
+  highlights: {
+    hottest_slot: ScalperHighlightSlot
+    quietest_slot: ScalperHighlightSlot
+    quietest_slot_note: string
+    top5_hottest_slots: ScalperHighlightSlot[]
+    ny_vs_asia_vol_ratio: number
+    ny_vs_asia_note: string
+  }
+  econ: ScalperEcon
+  guidance: {
+    hot_slots: string
+    quiet_slots: string
+    economics: string
+    general: string
+  }
+}
+
+export function useScalperClock(): DataState<ScalperClockData> {
+  return useJson<ScalperClockData>('/data/nas100_m15_slots.json')
+}

@@ -9,6 +9,7 @@ import { cn } from '@/lib/utils'
 const NAV_LINKS = [
   { to: '/', label: 'Dashboard' },
   { to: '/sessions', label: 'Session Radar' },
+  { to: '/scalper-clock', label: 'Scalper Clock' },
   { to: '/truth', label: 'The Truth' },
   { to: '/methodology', label: 'Methodology' },
 ]
