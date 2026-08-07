@@ -1,0 +1,249 @@
+{
+  "hours": [
+    {
+      "hour_utc": 0,
+      "avg_range_price": null,
+      "avg_range_atr": null,
+      "avg_abs_ret": null,
+      "p_high_vol_empirical": null,
+      "bar_count": 0
+    },
+    {
+      "hour_utc": 1,
+      "avg_range_price": 48.0159,
+      "avg_range_atr": 0.6525,
+      "avg_abs_ret": 0.001793,
+      "p_high_vol_empirical": 0.035,
+      "bar_count": 1174
+    },
+    {
+      "hour_utc": 2,
+      "avg_range_price": 38.9562,
+      "avg_range_atr": 0.5456,
+      "avg_abs_ret": 0.001066,
+      "p_high_vol_empirical": 0.0751,
+      "bar_count": 1173
+    },
+    {
+      "hour_utc": 3,
+      "avg_range_price": 47.9041,
+      "avg_range_atr": 0.68,
+      "avg_abs_ret": 0.001316,
+      "p_high_vol_empirical": 0.0384,
+      "bar_count": 1174
+    },
+    {
+      "hour_utc": 4,
+      "avg_range_price": 39.7457,
+      "avg_range_atr": 0.5858,
+      "avg_abs_ret": 0.001092,
+      "p_high_vol_empirical": 0.0264,
+      "bar_count": 1174
+    },
+    {
+      "hour_utc": 5,
+      "avg_range_price": 33.505,
+      "avg_range_atr": 0.509,
+      "avg_abs_ret": 0.000902,
+      "p_high_vol_empirical": 0.0102,
+      "bar_count": 1174
+    },
+    {
+      "hour_utc": 6,
+      "avg_range_price": 29.1585,
+      "avg_range_atr": 0.4581,
+      "avg_abs_ret": 0.00078,
+      "p_high_vol_empirical": 0.0188,
+      "bar_count": 1173
+    },
+    {
+      "hour_utc": 7,
+      "avg_range_price": 29.8666,
+      "avg_range_atr": 0.486,
+      "avg_abs_ret": 0.000824,
+      "p_high_vol_empirical": 0.0393,
+      "bar_count": 1172
+    },
+    {
+      "hour_utc": 8,
+      "avg_range_price": 36.4006,
+      "avg_range_atr": 0.6203,
+      "avg_abs_ret": 0.000992,
+      "p_high_vol_empirical": 0.0845,
+      "bar_count": 1172
+    },
+    {
+      "hour_utc": 9,
+      "avg_range_price": 42.8994,
+      "avg_range_atr": 0.7723,
+      "avg_abs_ret": 0.001191,
+      "p_high_vol_empirical": 0.2895,
+      "bar_count": 1172
+    },
+    {
+      "hour_utc": 10,
+      "avg_range_price": 58.2062,
+      "avg_range_atr": 1.0626,
+      "avg_abs_ret": 0.00165,
+      "p_high_vol_empirical": 0.234,
+      "bar_count": 1172
+    },
+    {
+      "hour_utc": 11,
+      "avg_range_price": 55.3141,
+      "avg_range_atr": 0.9934,
+      "avg_abs_ret": 0.001623,
+      "p_high_vol_empirical": 0.0913,
+      "bar_count": 1173
+    },
+    {
+      "hour_utc": 12,
+      "avg_range_price": 43.5665,
+      "avg_range_atr": 0.7964,
+      "avg_abs_ret": 0.001167,
+      "p_high_vol_empirical": 0.111,
+      "bar_count": 1172
+    },
+    {
+      "hour_utc": 13,
+      "avg_range_price": 44.9223,
+      "avg_range_atr": 0.824,
+      "avg_abs_ret": 0.001193,
+      "p_high_vol_empirical": 0.209,
+      "bar_count": 1173
+    },
+    {
+      "hour_utc": 14,
+      "avg_range_price": 52.3654,
+      "avg_range_atr": 0.9513,
+      "avg_abs_ret": 0.001481,
+      "p_high_vol_empirical": 0.4876,
+      "bar_count": 1172
+    },
+    {
+      "hour_utc": 15,
+      "avg_range_price": 77.5177,
+      "avg_range_atr": 1.4185,
+      "avg_abs_ret": 0.002393,
+      "p_high_vol_empirical": 0.9608,
+      "bar_count": 1173
+    },
+    {
+      "hour_utc": 16,
+      "avg_range_price": 129.0429,
+      "avg_range_atr": 2.1501,
+      "avg_abs_ret": 0.003725,
+      "p_high_vol_empirical": 0.9352,
+      "bar_count": 1172
+    },
+    {
+      "hour_utc": 17,
+      "avg_range_price": 132.685,
+      "avg_range_atr": 2.0206,
+      "avg_abs_ret": 0.00391,
+      "p_high_vol_empirical": 0.6852,
+      "bar_count": 1169
+    },
+    {
+      "hour_utc": 18,
+      "avg_range_price": 99.7498,
+      "avg_range_atr": 1.4506,
+      "avg_abs_ret": 0.002861,
+      "p_high_vol_empirical": 0.4551,
+      "bar_count": 1169
+    },
+    {
+      "hour_utc": 19,
+      "avg_range_price": 85.0959,
+      "avg_range_atr": 1.2149,
+      "avg_abs_ret": 0.002404,
+      "p_high_vol_empirical": 0.4046,
+      "bar_count": 1169
+    },
+    {
+      "hour_utc": 20,
+      "avg_range_price": 84.4894,
+      "avg_range_atr": 1.1762,
+      "avg_abs_ret": 0.002526,
+      "p_high_vol_empirical": 0.3685,
+      "bar_count": 1148
+    },
+    {
+      "hour_utc": 21,
+      "avg_range_price": 85.531,
+      "avg_range_atr": 1.1913,
+      "avg_abs_ret": 0.00246,
+      "p_high_vol_empirical": 0.4632,
+      "bar_count": 1127
+    },
+    {
+      "hour_utc": 22,
+      "avg_range_price": 94.3868,
+      "avg_range_atr": 1.2528,
+      "avg_abs_ret": 0.002814,
+      "p_high_vol_empirical": 0.0996,
+      "bar_count": 1125
+    },
+    {
+      "hour_utc": 23,
+      "avg_range_price": 53.0964,
+      "avg_range_atr": 0.7014,
+      "avg_abs_ret": 0.001467,
+      "p_high_vol_empirical": 0.0808,
+      "bar_count": 1126
+    }
+  ],
+  "bands": {
+    "asia": {
+      "hours": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "label": "Asia (00-07 UTC)"
+    },
+    "london": {
+      "hours": [
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "label": "London (07-12 UTC)"
+    },
+    "ny": {
+      "hours": [
+        12,
+        13,
+        14,
+        15,
+        16
+      ],
+      "label": "Overlap / New York (12-17 UTC)"
+    },
+    "off": {
+      "hours": [
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23
+      ],
+      "label": "Off-hours"
+    }
+  },
+  "note": "NAS100 trades 23h/day: hour_utc 0 is absent (session break 23:00-01:00 UTC) \u2014 its stats are null with bar_count 0.",
+  "definitions": {
+    "avg_range_price": "mean(H-L) in NAS100 price units at that UTC hour (point = 0.1, pip = 1.0)",
+    "avg_range_atr": "mean((H-L)/ATR14[t]) at that UTC hour",
+    "avg_abs_ret": "mean(|C[t]/C[t-1] - 1|) at that UTC hour",
+    "p_high_vol_empirical": "share of bars at that hour where (H[t+1]-L[t+1]) > 1.2*ATR14[t]"
+  }
+}

@@ -10,6 +10,7 @@
 import { rsi, bollinger, macd, rollingStd } from "./indicators";
 import { computeFilters, type FilterScores } from "./filters";
 import { hourOf, dowOf, type Bar, type DailyBar } from "./bars";
+import type { SymbolConfig } from "./symbols";
 
 export const FEATURE_NAMES = [
   "ema_stack",
@@ -41,8 +42,19 @@ export interface FeatureFrame {
   scores: FilterScores;
 }
 
+export interface BuildFeaturesOptions {
+  /** Accepted for engine-wide config symmetry (Phase 9). The gbm_price
+   *  feature set is price-only and symbol-agnostic — no per-symbol constants
+   *  exist here — so the config does not change any output (documented). */
+  config?: SymbolConfig;
+}
+
 /** Build the 20-feature matrix for H1 bars (port of build_features, H1). */
-export function buildFeatures(bars: Bar[], daily: DailyBar[]): FeatureFrame {
+export function buildFeatures(
+  bars: Bar[],
+  daily: DailyBar[],
+  _opts: BuildFeaturesOptions = {}
+): FeatureFrame {
   const n = bars.length;
   const close = bars.map((b) => b.c);
   const scores = computeFilters(bars, daily);

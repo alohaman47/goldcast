@@ -1,8 +1,12 @@
 /**
  * Bundle entry for scripts/parity_check.mjs — exposes the TS feature engine,
- * the JS models, and predict() as a single ES module.
+ * the JS models (both symbols), the symbol configs, and predict() as a single
+ * ES module.
  */
 export { buildFeatures, FEATURE_NAMES } from "../src/engine/features";
 export { predict } from "../src/engine/predict";
+export { GOLD_CONFIG, NAS100_CONFIG, getSymbolConfig } from "../src/engine/symbols";
 export { score as scoreHvol } from "../src/engine/modelHvol.js";
 export { score as scoreRange } from "../src/engine/modelRange.js";
+export { score as scoreHvolNas100 } from "../src/engine/modelHvolNas100.js";
+export { score as scoreRangeNas100 } from "../src/engine/modelRangeNas100.js";

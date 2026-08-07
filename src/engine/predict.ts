@@ -13,8 +13,7 @@ import { buildFeatures } from "./features";
 import { regimeLabel } from "./filters";
 import { ema } from "./indicators";
 import { dayKey, hourOf, type Bar, type DailyBar } from "./bars";
-import { score as scoreHvolModel } from "./modelHvol.js";
-import { score as scoreRangeModel } from "./modelRange.js";
+import { GOLD_CONFIG, type SymbolConfig } from "./symbols";
 
 export const MIN_BARS = 250;
 export const ENGINE_VERSION = "goldcast-gbm-classic/6.0 (live-engine port)";
@@ -54,7 +53,10 @@ export interface PredictOptions {
    *  timestamp, otherwise appended. Python predict() has no such input; the
    *  parity path never uses it (documented extension). */
   liveBar?: Bar;
-  /** Injectable scorers (tests/parity). Defaults to the shipped JS models. */
+  /** Symbol configuration (models + contract metadata). Defaults to GOLD —
+   *  omitting it reproduces the pre-Phase-9 gold behavior bit-identically. */
+  config?: SymbolConfig;
+  /** Injectable scorers (tests/parity). Defaults to config's JS models. */
   scoreHvol?: (x: number[]) => number;
   scoreRange?: (x: number[]) => number;
 }
@@ -81,11 +83,13 @@ export function predict(
   // causal guard: only daily bars with day <= last bar's day
   const daily = dailyIn.filter((d) => dayKey(d.t) <= lastDay);
 
+  const config = opts.config ?? GOLD_CONFIG;
+
   const { rows, scores } = buildFeatures(bars, daily);
   const xLast = rows[rows.length - 1].map((v) => (Number.isNaN(v) ? 0.0 : v)); // NaN->0 (documented)
 
-  const scoreHvol = opts.scoreHvol ?? scoreHvolModel;
-  const scoreRange = opts.scoreRange ?? scoreRangeModel;
+  const scoreHvol = opts.scoreHvol ?? config.scoreHvol;
+  const scoreRange = opts.scoreRange ?? config.scoreRange;
 
   const pHvol = scoreHvol(xLast);
   const expRngAtr = Math.max(0.0, scoreRange(xLast));
