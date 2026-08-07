@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import type { SessionsData } from '@/hooks/useData'
+import { GOLD_CONFIG, type SymbolConfig } from '@/engine/symbols'
 import {
   BAND_META,
   BAND_ORDER,
@@ -9,10 +10,12 @@ import {
   fmtPct,
   fmtUsd,
   pad2,
+  rangeDigits,
+  rangeUnit,
 } from './utils'
 import type { BandStats } from './utils'
 
-export default function BandCards({ data }: { data: SessionsData }) {
+export default function BandCards({ data, config = GOLD_CONFIG }: { data: SessionsData; config?: SymbolConfig }) {
   const reducedMotion = useReducedMotion()
   const stats = useMemo(
     () => BAND_ORDER.map((id) => computeBandStats(data, id)).filter((s): s is BandStats => !!s),
@@ -24,7 +27,7 @@ export default function BandCards({ data }: { data: SessionsData }) {
       <h2 className="panel-title mb-4">Session Bands — When the Market Breathes</h2>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {stats.map((s, i) => (
-          <BandCard key={s.id} stats={s} data={data} index={i} instant={!!reducedMotion} />
+          <BandCard key={s.id} stats={s} data={data} index={i} instant={!!reducedMotion} config={config} />
         ))}
       </div>
     </section>
@@ -36,13 +39,17 @@ function BandCard({
   data,
   index,
   instant,
+  config,
 }: {
   stats: BandStats
   data: SessionsData
   index: number
   instant: boolean
+  config: SymbolConfig
 }) {
   const meta = BAND_META[stats.id]
+  const unit = rangeUnit(config)
+  const digits = rangeDigits(config, 1)
   return (
     <motion.article
       initial={{ opacity: 0, y: 24 }}
@@ -67,7 +74,7 @@ function BandCard({
           <div className="flex justify-between">
             <dt className="text-text2">avg range</dt>
             <dd className="text-text0">
-              {fmtUsd(stats.rangeMin, 1)}–{fmtUsd(stats.rangeMax, 1)} USD
+              {fmtUsd(stats.rangeMin, digits)}–{fmtUsd(stats.rangeMax, digits)} {unit}
             </dd>
           </div>
           <div className="flex justify-between">

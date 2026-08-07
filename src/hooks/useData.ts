@@ -188,3 +188,34 @@ export interface Phase5Data {
 export function usePhase5(): DataState<Phase5Data> {
   return useJson<Phase5Data>('/data/phase5.json')
 }
+
+/* ------------------------------------------------------------------ */
+/* Phase 9 Stage 2 — multi-symbol (APPENDED; hooks above are unchanged) */
+/* ------------------------------------------------------------------ */
+
+import { useSymbol } from '@/hooks/useSymbol'
+import type { DailyBar } from '@/engine/bars'
+
+export interface SymbolDataState {
+  latest: DataState<LatestData>
+  bars: DataState<Bar[]>
+  sessions: DataState<SessionsData>
+  daily: DataState<DailyBar[]>
+}
+
+/**
+ * Resolves all four static exports from the ACTIVE SymbolConfig's dataFiles
+ * (XAUUSD → /data/*.json, NAS100 → /data/*_nas100.json). Pages that follow
+ * the symbol switcher use this; gold-only research pages (Truth,
+ * Methodology) keep the fixed hooks above.
+ */
+export function useSymbolData(): SymbolDataState {
+  const { config } = useSymbol()
+  const f = config.dataFiles
+  return {
+    latest: useJson<LatestData>(`/${f.latest}`),
+    bars: useJson<Bar[]>(`/${f.bars}`),
+    sessions: useJson<SessionsData>(`/${f.sessions}`),
+    daily: useJson<DailyBar[]>(`/${f.daily}`),
+  }
+}

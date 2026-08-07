@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { Link, NavLink } from 'react-router'
 import { Menu, X } from 'lucide-react'
 import { useLatest } from '@/hooks/useData'
+import { useSymbol, symbolDisplayName } from '@/hooks/useSymbol'
+import SymbolToggle from '@/components/symbol/SymbolToggle'
 import { cn } from '@/lib/utils'
 
 const NAV_LINKS = [
@@ -27,17 +29,21 @@ function formatUtc(d: Date) {
 
 export default function Navbar() {
   const { data: latest } = useLatest()
+  const { symbol, config } = useSymbol()
   const now = useUtcClock()
   const [drawerOpen, setDrawerOpen] = useState(false)
 
-  const regime = latest?.regime ?? null
+  /* gold regime chip only — NAS100 has no live feed, so no live regime claim */
+  const regime = symbol === 'XAUUSD' ? (latest?.regime ?? null) : null
   const regimeIsTrending = regime === 'trending'
+  /* keep the active symbol on every internal navigation */
+  const symbolQuery = symbol === 'XAUUSD' ? '' : '?symbol=nas100'
 
   return (
     <header className="sticky top-0 z-50 h-16 border-b border-line bg-bg0/95 backdrop-blur-sm">
       <div className="mx-auto flex h-full max-w-[1920px] items-center gap-6 px-4 lg:px-6">
         {/* Left: logo + wordmark */}
-        <Link to="/" className="flex shrink-0 items-center gap-3">
+        <Link to={`/${symbolQuery}`} className="flex shrink-0 items-center gap-3">
           <img src="/logo.svg" alt="GoldCast logo" className="h-9 w-9" />
           <div className="flex flex-col leading-none">
             <span className="font-display text-[18px] font-bold">
@@ -48,11 +54,11 @@ export default function Navbar() {
           </div>
         </Link>
 
-        {/* Center: instrument block + regime chip */}
+        {/* Center: instrument block + regime chip (follows the symbol toggle) */}
         <div className="hidden items-center gap-4 xl:flex">
           <div className="flex flex-col leading-tight">
-            <span className="font-display text-[13px] font-semibold text-text0">XAUUSD</span>
-            <span className="micro-mono">Gold / U.S. Dollar</span>
+            <span className="font-display text-[13px] font-semibold text-text0">{config.symbol}</span>
+            <span className="micro-mono">{symbolDisplayName(config)}</span>
           </div>
           <div className="flex items-center gap-1">
             <span className="rounded border border-gold bg-gold/10 px-2 py-0.5 font-mono text-[11px] font-semibold text-gold">
@@ -77,7 +83,7 @@ export default function Navbar() {
           )}
         </div>
 
-        {/* Right: clock + status + links */}
+        {/* Right: clock + status + symbol toggle + links */}
         <div className="ml-auto flex items-center gap-5">
           <div className="hidden items-center gap-3 lg:flex">
             <span className="font-mono text-[13px] tnum text-text1">{formatUtc(now)}</span>
@@ -86,11 +92,12 @@ export default function Navbar() {
               <span className="micro-mono text-text2">Market Open</span>
             </span>
           </div>
+          <SymbolToggle className="hidden sm:flex" />
           <nav className="hidden items-center gap-5 md:flex" aria-label="Primary">
             {NAV_LINKS.map((l) => (
               <NavLink
                 key={l.to}
-                to={l.to}
+                to={`${l.to}${symbolQuery}`}
                 end={l.to === '/'}
                 className={({ isActive }) =>
                   cn(
@@ -120,10 +127,11 @@ export default function Navbar() {
       {drawerOpen && (
         <div className="fixed inset-x-0 top-16 bottom-0 z-50 border-t border-line bg-bg0 md:hidden">
           <nav className="flex flex-col gap-1 p-4" aria-label="Mobile">
+            <SymbolToggle className="mb-2 self-start" />
             {NAV_LINKS.map((l, i) => (
               <NavLink
                 key={l.to}
-                to={l.to}
+                to={`${l.to}${symbolQuery}`}
                 end={l.to === '/'}
                 onClick={() => setDrawerOpen(false)}
                 className={({ isActive }) =>

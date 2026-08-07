@@ -2,18 +2,22 @@ import { useMemo, useState } from 'react'
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { ChevronDown } from 'lucide-react'
 import type { SessionHour, SessionsData } from '@/hooks/useData'
-import { TERMINAL_EASE, fmtAbsRet, fmtAtr, fmtInt, fmtPct, fmtUsd, hourLabel, thermalColor, thermalTForPvol } from './utils'
+import { GOLD_CONFIG, type SymbolConfig } from '@/engine/symbols'
+import { TERMINAL_EASE, fmtAbsRet, fmtAtr, fmtInt, fmtPct, fmtUsd, hourLabel, rangeDigits, rangeUnit, thermalColor, thermalTForPvol } from './utils'
 import { cn } from '@/lib/utils'
 
 interface HourlyDetailProps {
   data: SessionsData
   utcHour: number
   flashHour: number | null
+  config?: SymbolConfig
 }
 
-export default function HourlyDetail({ data, utcHour, flashHour }: HourlyDetailProps) {
+export default function HourlyDetail({ data, utcHour, flashHour, config = GOLD_CONFIG }: HourlyDetailProps) {
   const reducedMotion = useReducedMotion()
   const [defsOpen, setDefsOpen] = useState(false)
+  const unit = rangeUnit(config)
+  const digits = rangeDigits(config, 2)
 
   const maxRange = useMemo(() => {
     let m = 0
@@ -30,7 +34,7 @@ export default function HourlyDetail({ data, utcHour, flashHour }: HourlyDetailP
         {/* Left — horizontal bar chart */}
         <div className="panel p-4 sm:p-5">
           <div className="flex h-10 items-center justify-between">
-            <h2 className="panel-title">Avg Range by Hour (USD)</h2>
+            <h2 className="panel-title">Avg Range by Hour ({unit})</h2>
             <span className="micro-mono hidden sm:inline">● P(high-vol), 0–1 scale →</span>
           </div>
           <motion.div
@@ -51,7 +55,7 @@ export default function HourlyDetail({ data, utcHour, flashHour }: HourlyDetailP
             ))}
           </motion.div>
           <div className="mt-3 flex items-center justify-between">
-            <span className="micro-mono">bar length = avg range (USD)</span>
+            <span className="micro-mono">bar length = avg range ({unit})</span>
             <span className="micro-mono">
               <span className="text-up">●</span> P(high-vol) position on 0–1 scale
             </span>
@@ -68,7 +72,7 @@ export default function HourlyDetail({ data, utcHour, flashHour }: HourlyDetailP
               <thead className="sticky top-0 z-10 bg-bg2">
                 <tr className="label-caps">
                   <th className="px-2 py-2 text-left">UTC hour</th>
-                  <th className="px-2 py-2">avg range USD</th>
+                  <th className="px-2 py-2">avg range {unit}</th>
                   <th className="px-2 py-2">×ATR</th>
                   <th className="px-2 py-2">avg |ret|</th>
                   <th className="px-2 py-2">P(high-vol)</th>
@@ -97,7 +101,7 @@ export default function HourlyDetail({ data, utcHour, flashHour }: HourlyDetailP
                         {hourLabel(h.hour_utc)}
                         {isCurrent && <span className="ml-1.5 text-[9px] text-gold">●NOW</span>}
                       </td>
-                      <td className="px-2 py-1.5 text-text0">{fmtUsd(h.avg_range_price)}</td>
+                      <td className="px-2 py-1.5 text-text0">{fmtUsd(h.avg_range_price, digits)}</td>
                       <td className="px-2 py-1.5 text-text1">{fmtAtr(h.avg_range_atr)}</td>
                       <td className="px-2 py-1.5 text-text1">{fmtAbsRet(h.avg_abs_ret)}</td>
                       <td

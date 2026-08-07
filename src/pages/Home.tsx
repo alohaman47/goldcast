@@ -1,23 +1,46 @@
 import { motion } from 'framer-motion'
-import { useLatest, useBars, useSessions } from '@/hooks/useData'
+import { useSymbolData } from '@/hooks/useData'
+import type { Bar, LatestData, SessionsData } from '@/hooks/useData'
+import { useSymbol, fmtSymPrice } from '@/hooks/useSymbol'
+import type { SymbolConfig } from '@/engine/symbols'
 import { useLivePrice } from '@/hooks/useLivePrice'
 import { useLivePrediction } from '@/hooks/useLivePrediction'
+import type { LivePredictionState } from '@/hooks/useLivePrediction'
 import CandlestickChart from '@/components/dashboard/CandlestickChart'
 import EvidencePanel from '@/components/dashboard/EvidencePanel'
 import ForecastStrip from '@/components/dashboard/ForecastStrip'
 import SessionStrip from '@/components/dashboard/SessionStrip'
 import OntologyMap from '@/components/dashboard/OntologyMap'
 import QuoteList from '@/components/dashboard/QuoteList'
-import StatusBar from '@/components/dashboard/StatusBar'
 import LiveBadge, { type LiveBadgeProps, type LiveBadgeStatus } from '@/components/live/LiveBadge'
 import AlertCenter from '@/components/live/AlertCenter'
 import BarCloseCountdown from '@/components/live/BarCloseCountdown'
 import GapBanner from '@/components/live/GapBanner'
+import StaticBadge from '@/components/symbol/StaticBadge'
+import SymbolSessionStrip from '@/components/symbol/SymbolSessionStrip'
+import SymbolStatusBar from '@/components/symbol/SymbolStatusBar'
 
 const EASE = [0.16, 1, 0.3, 1] as [number, number, number, number]
 
-function fmt(v: number) {
-  return v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+/** Verified H1 bar counts per dataset (sum of sessions.json bar_count). */
+const BARS_VERIFIED: Record<string, string> = {
+  XAUUSD: '26,836',
+  NAS100: '26,798',
+}
+
+/**
+ * Alert watcher state passed to AlertCenter when the symbol has no live feed:
+ * never 'live', so the panel honestly reports "alerts paused — not live".
+ */
+const NO_FEED_ALERTS_STATE: LivePredictionState = {
+  data: null,
+  raw: null,
+  forming: null,
+  gapHours: 0,
+  farGap: false,
+  status: 'stale',
+  error: 'no live feed for this symbol',
+  computedAtMs: null,
 }
 
 function DashboardSkeleton() {
@@ -34,21 +57,19 @@ function DashboardSkeleton() {
 }
 
 export default function Home() {
-  const latest = useLatest()
-  const bars = useBars()
-  const sessions = useSessions()
-  const price = useLivePrice()
-  const live = useLivePrediction(bars.data, price)
+  const { config } = useSymbol()
+  const { latest, bars, sessions } = useSymbolData()
 
   const loading = latest.loading || bars.loading || sessions.loading
   const error = latest.error || bars.error || sessions.error
   const ready = latest.data && bars.data && sessions.data && bars.data.length > 0
+  const statusBar = <SymbolStatusBar latest={null} config={config} barsVerified={BARS_VERIFIED[config.symbol]} />
 
   if (loading) {
     return (
       <>
         <DashboardSkeleton />
-        <StatusBar latest={null} />
+        {statusBar}
       </>
     )
   }
@@ -62,16 +83,43 @@ export default function Home() {
             <p className="mt-2 font-mono text-[12px] text-text2">{error ?? 'No data in /data/.'}</p>
           </div>
         </div>
-        <StatusBar latest={null} />
+        {statusBar}
       </>
     )
   }
 
-  const lastStatic = bars.data![bars.data!.length - 1]
-  const prev = bars.data![bars.data!.length - 2]
+  return config.hasLiveFeed ? (
+    <LiveDashboard latest={latest.data!} bars={bars.data!} sessions={sessions.data!} config={config} />
+  ) : (
+    <StaticDashboard latest={latest.data!} bars={bars.data!} sessions={sessions.data!} config={config} />
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/* LIVE dashboard — XAUUSD (live price feed + browser GBM engine)      */
+/* ------------------------------------------------------------------ */
+
+function LiveDashboard({
+  latest,
+  bars,
+  sessions,
+  config,
+}: {
+  latest: LatestData
+  bars: Bar[]
+  sessions: SessionsData
+  config: SymbolConfig
+}) {
+  const price = useLivePrice()
+  const live = useLivePrediction(bars, price)
+
+  const fmt = (v: number) => fmtSymPrice(v, config)
+
+  const lastStatic = bars[bars.length - 1]
+  const prev = bars[bars.length - 2]
 
   /* live source: browser engine prediction when available, static export otherwise */
-  const effLatest = live.data ?? latest.data!
+  const effLatest = live.data ?? latest
   const liveActive = live.data != null
   const headerBar = live.forming ?? lastStatic
   const headerPrevClose = live.forming ? lastStatic.c : prev.c
@@ -112,7 +160,7 @@ export default function Home() {
           animate={{ opacity: 1 }}
           transition={{ duration: 0.4, ease: EASE }}
           className="panel panel-gold relative order-1 overflow-hidden xl:col-start-1 xl:row-start-1"
-          aria-label="XAUUSD chart"
+          aria-label={`${config.symbol} chart`}
         >
           {/* gold texture backdrop at 8% */}
           <div
@@ -129,7 +177,7 @@ export default function Home() {
           <div className="relative flex h-full flex-col">
             <div className="flex min-h-10 flex-wrap items-center justify-between gap-x-3 gap-y-1 border-b border-line px-4 py-1">
               <h1 className="panel-title flex items-center gap-2">
-                XAUUSD · 1H · OANDA
+                {config.symbol} · 1H · OANDA
                 <span className="h-2 w-2 rounded-full bg-up animate-pulse-dot" aria-label="live" />
               </h1>
               <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
@@ -151,8 +199,8 @@ export default function Home() {
             </div>
             <div className="relative min-h-[420px] flex-1 lg:min-h-[520px]">
               <CandlestickChart
-                bars={bars.data!}
-                latest={latest.data!}
+                bars={bars}
+                latest={latest}
                 live={
                   live.data && live.forming
                     ? {
@@ -180,18 +228,123 @@ export default function Home() {
 
         {/* D. Session strip */}
         <div className="order-4 xl:col-start-1 xl:row-start-3">
-          <SessionStrip sessions={sessions.data!} latest={effLatest} />
+          <SessionStrip sessions={sessions} latest={effLatest} />
         </div>
       </div>
 
       {/* E. Ontology + F. Quotes */}
       <div className="grid gap-4 px-4 pb-4 lg:grid-cols-2">
         <OntologyMap />
-        <QuoteList bars={bars.data!} latest={effLatest} />
+        <QuoteList bars={bars} latest={effLatest} />
       </div>
 
       {/* G. Status bar */}
-      <StatusBar latest={effLatest} liveActive={liveActive} />
+      <SymbolStatusBar latest={effLatest} liveActive={liveActive} config={config} barsVerified={BARS_VERIFIED[config.symbol]} />
+    </>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/* STATIC dashboard — NAS100 (no live feed; honest static states)      */
+/* ------------------------------------------------------------------ */
+
+function StaticDashboard({
+  latest,
+  bars,
+  sessions,
+  config,
+}: {
+  latest: LatestData
+  bars: Bar[]
+  sessions: SessionsData
+  config: SymbolConfig
+}) {
+  const fmt = (v: number) => fmtSymPrice(v, config)
+
+  const lastBar = bars[bars.length - 1]
+  const prev = bars[bars.length - 2]
+  const delta = lastBar.c - prev.c
+  const deltaPct = (delta / prev.c) * 100
+  const up = delta >= 0
+
+  return (
+    <>
+      {/* terminal grid: chart + evidence rail / forecast / sessions */}
+      <div className="grid flex-1 gap-4 p-4 xl:grid-cols-[1fr_380px]">
+        {/* A. Chart panel */}
+        <motion.section
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.4, ease: EASE }}
+          className="panel panel-gold relative order-1 overflow-hidden xl:col-start-1 xl:row-start-1"
+          aria-label={`${config.symbol} chart`}
+        >
+          {/* gold texture backdrop at 8% */}
+          <div
+            className="pointer-events-none absolute inset-0 opacity-[0.08]"
+            style={{ backgroundImage: 'url(/gold-texture-dark.png)', backgroundSize: 'cover', backgroundPosition: 'center' }}
+          />
+          {/* scanline sweep (once) */}
+          <motion.div
+            initial={{ top: '0%', opacity: 1 }}
+            animate={{ top: '100%', opacity: 0 }}
+            transition={{ duration: 0.7, delay: 0.1, ease: EASE }}
+            className="pointer-events-none absolute left-0 h-px w-full bg-gold/60"
+          />
+          <div className="relative flex h-full flex-col">
+            <div className="flex min-h-10 flex-wrap items-center justify-between gap-x-3 gap-y-1 border-b border-line px-4 py-1">
+              <h1 className="panel-title flex items-center gap-2">{config.symbol} · 1H · OANDA</h1>
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                <StaticBadge />
+                <AlertCenter live={NO_FEED_ALERTS_STATE} />
+                <p className="font-mono text-[13px] tnum text-text1">
+                  O {fmt(lastBar.o)}&nbsp;&nbsp;H {fmt(lastBar.h)}&nbsp;&nbsp;L {fmt(lastBar.l)}&nbsp;&nbsp;C{' '}
+                  {fmt(lastBar.c)}{' '}
+                  <span className={up ? 'text-up' : 'text-down'}>
+                    {up ? '+' : '−'}
+                    {fmt(Math.abs(delta))} ({up ? '+' : '−'}
+                    {Math.abs(deltaPct).toFixed(2)}%)
+                  </span>
+                </p>
+              </div>
+            </div>
+            <div className="relative min-h-[420px] flex-1 lg:min-h-[520px]">
+              <CandlestickChart bars={bars} latest={latest} live={null} />
+            </div>
+          </div>
+        </motion.section>
+
+        {/* B. Evidence panel (right rail) — static export, no live badge row */}
+        <div className="order-3 flex xl:order-none xl:col-start-2 xl:row-span-3 xl:row-start-1">
+          <EvidencePanel latest={latest} />
+        </div>
+
+        {/* C. Forecast strip */}
+        <div className="order-2 xl:col-start-1 xl:row-start-2">
+          <ForecastStrip latest={latest} />
+        </div>
+
+        {/* D. Session strip (symbol bands + units) */}
+        <div className="order-4 xl:col-start-1 xl:row-start-3">
+          <SymbolSessionStrip sessions={sessions} latest={latest} config={config} />
+        </div>
+      </div>
+
+      {/* E/F. Market context is gold research — say so honestly instead of
+          rendering XAUUSD context under a NAS100 dashboard. */}
+      <div className="grid gap-4 px-4 pb-4">
+        <section className="panel p-4" aria-label="Market context note">
+          <h2 className="panel-title">Market Context — XAUUSD research only</h2>
+          <p className="mt-2 font-mono text-[12px] leading-5 text-text1">
+            The ontology map and DXY / US10Y quote context are XAUUSD research artifacts. The {config.symbol} export
+            is static (no live feed, engine verified OOS) and covers the chart, forecast, and session stats above —
+            nothing more is claimed.
+          </p>
+        </section>
+      </div>
+
+      {/* G. Status bar */}
+      <SymbolStatusBar latest={latest} liveActive={false} config={config} barsVerified={BARS_VERIFIED[config.symbol]} />
     </>
   )
 }

@@ -2,17 +2,20 @@ import { useMemo } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import { CheckCircle2, XCircle } from 'lucide-react'
 import type { SessionsData } from '@/hooks/useData'
-import { TERMINAL_EASE, pad2 } from './utils'
+import { GOLD_CONFIG, type SymbolConfig } from '@/engine/symbols'
+import { TERMINAL_EASE, fmtInt, pad2 } from './utils'
 
-export default function RiskGuidance({ data }: { data: SessionsData }) {
+export default function RiskGuidance({ data, config = GOLD_CONFIG }: { data: SessionsData; config?: SymbolConfig }) {
   const reducedMotion = useReducedMotion()
 
   // Honest ratio computed from the real data: widest hour vs 23:00 UTC.
-  const { peakHour, ratio } = useMemo(() => {
+  const { peakHour, ratio, totalBars } = useMemo(() => {
     let peak = 0
     let peakV = 0
     let v23 = 0
+    let total = 0
     for (const h of data.hours) {
+      total += h.bar_count
       if (h.avg_range_price == null) continue
       if (h.avg_range_price > peakV) {
         peakV = h.avg_range_price
@@ -20,9 +23,10 @@ export default function RiskGuidance({ data }: { data: SessionsData }) {
       }
       if (h.hour_utc === 23) v23 = h.avg_range_price
     }
-    return { peakHour: peak, ratio: v23 > 0 ? peakV / v23 : 0 }
+    return { peakHour: peak, ratio: v23 > 0 ? peakV / v23 : 0, totalBars: total }
   }, [data.hours])
 
+  const isGold = config.symbol === 'XAUUSD'
   const columns = [
     {
       kind: 'do' as const,
@@ -37,7 +41,9 @@ export default function RiskGuidance({ data }: { data: SessionsData }) {
     {
       kind: 'dont' as const,
       title: "DON'T",
-      body: "Don't read direction into this. Hot hours mean movement, not up. Direction stayed a coin flip in every test (50.1% vs 52.1% always-up). Session tells you how far, never which way.",
+      body: isGold
+        ? "Don't read direction into this. Hot hours mean movement, not up. Direction stayed a coin flip in every test (50.1% vs 52.1% always-up). Session tells you how far, never which way."
+        : "Don't read direction into this. Hot hours mean movement, not up. Direction was a coin flip in every XAUUSD test — no direction edge is claimed for this symbol either. Session tells you how far, never which way.",
     },
   ]
 
@@ -83,7 +89,8 @@ export default function RiskGuidance({ data }: { data: SessionsData }) {
           ))}
         </div>
         <p className="micro-mono mt-5">
-          Source: sessions.json — empirical stats over 26,836 H1 bars, 2022-01 → 2026-07.
+          Source: {config.dataFiles.sessions.split('/').pop()} — empirical stats over {fmtInt(totalBars)} H1 bars
+          {isGold ? ', 2022-01 → 2026-07' : ''}.
         </p>
       </div>
     </section>

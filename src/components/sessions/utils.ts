@@ -1,4 +1,21 @@
 import type { SessionHour, SessionsData } from '@/hooks/useData'
+import type { SymbolConfig } from '@/engine/symbols'
+
+/**
+ * Unit suffix for avg-range readouts, per active symbol (Phase 9 Stage 2):
+ * gold research labels ranges in USD; NAS100 ranges are index points.
+ */
+export function rangeUnit(config: SymbolConfig): string {
+  return config.symbol === 'NAS100' ? 'pts' : 'USD'
+}
+
+/**
+ * Decimals for avg-range readouts. XAUUSD keeps the call-site fallback so
+ * gold output stays byte-identical; other symbols follow config.priceDecimals.
+ */
+export function rangeDigits(config: SymbolConfig, goldFallback: number): number {
+  return config.symbol === 'XAUUSD' ? goldFallback : config.priceDecimals
+}
 
 /** Terminal ease (design.md §5) */
 export const TERMINAL_EASE: [number, number, number, number] = [0.16, 1, 0.3, 1]
@@ -140,8 +157,15 @@ export const BAND_META: Record<
 }
 
 export function bandHours(data: SessionsData, id: BandId): number[] {
-  const raw = data.bands[id]
-  return Array.isArray(raw) ? [...raw].sort((a, b) => a - b) : []
+  /* sessions.json exports bands as { hours: number[], label: string } objects
+     (matching engine/symbols.ts sessionBands); tolerate a bare number[] too. */
+  const raw = data.bands[id] as unknown
+  const hours = Array.isArray(raw)
+    ? raw
+    : raw != null && typeof raw === 'object' && Array.isArray((raw as { hours?: unknown }).hours)
+      ? (raw as { hours: number[] }).hours
+      : []
+  return [...hours].sort((a, b) => a - b)
 }
 
 export function bandForHour(data: SessionsData, hour: number): BandId | null {

@@ -2,8 +2,10 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { animate, motion, useReducedMotion } from 'framer-motion'
 import Lenis from 'lenis'
 import HonestyBadge from '@/components/HonestyBadge'
-import { useLatest, useSessions } from '@/hooks/useData'
+import { useSymbolData } from '@/hooks/useData'
 import type { LatestData, SessionsData } from '@/hooks/useData'
+import { useSymbol, rangeDigits, priceUnit } from '@/hooks/useSymbol'
+import type { SymbolConfig } from '@/engine/symbols'
 import BandCards from '@/components/sessions/BandCards'
 import HourlyDetail from '@/components/sessions/HourlyDetail'
 import RiskGuidance from '@/components/sessions/RiskGuidance'
@@ -11,10 +13,19 @@ import SessionRadar from '@/components/sessions/SessionRadar'
 import { TERMINAL_EASE, bandForHour, fmtUsd, sessionDisplayName } from '@/components/sessions/utils'
 
 const HEADLINE = 'Gold has a schedule. Volatility keeps it.'
+const HEADLINE_NAS = 'Nasdaq has a schedule. Volatility keeps it.'
+
+/** Verified H1 bar counts per dataset (sum of sessions bar_count). */
+const TOTAL_BARS: Record<string, string> = {
+  XAUUSD: '26,836',
+  NAS100: '26,798',
+}
 
 export default function Sessions() {
-  const { data: sessions, loading: sessionsLoading, error: sessionsError } = useSessions()
-  const { data: latest, loading: latestLoading } = useLatest()
+  const { config } = useSymbol()
+  const { sessions: sessionsState, latest: latestState } = useSymbolData()
+  const { data: sessions, loading: sessionsLoading, error: sessionsError } = sessionsState
+  const { data: latest, loading: latestLoading } = latestState
   const reducedMotion = useReducedMotion()
 
   // Live UTC clock (1s tick) — drives hero chip, radar needle, current-hour highlights.
@@ -61,11 +72,11 @@ export default function Sessions() {
 
   return (
     <div className="mx-auto w-full max-w-[1180px] px-6 pb-24 pt-14">
-      <Hero sessions={sessions} latest={latest} now={now} loading={loading} />
+      <Hero sessions={sessions} latest={latest} now={now} loading={loading} config={config} />
 
       {sessionsError && (
         <div className="panel mt-10 border-l-2 border-l-down p-5 font-mono text-[13px] text-down">
-          Failed to load sessions.json — {sessionsError}
+          Failed to load {config.dataFiles.sessions.split('/').pop()} — {sessionsError}
         </div>
       )}
 
@@ -73,10 +84,10 @@ export default function Sessions() {
 
       {sessions && (
         <div className="mt-14 flex flex-col gap-14">
-          <SessionRadar data={sessions} now={now} onSelectHour={handleSelectHour} />
-          <HourlyDetail data={sessions} utcHour={utcHour} flashHour={flashHour} />
-          <BandCards data={sessions} />
-          <RiskGuidance data={sessions} />
+          <SessionRadar data={sessions} now={now} onSelectHour={handleSelectHour} config={config} />
+          <HourlyDetail data={sessions} utcHour={utcHour} flashHour={flashHour} config={config} />
+          <BandCards data={sessions} config={config} />
+          <RiskGuidance data={sessions} config={config} />
         </div>
       )}
     </div>
@@ -92,16 +103,22 @@ function Hero({
   latest,
   now,
   loading,
+  config,
 }: {
   sessions: SessionsData | null
   latest: LatestData | null
   now: Date
   loading: boolean
+  config: SymbolConfig
 }) {
   const reducedMotion = useReducedMotion()
   const utcHour = now.getUTCHours()
   const hourRow = sessions?.hours.find((h) => h.hour_utc === utcHour)
   const band = sessions ? bandForHour(sessions, utcHour) : null
+  const headline = config.symbol === 'NAS100' ? HEADLINE_NAS : HEADLINE
+  const totalBars = TOTAL_BARS[config.symbol]
+  const unit = priceUnit(config)
+  const rangeD = rangeDigits(config, 1)
 
   const clock = `${String(now.getUTCHours()).padStart(2, '0')}:${String(now.getUTCMinutes()).padStart(2, '0')}:${String(
     now.getUTCSeconds(),
@@ -120,9 +137,12 @@ function Hero({
   return (
     <header className="grid grid-cols-1 items-start gap-10 lg:grid-cols-[1fr_340px]">
       <div>
-        <p className="label-caps text-gold">The One True Edge</p>
+        <p className="label-caps text-gold">
+          The One True Edge — {config.symbol}
+          {!config.hasLiveFeed && <span className="ml-2 text-text2">· static export, no live feed</span>}
+        </p>
         <h1 className="mt-3 font-display text-[34px] font-bold leading-[42px] tracking-[-0.015em] text-text0 sm:text-[40px] sm:leading-[46px]">
-          {HEADLINE.split(' ').map((word, i) => (
+          {headline.split(' ').map((word, i) => (
             <span key={i} className="inline-block overflow-hidden pb-1 align-bottom">
               <motion.span
                 className="inline-block"
@@ -135,7 +155,7 @@ function Hero({
                 }}
               >
                 {word}
-                {i < HEADLINE.split(' ').length - 1 ? ' ' : ''}
+                {i < headline.split(' ').length - 1 ? ' ' : ''}
               </motion.span>
             </span>
           ))}
@@ -146,7 +166,7 @@ function Hero({
           transition={{ delay: reducedMotion ? 0 : 0.35, duration: reducedMotion ? 0 : 0.5, ease: TERMINAL_EASE }}
           className="mt-4 max-w-[640px] font-body text-[15px] leading-6 text-text1"
         >
-          Across 26,836 hourly bars, when you trade matters more than any indicator we tested. London and New York
+          Across {totalBars} hourly bars, when you trade matters more than any indicator we tested. London and New York
           hours run hot; Asia runs quiet. This is real, measurable, and verified out-of-sample.
         </motion.p>
 
@@ -177,7 +197,7 @@ function Hero({
       >
         <div className="flex items-center justify-between">
           <span className="label-caps">Now</span>
-          <HonestyBadge kind="real-edge" tooltip="Empirical session seasonality over 26,836 H1 bars, verified out-of-sample" />
+          <HonestyBadge kind="real-edge" tooltip={`Empirical session seasonality over ${totalBars} H1 bars, verified out-of-sample`} />
         </div>
         {loading ? (
           <div className="mt-4 space-y-3">
@@ -201,7 +221,7 @@ function Hero({
               <span className="text-text0">
                 {utcHour === 0 || hourRow?.avg_range_price == null
                   ? 'daily break — no bars'
-                  : `${fmtUsd(hourRow?.avg_range_price ?? null, 1)} USD`}
+                  : `${fmtUsd(hourRow?.avg_range_price ?? null, rangeD)} ${unit}`}
               </span>
             </p>
           </>

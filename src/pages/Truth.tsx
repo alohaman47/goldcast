@@ -29,6 +29,10 @@ export default function Truth() {
 
   return (
     <div className="w-full">
+      {/* honesty caption: all research on this page is the XAUUSD record (Phase 9 multi-symbol) */}
+      <p className="micro-mono mx-auto w-full max-w-[1180px] px-6 pt-5">
+        Research shown for XAUUSD — the NAS100 static export covers the dashboard and session radar only.
+      </p>
       <TruthHero data={data} />
       <DatasetSection data={data} />
       <Phase1Section data={data} />

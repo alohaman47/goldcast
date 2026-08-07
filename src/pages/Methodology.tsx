@@ -42,6 +42,10 @@ function Hero() {
         GoldCast&apos;s forecasts are precomputed by a production scikit-learn gradient-boosting engine and exported
         as JSON. No live black box, no hidden overrides. Here&apos;s exactly what&apos;s inside.
       </motion.p>
+      {/* honesty caption: this audit documents the XAUUSD engine (Phase 9 multi-symbol) */}
+      <p className="micro-mono mt-4">
+        Research shown for XAUUSD — the NAS100 static export covers the dashboard and session radar only.
+      </p>
     </div>
   )
 }

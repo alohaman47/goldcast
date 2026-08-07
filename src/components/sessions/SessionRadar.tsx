@@ -2,6 +2,7 @@ import { useMemo, useRef, useState } from 'react'
 import type { MouseEvent } from 'react'
 import { motion, useInView, useReducedMotion } from 'framer-motion'
 import type { SessionHour, SessionsData } from '@/hooks/useData'
+import { GOLD_CONFIG, type SymbolConfig } from '@/engine/symbols'
 import {
   BAND_META,
   BAND_ORDER,
@@ -15,6 +16,8 @@ import {
   fmtUsd,
   hourLabel,
   modeExtent,
+  rangeDigits,
+  rangeUnit,
   wedgeFill,
 } from './utils'
 import type { ColorMode } from './utils'
@@ -69,14 +72,17 @@ interface SessionRadarProps {
   data: SessionsData
   now: Date
   onSelectHour: (hour: number) => void
+  config?: SymbolConfig
 }
 
-export default function SessionRadar({ data, now, onSelectHour }: SessionRadarProps) {
+export default function SessionRadar({ data, now, onSelectHour, config = GOLD_CONFIG }: SessionRadarProps) {
   const [colorMode, setColorMode] = useState<ColorMode>('pvol')
   const [hover, setHover] = useState<HoverState | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const inView = useInView(containerRef, { once: true, amount: 0.2 })
   const reducedMotion = useReducedMotion()
+  const unit = rangeUnit(config)
+  const digits = rangeDigits(config, 2)
 
   const utcHour = now.getUTCHours()
   const utcMinute = now.getUTCMinutes()
@@ -167,7 +173,7 @@ export default function SessionRadar({ data, now, onSelectHour }: SessionRadarPr
             viewBox="0 0 640 600"
             className="h-full w-full"
             role="img"
-            aria-label="Radial heatmap of XAUUSD hourly volatility. Wedge length is average range in USD; color is the selected heat metric. Hour 00 is hollow: daily break, no bars."
+            aria-label={`Radial heatmap of ${config.symbol} hourly volatility. Wedge length is average range in ${unit}; color is the selected heat metric. Hour 00 is hollow: daily break, no bars.`}
           >
             {/* Session band arcs (inner ring) */}
             <g>
@@ -231,7 +237,7 @@ export default function SessionRadar({ data, now, onSelectHour }: SessionRadarPr
                   <title>
                     {isNull
                       ? '00:00 UTC — daily break, no bars'
-                      : `${hourLabel(h.hour_utc)} UTC · avg range ${fmtUsd(h.avg_range_price)} USD · ${fmtAtr(h.avg_range_atr)}ATR · P(high-vol) ${fmtPct(h.p_high_vol_empirical)} · n=${fmtInt(h.bar_count)} bars`}
+                      : `${hourLabel(h.hour_utc)} UTC · avg range ${fmtUsd(h.avg_range_price, digits)} ${unit} · ${fmtAtr(h.avg_range_atr)}ATR · P(high-vol) ${fmtPct(h.p_high_vol_empirical)} · n=${fmtInt(h.bar_count)} bars`}
                   </title>
                 </motion.path>
               )
@@ -289,7 +295,7 @@ export default function SessionRadar({ data, now, onSelectHour }: SessionRadarPr
                 textAnchor="middle"
                 style={{ fontSize: 13, fontWeight: 700, fill: '#E8B23A', fontFamily: '"Space Grotesk", sans-serif' }}
               >
-                XAUUSD
+                {config.symbol}
               </text>
               <text
                 x={CX}
@@ -317,7 +323,7 @@ export default function SessionRadar({ data, now, onSelectHour }: SessionRadarPr
                 <>
                   <span className="text-gold">{hourLabel(hoverRow.hour_utc)} UTC</span>
                   <span className="text-text2"> · avg range </span>
-                  {fmtUsd(hoverRow.avg_range_price)} USD
+                  {fmtUsd(hoverRow.avg_range_price, digits)} {unit}
                   <span className="text-text2"> · </span>
                   {fmtAtr(hoverRow.avg_range_atr)}ATR
                   <span className="text-text2"> · P(high-vol) </span>
@@ -340,7 +346,7 @@ export default function SessionRadar({ data, now, onSelectHour }: SessionRadarPr
                 quiet → hot ({COLOR_MODES.find((m) => m.id === colorMode)?.label})
               </span>
             </div>
-            <span className="micro-mono">wedge length = avg range (USD) · 00:00 hollow = daily break</span>
+            <span className="micro-mono">wedge length = avg range ({unit}) · 00:00 hollow = daily break</span>
           </div>
         </div>
       </div>
