@@ -1,73 +1,72 @@
-# React + TypeScript + Vite
+# GoldCast 📈
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+**A market-volatility intelligence terminal** for XAUUSD (gold) and NAS100 — with a brutal-honesty research contract: *we show what we can prove, we label what we can't.*
 
-Currently, two official plugins are available:
+GoldCast does **not** predict price direction (we proved out-of-sample that direction models lose to a trivial always-up baseline on every market and timeframe — and the app says so openly). What it does predict, with verified out-of-sample skill, is **volatility**: when the market will be violent and when it will be dead. For discretionary traders and scalpers, that is the edge that actually exists.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Features
 
-## React Compiler
+- **4 parity-verified volatility engines** (client-side, zero backend):
+  | Engine | Mode | OOS accuracy | AUC |
+  |---|---|---|---|
+  | XAUUSD H1 | 🟢 LIVE (gold-api.com feed, 60 s) | 80.08% | 0.778 |
+  | XAUUSD H4 | STATIC | 76.14% | 0.735 |
+  | NAS100 H1 | STATIC | 82.98% | 0.8726 |
+  | NAS100 H4 | STATIC | 83.18% | 0.8715 |
+- **Dashboard** — real candlestick chart, ghost candles T+1–T+3 with √-time uncertainty cone, P(high-vol), expected range, confidence pips, engine evidence panel.
+- **Session Radar** — 24-hour volatility heatmap per symbol (the clock is ~90–97% of the learnable signal).
+- **Scalper's Clock** — 96-slot M15 maps (gold + NAS100) and a 288-slot gold M5 map: which UTC slots are hot, plus honest spread economics per timeframe (computed from 100k–325k real bars each).
+- **The Truth** — the full honest research record: what works, what doesn't, equity curves.
+- **Methodology** — auditable engine docs: pipeline, walk-forward protocol, cone math, data dictionary.
+- **Vol alerts** — configurable P(high-vol) spike notifications.
+- URL-param state everywhere (`?symbol=`, `?tf=`, `?stf=`) — every view is shareable.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## The honesty contract
 
-## Expanding the ESLint configuration
+- Direction: **NOT predictable** — shown as such everywhere (`⚠ NOT PREDICTABLE`).
+- STATIC modes are labeled STATIC; data as-of dates are displayed; GAP banners appear when data is stale.
+- Every displayed metric is pinned by `scripts/symbol_check.mjs` (95 assertions) against fabrication.
+- JS engine is parity-verified against the Python research models to ≤1e-6 (actual ~1e-13) by `scripts/parity_check.mjs` across all 4 engines.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## Tech stack
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+Node 20 · React 19 · TypeScript · Vite 7 · Tailwind 3.4 · shadcn/ui · react-router 7 · GSAP · Lenis · Framer Motion. GBM models are exported from Python (scikit-learn) via m2cgen-style tree assembly to dependency-free JS.
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## Quickstart
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
+npm run dev        # dev server
+npm run build      # production build → dist/
+npm run preview    # preview the build
+
+# Verification gates (should all PASS)
+node scripts/parity_check.mjs
+node scripts/symbol_check.mjs
+node scripts/alert_check.mjs
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Deploy (Railway / any Docker host)
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+docker build -t goldcast .
+docker run -p 3000:3000 goldcast
 ```
+
+The included `Dockerfile` builds the app and serves `dist/` with SPA fallback via `serve -s` on `$PORT` (Railway-ready, zero config). See `DEPLOY.md` for a click-by-click GitHub + Railway guide.
+
+## Project layout
+
+```
+src/engine/     # prediction engine: bars → indicators → filters → features → predict (+ 8 GBM model modules)
+src/pages/      # Home, Sessions, Truth, Methodology, ScalperClock
+src/hooks/      # useData / useSymbol / useLivePrice / useLivePrediction / useVolAlerts
+public/data/    # 17 static research exports (JSON)
+scripts/        # parity / symbol / alert verification gates
+INTEGRATION.md  # guide for embedding GoldCast into another app
+DEPLOY.md       # GitHub + Railway deploy guide
+```
+
+## License
+
+Private / all rights reserved (contact the owner before reuse).
