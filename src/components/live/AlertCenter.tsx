@@ -3,6 +3,8 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { Bell, BellRing, Trash2, Zap } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useVolAlerts, type VolAlertType } from '@/hooks/useVolAlerts'
+import { useTimezone, fmtWallClock, tzSuffix } from '@/hooks/useTimezone'
+import type { DisplayTz } from '@/hooks/useTimezone'
 import type { LivePredictionState } from '@/hooks/useLivePrediction'
 
 /**
@@ -18,10 +20,8 @@ import type { LivePredictionState } from '@/hooks/useLivePrediction'
 const EASE = [0.16, 1, 0.3, 1] as [number, number, number, number]
 const FLASH_MS = 3_500
 
-const p2 = (n: number) => String(n).padStart(2, '0')
-function fmtClock(ms: number): string {
-  const d = new Date(ms)
-  return `${p2(d.getUTCHours())}:${p2(d.getUTCMinutes())} UTC`
+function fmtClock(ms: number, tz: DisplayTz): string {
+  return `${fmtWallClock(new Date(ms), tz, false)} ${tzSuffix(tz)}`
 }
 
 function usePrefersReducedMotion(): boolean {
@@ -135,6 +135,7 @@ function SliderRow({
 
 export default memo(function AlertCenter({ live }: { live: LivePredictionState }) {
   const alerts = useVolAlerts(live)
+  const { tz } = useTimezone()
   const [open, setOpen] = useState(false)
   const [flashing, setFlashing] = useState(false)
   const reducedMotion = usePrefersReducedMotion()
@@ -324,7 +325,7 @@ export default memo(function AlertCenter({ live }: { live: LivePredictionState }
                       key={`${e.time}-${e.type}-${i}`}
                       className="flex items-center justify-between gap-2 rounded border border-line bg-bg2/60 px-2 py-1"
                     >
-                      <span className="micro-mono shrink-0">{fmtClock(e.time)}</span>
+                      <span className="micro-mono shrink-0">{fmtClock(e.time, tz)}</span>
                       <span
                         className={cn(
                           'shrink-0 rounded border px-1 py-px font-mono text-[9px] font-semibold tracking-[0.05em]',

@@ -1,5 +1,7 @@
 import { memo, useEffect, useState } from 'react'
 import { RotateCw } from 'lucide-react'
+import { useTimezone, fmtWallClock, tzSuffix } from '@/hooks/useTimezone'
+import type { DisplayTz } from '@/hooks/useTimezone'
 import { cn } from '@/lib/utils'
 
 /**
@@ -18,11 +20,8 @@ export interface LiveBadgeProps {
   className?: string
 }
 
-const p2 = (n: number) => String(n).padStart(2, '0')
-
-function fmtTickClock(ms: number): string {
-  const d = new Date(ms)
-  return `${p2(d.getUTCHours())}:${p2(d.getUTCMinutes())}:${p2(d.getUTCSeconds())} UTC`
+function fmtTickClock(ms: number, tz: DisplayTz): string {
+  return `${fmtWallClock(new Date(ms), tz)} ${tzSuffix(tz)}`
 }
 
 function fmtAge(ms: number): string {
@@ -34,6 +33,7 @@ function fmtAge(ms: number): string {
 }
 
 export default memo(function LiveBadge({ status, price, tickAtMs, onRefresh, className }: LiveBadgeProps) {
+  const { tz } = useTimezone()
   const [nowMs, setNowMs] = useState(() => Date.now())
   useEffect(() => {
     const iv = window.setInterval(() => setNowMs(Date.now()), 5_000)
@@ -65,7 +65,7 @@ export default memo(function LiveBadge({ status, price, tickAtMs, onRefresh, cla
           {dot('bg-down')}
           <span className="font-mono text-[11px] font-bold tracking-[0.08em] text-down">LIVE</span>
           {priceEl}
-          {tickAtMs != null && <span className="micro-mono">tick {fmtTickClock(tickAtMs)}</span>}
+          {tickAtMs != null && <span className="micro-mono">tick {fmtTickClock(tickAtMs, tz)}</span>}
         </>
       )}
       {status === 'gap' && (
@@ -76,7 +76,7 @@ export default memo(function LiveBadge({ status, price, tickAtMs, onRefresh, cla
           <span className="rounded border border-warn/40 bg-warn/10 px-1.5 py-0.5 font-mono text-[10px] font-semibold text-warn">
             GAP
           </span>
-          {tickAtMs != null && <span className="micro-mono">tick {fmtTickClock(tickAtMs)}</span>}
+          {tickAtMs != null && <span className="micro-mono">tick {fmtTickClock(tickAtMs, tz)}</span>}
         </>
       )}
       {status === 'stale' && (

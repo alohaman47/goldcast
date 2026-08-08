@@ -2,6 +2,8 @@ import { useMemo } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import type { SessionsData } from '@/hooks/useData'
 import { GOLD_CONFIG, type SymbolConfig } from '@/engine/symbols'
+import { useTimezone, formatRunsInTz, tzSuffix, utcHhMmToTz } from '@/hooks/useTimezone'
+import type { DisplayTz } from '@/hooks/useTimezone'
 import {
   BAND_META,
   BAND_ORDER,
@@ -9,7 +11,6 @@ import {
   computeBandStats,
   fmtPct,
   fmtUsd,
-  pad2,
   rangeDigits,
   rangeUnit,
 } from './utils'
@@ -17,6 +18,7 @@ import type { BandStats } from './utils'
 
 export default function BandCards({ data, config = GOLD_CONFIG }: { data: SessionsData; config?: SymbolConfig }) {
   const reducedMotion = useReducedMotion()
+  const { tz } = useTimezone()
   const stats = useMemo(
     () => BAND_ORDER.map((id) => computeBandStats(data, id)).filter((s): s is BandStats => !!s),
     [data],
@@ -27,7 +29,7 @@ export default function BandCards({ data, config = GOLD_CONFIG }: { data: Sessio
       <h2 className="panel-title mb-4">Session Bands — When the Market Breathes</h2>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {stats.map((s, i) => (
-          <BandCard key={s.id} stats={s} data={data} index={i} instant={!!reducedMotion} config={config} />
+          <BandCard key={s.id} stats={s} data={data} index={i} instant={!!reducedMotion} config={config} tz={tz} />
         ))}
       </div>
     </section>
@@ -40,12 +42,14 @@ function BandCard({
   index,
   instant,
   config,
+  tz,
 }: {
   stats: BandStats
   data: SessionsData
   index: number
   instant: boolean
   config: SymbolConfig
+  tz: DisplayTz
 }) {
   const meta = BAND_META[stats.id]
   const unit = rangeUnit(config)
@@ -65,7 +69,12 @@ function BandCard({
           <h3 className="font-display text-[15px] font-semibold uppercase tracking-[0.08em] text-text0">
             {meta.name}
           </h3>
-          <span className="font-mono text-[11px] text-text2">{stats.hoursLabel}</span>
+          {/* UTC band range is the data string — kept; NY mode appends the
+              converted range as a quiet mono suffix */}
+          <span className="font-mono text-[11px] text-text2">
+            {stats.hoursLabel}
+            {tz === 'NY' && <span className="text-text3"> · {formatRunsInTz(stats.runs, tz)} NY</span>}
+          </span>
         </div>
 
         <MiniSparkline data={data} highlightRuns={stats.runs} color={meta.tone} instant={instant} />
@@ -86,7 +95,7 @@ function BandCard({
           <div className="flex justify-between">
             <dt className="text-text2">peak</dt>
             <dd className="text-gold">
-              {fmtPct(stats.peakP)} @ {pad2(stats.peakHour)}:00 UTC
+              {fmtPct(stats.peakP)} @ {utcHhMmToTz(stats.peakHour, 0, tz)} {tzSuffix(tz)}
             </dd>
           </div>
         </dl>

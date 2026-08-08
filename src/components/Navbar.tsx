@@ -3,8 +3,10 @@ import { Link, NavLink } from 'react-router'
 import { Menu, X } from 'lucide-react'
 import { useLatest } from '@/hooks/useData'
 import { useSymbol, symbolDisplayName } from '@/hooks/useSymbol'
+import { useTimezone, fmtWallClock, tzSuffix } from '@/hooks/useTimezone'
 import SymbolToggle from '@/components/symbol/SymbolToggle'
 import TfToggle from '@/components/symbol/TfToggle'
+import TzToggle from '@/components/TzToggle'
 import { cn } from '@/lib/utils'
 
 const NAV_LINKS = [
@@ -24,14 +26,10 @@ function useUtcClock() {
   return now
 }
 
-function formatUtc(d: Date) {
-  const p = (n: number) => String(n).padStart(2, '0')
-  return `${p(d.getUTCHours())}:${p(d.getUTCMinutes())}:${p(d.getUTCSeconds())} UTC`
-}
-
 export default function Navbar() {
   const { data: latest } = useLatest()
   const { symbol, config, tf } = useSymbol()
+  const { tz } = useTimezone()
   const now = useUtcClock()
   const [drawerOpen, setDrawerOpen] = useState(false)
 
@@ -39,11 +37,13 @@ export default function Navbar() {
      gold H4) make no live regime claim */
   const regime = config.hasLiveFeed ? (latest?.regime ?? null) : null
   const regimeIsTrending = regime === 'trending'
-  /* keep the active symbol and timeframe on every internal navigation
-     (defaults omitted: gold has no symbol param, H1 has no tf param) */
+  /* keep the active symbol, timeframe and display timezone on every internal
+     navigation (defaults omitted: gold has no symbol param, H1 no tf param,
+     UTC no tz param) */
   const qs = new URLSearchParams()
   if (symbol === 'NAS100') qs.set('symbol', 'nas100')
   if (tf === 'H4') qs.set('tf', 'h4')
+  if (tz === 'NY') qs.set('tz', 'ny')
   const symbolQuery = qs.size > 0 ? `?${qs.toString()}` : ''
 
   return (
@@ -93,7 +93,9 @@ export default function Navbar() {
         {/* Right: clock + status + symbol toggle + links */}
         <div className="ml-auto flex items-center gap-5">
           <div className="hidden items-center gap-3 lg:flex">
-            <span className="font-mono text-[13px] tnum text-text1">{formatUtc(now)}</span>
+            <span className="font-mono text-[13px] tnum text-text1">
+              {fmtWallClock(now, tz)} {tzSuffix(tz)}
+            </span>
             {config.hasLiveFeed ? (
               <span className="flex items-center gap-1.5">
                 <span className="h-2 w-2 rounded-full bg-up animate-pulse-dot" />
@@ -108,6 +110,7 @@ export default function Navbar() {
           </div>
           <SymbolToggle className="hidden sm:flex" />
           <TfToggle className="hidden sm:flex" />
+          <TzToggle className="hidden sm:flex" />
           <nav className="hidden items-center gap-5 md:flex" aria-label="Primary">
             {NAV_LINKS.map((l) => (
               <NavLink
@@ -144,6 +147,7 @@ export default function Navbar() {
           <nav className="flex flex-col gap-1 p-4" aria-label="Mobile">
             <SymbolToggle className="mb-2 self-start" />
             <TfToggle className="mb-2 self-start" />
+            <TzToggle className="mb-2 self-start" />
             {NAV_LINKS.map((l, i) => (
               <NavLink
                 key={l.to}

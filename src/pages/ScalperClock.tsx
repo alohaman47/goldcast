@@ -4,6 +4,8 @@ import { AlertTriangle, Database, Clock3 } from 'lucide-react'
 import { useScalperClock, scalperClockFile } from '@/hooks/useData'
 import type { ScalperClockData, ScalperTf } from '@/hooks/useData'
 import { useSymbol } from '@/hooks/useSymbol'
+import { useTimezone, fmtWallClock, tzSuffix, utcHhMmToTz, utcLabelToTz } from '@/hooks/useTimezone'
+import type { DisplayTz } from '@/hooks/useTimezone'
 import SlotGrid from '@/components/scalper/SlotGrid'
 import HotCards from '@/components/scalper/HotCards'
 import EconPanel from '@/components/scalper/EconPanel'
@@ -33,8 +35,10 @@ const HEADLINE = "Scalper's Clock"
 export default function ScalperClock() {
   const { data, loading, error, stf, setStf } = useScalperClock()
   const { symbol } = useSymbol()
+  const { tz } = useTimezone()
 
   // Live UTC clock (1s tick) — drives the hero chip and the NOW slot marker.
+  // Slot identity stays UTC; only displayed labels follow the tz toggle.
   const [now, setNow] = useState(() => new Date())
   useEffect(() => {
     const id = window.setInterval(() => setNow(new Date()), 1000)
@@ -43,7 +47,7 @@ export default function ScalperClock() {
 
   return (
     <div className="mx-auto w-full max-w-[1180px] px-6 pb-24 pt-14">
-      <Hero data={data} now={now} loading={loading} symbol={symbol} stf={stf} setStf={setStf} />
+      <Hero data={data} now={now} loading={loading} symbol={symbol} stf={stf} setStf={setStf} tz={tz} />
 
       {error && (
         <div className="panel mt-10 border-l-2 border-l-down p-5 font-mono text-[13px] text-down">
@@ -77,6 +81,7 @@ function Hero({
   symbol,
   stf,
   setStf,
+  tz,
 }: {
   data: ScalperClockData | null
   now: Date
@@ -84,10 +89,13 @@ function Hero({
   symbol: string
   stf: ScalperTf
   setStf: (next: ScalperTf) => void
+  tz: DisplayTz
 }) {
   const reducedMotion = useReducedMotion()
 
-  const clock = `${pad(now.getUTCHours())}:${pad(now.getUTCMinutes())}:${pad(now.getUTCSeconds())}`
+  /* Wall clock in the display tz (UTC default; NY = America/New_York). Slot
+     math below stays UTC — slot identity is UTC, only labels convert. */
+  const clock = fmtWallClock(now, tz)
   /* Slot math derives from the dataset length (1440/slots.length minutes per
      slot — 15 at M15, 5 at M5); no 96/288 constants. */
   const slotsPerDay = data?.slots.length ?? (stf === 'M5' ? 288 : 96)
@@ -177,7 +185,7 @@ function Hero({
           <span className="label-caps">Now</span>
           <span className="inline-flex items-center gap-2 font-mono text-[13px] tnum text-text0">
             <span className="h-1.5 w-1.5 animate-pulse-dot rounded-full bg-up" />
-            {clock} UTC
+            {clock} {tzSuffix(tz)}
           </span>
         </div>
         {loading || !data ? (
@@ -189,11 +197,11 @@ function Hero({
         ) : (
           <>
             <p className="mt-3 font-mono text-[20px] font-bold leading-7 tracking-[0.02em] text-text0">
-              slot {nowSlot?.label ?? '—'} UTC
+              slot {nowSlot ? utcLabelToTz(nowSlot.label, tz, now) : '—'} {tzSuffix(tz)}
             </p>
             {nowSlot && (nowSlot.avg_range_atr == null || nowSlot.bar_count === 0) ? (
               <p className="mt-4 font-mono text-[12px] leading-5 text-honest">
-                session break — no bars in this slot. The clock resumes at 01:00 UTC.
+                session break — no bars in this slot. The clock resumes at {utcHhMmToTz(1, 0, tz, now)} {tzSuffix(tz)}.
               </p>
             ) : (
               <>
@@ -218,10 +226,6 @@ function Hero({
       </motion.aside>
     </header>
   )
-}
-
-function pad(n: number): string {
-  return String(n).padStart(2, '0')
 }
 
 function PageSkeleton() {

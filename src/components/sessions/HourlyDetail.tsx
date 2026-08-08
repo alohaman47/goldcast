@@ -3,7 +3,9 @@ import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { ChevronDown } from 'lucide-react'
 import type { SessionHour, SessionsData } from '@/hooks/useData'
 import { GOLD_CONFIG, type SymbolConfig } from '@/engine/symbols'
-import { TERMINAL_EASE, fmtAbsRet, fmtAtr, fmtInt, fmtPct, fmtUsd, hourLabel, rangeDigits, rangeUnit, thermalColor, thermalTForPvol } from './utils'
+import { useTimezone, tzSuffix, utcHhMmToTz, utcHourInTz } from '@/hooks/useTimezone'
+import type { DisplayTz } from '@/hooks/useTimezone'
+import { TERMINAL_EASE, fmtAbsRet, fmtAtr, fmtInt, fmtPct, fmtUsd, rangeDigits, rangeUnit, thermalColor, thermalTForPvol } from './utils'
 import { cn } from '@/lib/utils'
 
 interface HourlyDetailProps {
@@ -18,6 +20,8 @@ export default function HourlyDetail({ data, utcHour, flashHour, config = GOLD_C
   const [defsOpen, setDefsOpen] = useState(false)
   const unit = rangeUnit(config)
   const digits = rangeDigits(config, 2)
+  /* Phase 14: row identity stays the UTC hour; labels convert. */
+  const { tz } = useTimezone()
 
   const maxRange = useMemo(() => {
     let m = 0
@@ -51,6 +55,7 @@ export default function HourlyDetail({ data, utcHour, flashHour, config = GOLD_C
                 isCurrent={h.hour_utc === utcHour}
                 delay={barDelay(h.hour_utc)}
                 instant={!!reducedMotion}
+                tz={tz}
               />
             ))}
           </motion.div>
@@ -65,13 +70,13 @@ export default function HourlyDetail({ data, utcHour, flashHour, config = GOLD_C
         {/* Right — data table */}
         <div className="panel flex flex-col p-4 sm:p-5">
           <div className="flex h-10 items-center">
-            <h2 className="panel-title">Hourly Data — All 24 UTC Hours</h2>
+            <h2 className="panel-title">Hourly Data — All 24 {tzSuffix(tz)} Hours</h2>
           </div>
           <div className="max-h-[430px] overflow-y-auto rounded-md border border-line">
             <table className="w-full border-collapse text-right">
               <thead className="sticky top-0 z-10 bg-bg2">
                 <tr className="label-caps">
-                  <th className="px-2 py-2 text-left">UTC hour</th>
+                  <th className="px-2 py-2 text-left">{tzSuffix(tz)} hour</th>
                   <th className="px-2 py-2">avg range {unit}</th>
                   <th className="px-2 py-2">×ATR</th>
                   <th className="px-2 py-2">avg |ret|</th>
@@ -98,7 +103,7 @@ export default function HourlyDetail({ data, utcHour, flashHour, config = GOLD_C
                       )}
                     >
                       <td className="px-2 py-1.5 text-left text-text1">
-                        {hourLabel(h.hour_utc)}
+                        {utcHhMmToTz(h.hour_utc, 0, tz)}
                         {isCurrent && <span className="ml-1.5 text-[9px] text-gold">●NOW</span>}
                       </td>
                       <td className="px-2 py-1.5 text-text0">{fmtUsd(h.avg_range_price, digits)}</td>
@@ -168,12 +173,14 @@ function BarRow({
   isCurrent,
   delay,
   instant,
+  tz,
 }: {
   hour: SessionHour
   maxRange: number
   isCurrent: boolean
   delay: number
   instant: boolean
+  tz: DisplayTz
 }) {
   const isNull = hour.bar_count === 0 || hour.avg_range_price == null
   const widthPct = isNull ? 0 : (hour.avg_range_price! / maxRange) * 100
@@ -182,7 +189,7 @@ function BarRow({
   return (
     <div className="flex items-center gap-2">
       <span className="w-7 shrink-0 text-right font-mono text-[10px] leading-4 text-text2">
-        {String(hour.hour_utc).padStart(2, '0')}
+        {utcHourInTz(hour.hour_utc, tz)}
       </span>
       <div
         className={cn(
@@ -194,7 +201,7 @@ function BarRow({
         {isNull ? (
           <div
             className="flex h-full w-[42%] items-center rounded-sm border border-dashed border-text3 px-2"
-            title="00:00 UTC — daily break, no bars"
+            title={`${utcHhMmToTz(0, 0, tz)} ${tzSuffix(tz)} — daily break, no bars`}
           >
             <span className="micro-mono whitespace-nowrap">daily break — no bars</span>
           </div>

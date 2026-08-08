@@ -3,10 +3,12 @@ import { motion, useReducedMotion } from 'framer-motion'
 import { CheckCircle2, XCircle } from 'lucide-react'
 import type { SessionsData } from '@/hooks/useData'
 import { GOLD_CONFIG, type SymbolConfig } from '@/engine/symbols'
-import { TERMINAL_EASE, fmtInt, pad2 } from './utils'
+import { useTimezone, tzSuffix, utcHhMmToTz } from '@/hooks/useTimezone'
+import { TERMINAL_EASE, fmtInt } from './utils'
 
 export default function RiskGuidance({ data, config = GOLD_CONFIG }: { data: SessionsData; config?: SymbolConfig }) {
   const reducedMotion = useReducedMotion()
+  const { tz } = useTimezone()
 
   // Honest ratio computed from the real data: widest hour vs 23:00 UTC.
   const { peakHour, ratio, totalBars } = useMemo(() => {
@@ -31,7 +33,7 @@ export default function RiskGuidance({ data, config = GOLD_CONFIG }: { data: Ses
     {
       kind: 'do' as const,
       title: 'DO',
-      body: `Size positions by session. A stop that's safe in Asia is noise in New York. Expect ranges ~${ratio.toFixed(1)}× wider at ${pad2(peakHour)}:00 UTC than 23:00 UTC.`,
+      body: `Size positions by session. A stop that's safe in Asia is noise in New York. Expect ranges ~${ratio.toFixed(1)}× wider at ${utcHhMmToTz(peakHour, 0, tz)} ${tzSuffix(tz)} than ${utcHhMmToTz(23, 0, tz)} ${tzSuffix(tz)}.`,
     },
     {
       kind: 'do' as const,

@@ -2,8 +2,9 @@ import { useMemo, useState } from 'react'
 import { motion, useInView, useReducedMotion } from 'framer-motion'
 import { useRef } from 'react'
 import type { ScalperClockData, ScalperHour } from '@/hooks/useData'
+import { useTimezone, tzSuffix, utcHhMmToTz, utcHourInTz } from '@/hooks/useTimezone'
 import { cn } from '@/lib/utils'
-import { TERMINAL_EASE, fmtAtr, fmtInt, fmtPct, fmtUsd, pad2 } from './utils'
+import { TERMINAL_EASE, fmtAtr, fmtInt, fmtPct, fmtUsd } from './utils'
 import { thermalColor } from '@/components/sessions/utils'
 
 const STRIP_H = 120 // px, bar track height
@@ -21,6 +22,8 @@ export default function HourlyStrip({ hourly, now, timeframe }: HourlyStripProps
   const containerRef = useRef<HTMLDivElement>(null)
   const inView = useInView(containerRef, { once: true, amount: 0.3 })
   const reducedMotion = useReducedMotion()
+  /* Phase 14: NOW-marker identity stays the UTC hour; labels convert. */
+  const { tz } = useTimezone()
 
   const utcHour = now.getUTCHours()
 
@@ -47,7 +50,7 @@ export default function HourlyStrip({ hourly, now, timeframe }: HourlyStripProps
 
         <div ref={containerRef} className="relative mt-4">
           <div className="flex items-end gap-[3px]" style={{ height: STRIP_H }} role="img"
-            aria-label={`Bar chart of average ${timeframe} range in ATR by UTC hour. Hour 00 is hollow: session break.`}>
+            aria-label={`Bar chart of average ${timeframe} range in ATR by ${tzSuffix(tz)} hour. Hour ${utcHourInTz(0, tz, now)} is hollow: session break.`}>
             {hourly.hours.map((h) => {
               const isNull = h.avg_range_atr == null || h.bar_count === 0
               const t = isNull ? 0 : extent[1] > extent[0] ? (h.avg_range_atr! - extent[0]) / (extent[1] - extent[0]) : 0.5
@@ -64,7 +67,7 @@ export default function HourlyStrip({ hourly, now, timeframe }: HourlyStripProps
                     <div
                       className="w-full rounded-t-[3px] border border-dashed border-text3/80"
                       style={{ height: '18%' }}
-                      title="00:xx UTC — session break, no bars"
+                      title={`${utcHourInTz(0, tz, now)}:xx ${tzSuffix(tz)} — session break, no bars`}
                     />
                   ) : (
                     <motion.div
@@ -97,7 +100,7 @@ export default function HourlyStrip({ hourly, now, timeframe }: HourlyStripProps
           <div className="mt-1.5 flex gap-[3px]">
             {hourly.hours.map((h) => (
               <span key={h.hour_utc} className="micro-mono flex-1 text-center">
-                {h.hour_utc % 2 === 0 ? pad2(h.hour_utc) : ''}
+                {h.hour_utc % 2 === 0 ? utcHourInTz(h.hour_utc, tz, now) : ''}
               </span>
             ))}
           </div>
@@ -106,10 +109,14 @@ export default function HourlyStrip({ hourly, now, timeframe }: HourlyStripProps
           <div className="mt-3 border-t border-line pt-3 font-mono text-[12px] leading-5 tnum">
             {hoverRow ? (
               hoverRow.avg_range_atr == null || hoverRow.bar_count === 0 ? (
-                <span className="text-honest">00:xx UTC — session break, no bars</span>
+                <span className="text-honest">
+                  {utcHourInTz(0, tz, now)}:xx {tzSuffix(tz)} — session break, no bars
+                </span>
               ) : (
                 <span className="text-text1">
-                  <span className="text-gold">{pad2(hoverRow.hour_utc)}:00 UTC</span>
+                  <span className="text-gold">
+                    {utcHhMmToTz(hoverRow.hour_utc, 0, tz, now)} {tzSuffix(tz)}
+                  </span>
                   <span className="text-text2"> · </span>
                   {fmtAtr(hoverRow.avg_range_atr)}ATR
                   <span className="text-text2"> · range $</span>

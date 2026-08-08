@@ -1,6 +1,7 @@
 import { motion, useReducedMotion } from 'framer-motion'
 import { Flame, Snowflake } from 'lucide-react'
 import type { ScalperClockData, ScalperHighlightSlot } from '@/hooks/useData'
+import { useTimezone, tzSuffix, utcLabelToTz } from '@/hooks/useTimezone'
 import { cn } from '@/lib/utils'
 import { TERMINAL_EASE, fmtAtr, fmtInt, fmtPct, fmtUsd } from './utils'
 
@@ -9,6 +10,7 @@ type Highlights = ScalperClockData['highlights']
 /** Top-5 hottest slot stat cards + the quietest-slot honesty card. */
 export default function HotCards({ highlights }: { highlights: Highlights }) {
   const reducedMotion = useReducedMotion()
+  const { tz } = useTimezone()
 
   return (
     <section aria-label="Hottest and quietest slots">
@@ -38,7 +40,7 @@ export default function HotCards({ highlights }: { highlights: Highlights }) {
           <span className="label-caps">Quietest slot</span>
         </span>
         <span className="font-mono text-[16px] font-semibold tnum text-text0">
-          {highlights.quietest_slot.label} UTC
+          {utcLabelToTz(highlights.quietest_slot.label, tz)} {tzSuffix(tz)}
         </span>
         <span className="font-mono text-[13px] tnum text-text1">{fmtAtr(highlights.quietest_slot.avg_range_atr)}ATR</span>
         <span className="font-mono text-[13px] tnum text-text1">
@@ -66,6 +68,7 @@ function SlotCard({
   delay: number
 }) {
   const reducedMotion = useReducedMotion()
+  const { tz } = useTimezone()
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -79,8 +82,8 @@ function SlotCard({
         {top && <Flame size={14} className="text-gold" />}
       </div>
       <p className={cn('mt-2 font-mono text-[20px] font-bold leading-6 tnum', top ? 'stat-glow text-gold' : 'text-text0')}>
-        {slot.label}
-        <span className="ml-1 text-[12px] font-medium text-text2">UTC</span>
+        {utcLabelToTz(slot.label, tz)}
+        <span className="ml-1 text-[12px] font-medium text-text2">{tzSuffix(tz)}</span>
       </p>
       <p className="mt-1 font-mono text-[13px] tnum text-warn">{fmtAtr(slot.avg_range_atr)}ATR</p>
       <dl className="mt-3 space-y-1 font-mono text-[11px] leading-[16px] tnum">

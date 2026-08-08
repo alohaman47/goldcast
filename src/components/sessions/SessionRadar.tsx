@@ -3,6 +3,7 @@ import type { MouseEvent } from 'react'
 import { motion, useInView, useReducedMotion } from 'framer-motion'
 import type { SessionHour, SessionsData } from '@/hooks/useData'
 import { GOLD_CONFIG, type SymbolConfig } from '@/engine/symbols'
+import { useTimezone, tzSuffix, utcHhMmToTz, utcHourInTz } from '@/hooks/useTimezone'
 import {
   BAND_META,
   BAND_ORDER,
@@ -14,7 +15,6 @@ import {
   fmtInt,
   fmtPct,
   fmtUsd,
-  hourLabel,
   modeExtent,
   rangeDigits,
   rangeUnit,
@@ -83,6 +83,8 @@ export default function SessionRadar({ data, now, onSelectHour, config = GOLD_CO
   const reducedMotion = useReducedMotion()
   const unit = rangeUnit(config)
   const digits = rangeDigits(config, 2)
+  /* Phase 14: needle/wedge identity stays UTC; only labels convert. */
+  const { tz } = useTimezone()
 
   const utcHour = now.getUTCHours()
   const utcMinute = now.getUTCMinutes()
@@ -146,7 +148,7 @@ export default function SessionRadar({ data, now, onSelectHour, config = GOLD_CO
     <section aria-label="24 hour volatility radar">
       <div className="panel panel-gold relative overflow-hidden p-4 sm:p-5">
         <div className="flex h-10 items-center justify-between gap-3">
-          <h2 className="panel-title">24H Volatility Radar — UTC</h2>
+          <h2 className="panel-title">24H Volatility Radar — {tzSuffix(tz)}</h2>
           {/* Color-mode toggle chips */}
           <div className="flex items-center gap-1.5" role="group" aria-label="Wedge color mode">
             <span className="label-caps mr-1 hidden sm:inline">Color:</span>
@@ -236,8 +238,8 @@ export default function SessionRadar({ data, now, onSelectHour, config = GOLD_CO
                 >
                   <title>
                     {isNull
-                      ? '00:00 UTC — daily break, no bars'
-                      : `${hourLabel(h.hour_utc)} UTC · avg range ${fmtUsd(h.avg_range_price, digits)} ${unit} · ${fmtAtr(h.avg_range_atr)}ATR · P(high-vol) ${fmtPct(h.p_high_vol_empirical)} · n=${fmtInt(h.bar_count)} bars`}
+                      ? `${utcHhMmToTz(0, 0, tz, now)} ${tzSuffix(tz)} — daily break, no bars`
+                      : `${utcHhMmToTz(h.hour_utc, 0, tz, now)} ${tzSuffix(tz)} · avg range ${fmtUsd(h.avg_range_price, digits)} ${unit} · ${fmtAtr(h.avg_range_atr)}ATR · P(high-vol) ${fmtPct(h.p_high_vol_empirical)} · n=${fmtInt(h.bar_count)} bars`}
                   </title>
                 </motion.path>
               )
@@ -258,7 +260,7 @@ export default function SessionRadar({ data, now, onSelectHour, config = GOLD_CO
                       dominantBaseline="middle"
                       style={{ fontSize: 10, fill: '#6B7684', fontFamily: '"JetBrains Mono", monospace' }}
                     >
-                      {String(h.hour_utc).padStart(2, '0')}
+                      {utcHourInTz(h.hour_utc, tz, now)}
                     </text>
                   )
                 })}
@@ -318,10 +320,14 @@ export default function SessionRadar({ data, now, onSelectHour, config = GOLD_CO
               }}
             >
               {hoverRow.bar_count === 0 || hoverRow.avg_range_price == null ? (
-                <span className="text-honest">00:00 UTC — daily break, no bars</span>
+                <span className="text-honest">
+                  {utcHhMmToTz(0, 0, tz, now)} {tzSuffix(tz)} — daily break, no bars
+                </span>
               ) : (
                 <>
-                  <span className="text-gold">{hourLabel(hoverRow.hour_utc)} UTC</span>
+                  <span className="text-gold">
+                    {utcHhMmToTz(hoverRow.hour_utc, 0, tz, now)} {tzSuffix(tz)}
+                  </span>
                   <span className="text-text2"> · avg range </span>
                   {fmtUsd(hoverRow.avg_range_price, digits)} {unit}
                   <span className="text-text2"> · </span>
@@ -346,7 +352,10 @@ export default function SessionRadar({ data, now, onSelectHour, config = GOLD_CO
                 quiet → hot ({COLOR_MODES.find((m) => m.id === colorMode)?.label})
               </span>
             </div>
-            <span className="micro-mono">wedge length = avg range ({unit}) · 00:00 hollow = daily break</span>
+            <span className="micro-mono">
+              wedge length = avg range ({unit}) ·{' '}
+              {tz === 'NY' ? `${utcHhMmToTz(0, 0, tz, now)} NY` : '00:00'} hollow = daily break
+            </span>
           </div>
         </div>
       </div>

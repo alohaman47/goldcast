@@ -2,6 +2,7 @@ import { memo, useMemo, useRef, useState } from 'react'
 import type { MouseEvent } from 'react'
 import { motion, useInView, useReducedMotion } from 'framer-motion'
 import type { ScalperSlot } from '@/hooks/useData'
+import { useTimezone, fmtWallClock, tzSuffix, utcHourInTz, utcLabelToTz } from '@/hooks/useTimezone'
 import { cn } from '@/lib/utils'
 import {
   TERMINAL_EASE,
@@ -64,6 +65,9 @@ export default function SlotGrid({ slots, hottestSlotIdx, now }: SlotGridProps) 
   const containerRef = useRef<HTMLDivElement>(null)
   const inView = useInView(containerRef, { once: true, amount: 0.2 })
   const reducedMotion = useReducedMotion()
+  /* Phase 14: display tz for labels only — slot order/identity stays UTC.
+     `now` is the DST reference for America/New_York conversion. */
+  const { tz } = useTimezone()
 
   const extent = useMemo(() => slotAtrExtent(slots), [slots])
   const byIdx = useMemo(() => {
@@ -90,7 +94,7 @@ export default function SlotGrid({ slots, hottestSlotIdx, now }: SlotGridProps) 
     setHover({ idx, x: e.clientX - rect.left, y: e.clientY - rect.top })
   }
 
-  const clock = `${pad2(now.getUTCHours())}:${pad2(now.getUTCMinutes())}:${pad2(now.getUTCSeconds())}`
+  const clock = fmtWallClock(now, tz)
 
   return (
     <section aria-label={`${slotsPerDay}-slot volatility heatmap`}>
@@ -99,7 +103,7 @@ export default function SlotGrid({ slots, hottestSlotIdx, now }: SlotGridProps) 
           <h2 className="panel-title">The {slotsPerDay}-Slot Map — avg range in ATR</h2>
           <span className="inline-flex items-center gap-2 rounded-md border border-linestrong bg-bg2 px-2.5 py-1 font-mono text-[12px] tnum text-text0">
             <span className="h-1.5 w-1.5 animate-pulse-dot rounded-full bg-up" />
-            {clock} UTC
+            {clock} {tzSuffix(tz)}
           </span>
         </div>
 
@@ -110,7 +114,7 @@ export default function SlotGrid({ slots, hottestSlotIdx, now }: SlotGridProps) 
             {Array.from({ length: 24 }, (_, h) => (
               <span key={h} className="relative pb-1 text-center">
                 <span className={cn('micro-mono', h % 2 === 0 ? 'text-text2' : 'text-transparent select-none')}>
-                  {pad2(h)}
+                  {utcHourInTz(h, tz, now)}
                 </span>
                 {nowIdx >= h * rowsPerHour && nowIdx < (h + 1) * rowsPerHour && (
                   <span
@@ -145,8 +149,8 @@ export default function SlotGrid({ slots, hottestSlotIdx, now }: SlotGridProps) 
                     role="gridcell"
                     aria-label={
                       isNull
-                        ? `${s?.label ?? `${pad2(h)}:${pad2(minute)}`} UTC — session break, no bars`
-                        : `${s.label} UTC · ${fmtAtr(s.avg_range_atr)}ATR · range $${fmtUsd(s.avg_range_usd)} · P(high-vol) ${fmtPct(s.p_high_vol_empirical)} · n=${fmtInt(s.bar_count)}`
+                        ? `${utcLabelToTz(s?.label ?? `${pad2(h)}:${pad2(minute)}`, tz, now)} ${tzSuffix(tz)} — session break, no bars`
+                        : `${utcLabelToTz(s.label, tz, now)} ${tzSuffix(tz)} · ${fmtAtr(s.avg_range_atr)}ATR · range $${fmtUsd(s.avg_range_usd)} · P(high-vol) ${fmtPct(s.p_high_vol_empirical)} · n=${fmtInt(s.bar_count)}`
                     }
                     initial={{ opacity: 0, scale: 0.6 }}
                     animate={inView ? { opacity: dimmed ? 0.35 : 1, scale: 1 } : { opacity: 0, scale: 0.6 }}
@@ -188,10 +192,14 @@ export default function SlotGrid({ slots, hottestSlotIdx, now }: SlotGridProps) 
               }}
             >
               {hoverSlot.avg_range_atr == null || hoverSlot.bar_count === 0 ? (
-                <span className="text-honest">{hoverSlot.label} UTC — session break, no bars</span>
+                <span className="text-honest">
+                  {utcLabelToTz(hoverSlot.label, tz, now)} {tzSuffix(tz)} — session break, no bars
+                </span>
               ) : (
                 <>
-                  <span className="text-gold">{hoverSlot.label} UTC</span>
+                  <span className="text-gold">
+                    {utcLabelToTz(hoverSlot.label, tz, now)} {tzSuffix(tz)}
+                  </span>
                   <span className="text-text2"> · </span>
                   {fmtAtr(hoverSlot.avg_range_atr)}ATR
                   <span className="text-text2"> · range $</span>
@@ -218,7 +226,7 @@ export default function SlotGrid({ slots, hottestSlotIdx, now }: SlotGridProps) 
             </span>
             <span className="micro-mono flex items-center gap-1.5">
               <span className="inline-block h-3 w-3 rounded-[3px] border border-dashed border-text3/80" />
-              00:xx hollow = session break (no bars)
+              {tz === 'NY' ? `${utcHourInTz(0, tz, now)}:xx NY` : '00:xx'} hollow = session break (no bars)
             </span>
             <span className="micro-mono flex items-center gap-1.5">
               <span className="inline-block h-3 w-3 rounded-[3px] border-2 border-goldhi" />

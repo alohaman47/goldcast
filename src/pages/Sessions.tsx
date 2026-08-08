@@ -5,6 +5,8 @@ import HonestyBadge from '@/components/HonestyBadge'
 import { useSymbolData } from '@/hooks/useData'
 import type { LatestData, SessionsData } from '@/hooks/useData'
 import { useSymbol, rangeDigits, priceUnit } from '@/hooks/useSymbol'
+import { useTimezone, fmtWallClock, tzSuffix, utcHhMmToTz, utcHourInTz } from '@/hooks/useTimezone'
+import type { DisplayTz } from '@/hooks/useTimezone'
 import type { SymbolConfig } from '@/engine/symbols'
 import BandCards from '@/components/sessions/BandCards'
 import HourlyDetail from '@/components/sessions/HourlyDetail'
@@ -23,6 +25,7 @@ const TOTAL_BARS: Record<string, string> = {
 
 export default function Sessions() {
   const { config } = useSymbol()
+  const { tz } = useTimezone()
   const { sessions: sessionsState, latest: latestState } = useSymbolData()
   const { data: sessions, loading: sessionsLoading, error: sessionsError } = sessionsState
   const { data: latest, loading: latestLoading } = latestState
@@ -72,7 +75,7 @@ export default function Sessions() {
 
   return (
     <div className="mx-auto w-full max-w-[1180px] px-6 pb-24 pt-14">
-      <Hero sessions={sessions} latest={latest} now={now} loading={loading} config={config} />
+      <Hero sessions={sessions} latest={latest} now={now} loading={loading} config={config} tz={tz} />
 
       {sessionsError && (
         <div className="panel mt-10 border-l-2 border-l-down p-5 font-mono text-[13px] text-down">
@@ -104,12 +107,14 @@ function Hero({
   now,
   loading,
   config,
+  tz,
 }: {
   sessions: SessionsData | null
   latest: LatestData | null
   now: Date
   loading: boolean
   config: SymbolConfig
+  tz: DisplayTz
 }) {
   const reducedMotion = useReducedMotion()
   const utcHour = now.getUTCHours()
@@ -120,12 +125,11 @@ function Hero({
   const unit = priceUnit(config)
   const rangeD = rangeDigits(config, 1)
 
-  const clock = `${String(now.getUTCHours()).padStart(2, '0')}:${String(now.getUTCMinutes()).padStart(2, '0')}:${String(
-    now.getUTCSeconds(),
-  ).padStart(2, '0')}`
+  /* Wall clock in the display tz; the hour lookup/marker stays UTC-slot-based. */
+  const clock = fmtWallClock(now, tz)
 
   const markerText = (() => {
-    if (utcHour === 0) return 'daily break — no bars at 00:00 UTC'
+    if (utcHour === 0) return `daily break — no bars at ${utcHhMmToTz(0, 0, tz, now)} ${tzSuffix(tz)}`
     if (band === 'ny' && utcHour >= 14 && utcHour <= 16) return 'inside the hottest 3-hour window of the day'
     if (band === 'ny') return 'inside the New York / Overlap window'
     if (band === 'london') return 'inside the London session — range is building'
@@ -183,10 +187,10 @@ function Hero({
         >
           <span className="inline-flex items-center gap-2 rounded-md border border-linestrong bg-bg1 px-2.5 py-1.5 font-mono text-[13px] tnum text-text0">
             <span className="h-1.5 w-1.5 animate-pulse-dot rounded-full bg-up" />
-            {clock} UTC
+            {clock} {tzSuffix(tz)}
           </span>
           <span className="font-mono text-[12px] text-text2">
-            {clock.slice(0, 2)}:xx UTC — {markerText}
+            {utcHourInTz(utcHour, tz, now)}:xx {tzSuffix(tz)} — {markerText}
           </span>
         </motion.div>
       </div>

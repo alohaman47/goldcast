@@ -4,6 +4,7 @@ import type { Bar as EngineBar } from '@/engine/bars'
 import { GOLD_CONFIG } from '@/engine/symbols'
 import type { SymbolConfig } from '@/engine/symbols'
 import { priceUnit } from '@/hooks/useSymbol'
+import { useTimezone, fmtTimestampInTz, tzSuffix, wallParts } from '@/hooks/useTimezone'
 import { cn } from '@/lib/utils'
 
 /**
@@ -108,6 +109,9 @@ export default function CandlestickChart({
   const priceDecimals = config.priceDecimals
   /* engine timeframe label (H4 variant for NAS100; H1 everywhere else) */
   const tf = config.timeframe ?? 'H1'
+  /* Phase 14: display tz for axis/tooltip time labels — bar identity,
+     ordering and session bands stay UTC; only rendered labels convert. */
+  const { tz } = useTimezone()
   const [toggles, setToggles] = useState({ volDots: true, sessions: true, cone: true })
   const [hover, setHover] = useState<Hover | null>(null)
   const dragRef = useRef<{ startX: number; startEnd: number } | null>(null)
@@ -224,19 +228,20 @@ export default function CandlestickChart({
         ctx.fillText(fmtPrice(p, priceDecimals), PAD_L + g.plotW + 6, y)
       }
 
-      /* time axis */
+      /* time axis — labels in the display tz (NY = America/New_York wall
+         clock; day-start markers follow the display-tz calendar day) */
       const skip = Math.max(1, Math.ceil(90 / g.spacing))
       ctx.textAlign = 'center'
       ctx.fillStyle = C.axis
       for (let i = 0; i < g.visible.length; i += skip) {
-        const d = parseT(g.visible[i].t)
+        const wp = wallParts(parseT(g.visible[i].t), tz)
         const isDayStart =
-          d.getUTCHours() === 0 ||
-          (i > 0 && parseT(g.visible[i - 1].t).getUTCDate() !== d.getUTCDate()) ||
+          wp.hour === 0 ||
+          (i > 0 && wallParts(parseT(g.visible[i - 1].t), tz).day !== wp.day) ||
           i === 0
         const label = isDayStart
-          ? `${MONTHS[d.getUTCMonth()]} ${String(d.getUTCDate()).padStart(2, '0')}`
-          : `${String(d.getUTCHours()).padStart(2, '0')}:00`
+          ? `${MONTHS[wp.month]} ${String(wp.day).padStart(2, '0')}`
+          : `${String(wp.hour).padStart(2, '0')}:00`
         ctx.fillText(label, g.xOf(g.first + i), PAD_T + g.plotH + TIME_H / 2)
       }
 
@@ -472,7 +477,7 @@ export default function CandlestickChart({
         ctx.setLineDash([])
       }
     }
-  }, [effBars, effLatest, live, layout, priceDecimals])
+  }, [effBars, effLatest, live, layout, priceDecimals, tz])
 
   const drawRef = useRef(draw)
   drawRef.current = draw
@@ -511,10 +516,10 @@ export default function CandlestickChart({
     prevLenRef.current = effBars.length
   }, [effBars.length])
 
-  /* redraw on toggle/hover change */
+  /* redraw on toggle/hover/tz change */
   useEffect(() => {
     drawRef.current()
-  }, [toggles, hover])
+  }, [toggles, hover, tz])
 
   /* resize */
   useEffect(() => {
@@ -667,7 +672,7 @@ export default function CandlestickChart({
           {hoveredBar ? (
             <>
               <div className="text-text2">
-                {hoveredBar.t} UTC
+                {fmtTimestampInTz(hoveredBar.t, tz)} {tzSuffix(tz)}
                 {hoveringForming && <span className="text-gold"> · FORMING — live, not closed</span>}
               </div>
               <div>

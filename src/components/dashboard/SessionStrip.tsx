@@ -2,6 +2,9 @@ import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Link } from 'react-router'
 import type { LatestData, SessionsData } from '@/hooks/useData'
+import { useTimezone, formatRunsInTz, tzSuffix, utcHhMmToTz } from '@/hooks/useTimezone'
+import { bandHours, contiguousRuns } from '@/components/sessions/utils'
+import type { BandId } from '@/components/sessions/utils'
 import { cn } from '@/lib/utils'
 
 const EASE = [0.16, 1, 0.3, 1] as [number, number, number, number]
@@ -30,6 +33,8 @@ export default function SessionStrip({ sessions, latest }: { sessions: SessionsD
     const iv = window.setInterval(() => setNowUtcHour(new Date().getUTCHours()), 30_000)
     return () => window.clearInterval(iv)
   }, [])
+  /* Phase 14: now-cell identity stays the UTC hour; labels convert. */
+  const { tz } = useTimezone()
 
   const ranges = sessions.hours.map((h) => h.avg_range_price)
   const valid = ranges.filter((v): v is number => v != null)
@@ -97,7 +102,7 @@ export default function SessionStrip({ sessions, latest }: { sessions: SessionsD
           <div className="pointer-events-none absolute -top-9 left-0 z-10 rounded border border-linestrong bg-bg3 px-2 py-1 font-mono text-[10px] tnum text-text0"
             style={{ left: `${(hovered / 24) * 100}%` }}
           >
-            {String(hovered).padStart(2, '0')}:00 UTC
+            {utcHhMmToTz(hovered, 0, tz)} {tzSuffix(tz)}
             {sessions.hours[hovered].avg_range_price != null ? (
               <>
                 {' '}· avg range {sessions.hours[hovered].avg_range_price!.toFixed(2)} USD · P(high-vol){' '}
@@ -111,15 +116,24 @@ export default function SessionStrip({ sessions, latest }: { sessions: SessionsD
           </div>
         )}
 
-        {/* band labels */}
+        {/* band labels — UTC strings are the research-native defaults; NY mode
+            converts the ranges from the sessions data bands */}
         <div className="mt-2 flex items-center gap-3 font-mono text-[10px] tracking-[0.04em] text-text2">
-          <span>ASIA 00–07</span>
-          <span className="text-info underline decoration-info/50 underline-offset-2">LONDON 07–11</span>
-          <span className="text-gold underline decoration-gold/50 underline-offset-2">NY/OVERLAP 12–17</span>
+          {(
+            [
+              ['asia', 'ASIA 00–07', 'ASIA', ''],
+              ['london', 'LONDON 07–11', 'LONDON', 'text-info underline decoration-info/50 underline-offset-2'],
+              ['ny', 'NY/OVERLAP 12–17', 'NY/OVERLAP', 'text-gold underline decoration-gold/50 underline-offset-2'],
+            ] as [BandId, string, string, string][]
+          ).map(([id, utcText, name, cls]) => (
+            <span key={id} className={cls || undefined}>
+              {tz === 'NY' ? `${name} ${formatRunsInTz(contiguousRuns(bandHours(sessions, id)), tz)}` : utcText}
+            </span>
+          ))}
           <span>OFF</span>
           {curHourData?.avg_range_price != null && (
             <span className="ml-auto hidden tnum sm:inline">
-              {String(nowUtcHour).padStart(2, '0')}:00 UTC avg range {curHourData.avg_range_price.toFixed(2)} USD
+              {utcHhMmToTz(nowUtcHour, 0, tz)} {tzSuffix(tz)} avg range {curHourData.avg_range_price.toFixed(2)} USD
             </span>
           )}
         </div>

@@ -4,7 +4,8 @@ import { Link } from 'react-router'
 import type { LatestData, SessionsData } from '@/hooks/useData'
 import type { SymbolConfig } from '@/engine/symbols'
 import { priceUnit, rangeDigits } from '@/hooks/useSymbol'
-import { contiguousRuns, formatRuns } from '@/components/sessions/utils'
+import { useTimezone, formatRunsInTz, tzSuffix, utcHhMmToTz } from '@/hooks/useTimezone'
+import { contiguousRuns } from '@/components/sessions/utils'
 import { cn } from '@/lib/utils'
 
 const EASE = [0.16, 1, 0.3, 1] as [number, number, number, number]
@@ -23,8 +24,6 @@ function lerpColor(a: [number, number, number], b: [number, number, number], t: 
 
 const QUIET: [number, number, number] = [26, 23, 18] // #1a1712
 const HOT: [number, number, number] = [245, 166, 35] // #F5A623
-
-const pad2 = (n: number) => String(n).padStart(2, '0')
 
 /**
  * Symbol-aware Session Strip (dashboard.md §D variant for non-gold symbols).
@@ -52,6 +51,8 @@ export default function SymbolSessionStrip({
 
   const unit = priceUnit(config)
   const digits = rangeDigits(config, 2)
+  /* Phase 14: now-cell identity stays the UTC hour; labels convert. */
+  const { tz } = useTimezone()
 
   const ranges = sessions.hours.map((h) => h.avg_range_price)
   const valid = ranges.filter((v): v is number => v != null)
@@ -64,10 +65,11 @@ export default function SymbolSessionStrip({
   const nyMin = nyHours.length ? Math.min(...nyHours.map((h) => h.avg_range_price!)) : null
   const nyMax = nyHours.length ? Math.max(...nyHours.map((h) => h.avg_range_price!)) : null
 
-  /* band hour labels from the active symbol's session bands */
+  /* band hour labels from the active symbol's session bands (display-tz
+     converted; UTC mode byte-identical to the legacy formatRuns output) */
   const bandLabel = (id: 'asia' | 'london' | 'ny', name: string) => {
     const runs = contiguousRuns(config.sessionBands[id].hours)
-    return `${name} ${formatRuns(runs)}`
+    return `${name} ${formatRunsInTz(runs, tz)}`
   }
 
   return (
@@ -129,7 +131,7 @@ export default function SymbolSessionStrip({
             className="pointer-events-none absolute -top-9 left-0 z-10 rounded border border-linestrong bg-bg3 px-2 py-1 font-mono text-[10px] tnum text-text0"
             style={{ left: `${(hovered / 24) * 100}%` }}
           >
-            {pad2(hovered)}:00 UTC
+            {utcHhMmToTz(hovered, 0, tz)} {tzSuffix(tz)}
             {sessions.hours[hovered].avg_range_price != null ? (
               <>
                 {' '}
@@ -152,7 +154,7 @@ export default function SymbolSessionStrip({
           <span>OFF</span>
           {curHourData?.avg_range_price != null && (
             <span className="ml-auto hidden tnum sm:inline">
-              {pad2(nowUtcHour)}:00 UTC avg range {curHourData.avg_range_price.toFixed(digits)} {unit}
+              {utcHhMmToTz(nowUtcHour, 0, tz)} {tzSuffix(tz)} avg range {curHourData.avg_range_price.toFixed(digits)} {unit}
             </span>
           )}
         </div>
