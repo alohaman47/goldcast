@@ -46,14 +46,31 @@ node scripts/symbol_check.mjs
 node scripts/alert_check.mjs
 ```
 
+## AI Professor (optional backend)
+
+The app ships with a tiny Node/Express server (`server/index.js`) that does two jobs:
+
+1. Serves `dist/` with SPA fallback (same behavior as `serve -s dist`).
+2. Proxies `POST /api/professor` to the Kimi API (Moonshot AI, OpenAI-compatible at `https://api.moonshot.ai/v1/chat/completions`) — the system prompt is built **server-side only**, and the API key never reaches the browser.
+
+Cost guards built in: 30 req/min/IP rate limit, `max_completion_tokens` 800, context JSON truncated at 12,000 chars, chat history trimmed to the last 10 messages.
+
+```bash
+cp .env.example .env   # set MOONSHOT_API_KEY (optional: KIMI_MODEL, default kimi-k2.6)
+npm run build
+npm start              # node server/index.js on $PORT (default 3000)
+```
+
+Without `MOONSHOT_API_KEY` the endpoint returns `501 {"error":"AI not configured"}` and the frontend shows "ยังไม่ได้ตั้งค่า key" — everything else works normally. On Railway, set the variables under **project → Variables** (see `DEPLOY.md`).
+
 ## Deploy (Railway / any Docker host)
 
 ```bash
 docker build -t goldcast .
-docker run -p 3000:3000 goldcast
+docker run -p 3000:3000 -e MOONSHOT_API_KEY=sk-... goldcast
 ```
 
-The included `Dockerfile` builds the app and serves `dist/` with SPA fallback via `serve -s` on `$PORT` (Railway-ready, zero config). See `DEPLOY.md` for a click-by-click GitHub + Railway guide.
+The included `Dockerfile` builds the app and runs `node server/index.js` on `$PORT` (Railway-ready, zero config): static `dist/` with SPA fallback + the AI proxy. See `DEPLOY.md` for a click-by-click GitHub + Railway guide.
 
 ## Project layout
 
@@ -63,6 +80,7 @@ src/pages/      # Home, Sessions, Truth, Methodology, ScalperClock
 src/hooks/      # useData / useSymbol / useLivePrice / useLivePrediction / useVolAlerts
 public/data/    # 17 static research exports (JSON)
 scripts/        # parity / symbol / alert verification gates
+server/         # Node/Express server: static dist/ + SPA fallback + /api/professor AI proxy
 INTEGRATION.md  # guide for embedding GoldCast into another app
 DEPLOY.md       # GitHub + Railway deploy guide
 ```
