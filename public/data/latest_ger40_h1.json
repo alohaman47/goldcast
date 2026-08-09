@@ -1,0 +1,25 @@
+{
+  "asof": "2026-08-04 16:00:00",
+  "session": "ny",
+  "regime": "trending",
+  "p_high_vol": 0.4325,
+  "expected_range_atr": 1.251,
+  "expected_range_price": 91.6805,
+  "cone": {
+    "T1": {
+      "half_width": 91.6805
+    },
+    "T2": {
+      "half_width": 129.6558
+    },
+    "T3": {
+      "half_width": 158.7953
+    }
+  },
+  "direction_policy": "drift",
+  "drift_sign": 1,
+  "confidence": 1,
+  "engine_version": "goldcast-gbm-classic-ger40-h1/15.0",
+  "price": 26210.2,
+  "atr14": 73.2869
+}

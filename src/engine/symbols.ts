@@ -21,8 +21,25 @@ import { score as nas100H4Hvol } from "./modelHvolNas100H4.js";
 import { score as nas100H4Range } from "./modelRangeNas100H4.js";
 import { score as goldH4Hvol } from "./modelHvolGoldH4.js";
 import { score as goldH4Range } from "./modelRangeGoldH4.js";
+import { score as us30H1Hvol } from "./modelHvolUs30H1.js";
+import { score as us30H1Range } from "./modelRangeUs30H1.js";
+import { score as ger40H1Hvol } from "./modelHvolGer40H1.js";
+import { score as ger40H1Range } from "./modelRangeGer40H1.js";
+import { score as eurusdH1Hvol } from "./modelHvolEurusdH1.js";
+import { score as eurusdH1Range } from "./modelRangeEurusdH1.js";
+import { score as gbpusdH1Hvol } from "./modelHvolGbpusdH1.js";
+import { score as gbpusdH1Range } from "./modelRangeGbpusdH1.js";
+import { score as usdjpyH1Hvol } from "./modelHvolUsdjpyH1.js";
+import { score as usdjpyH1Range } from "./modelRangeUsdjpyH1.js";
 
 export type SymbolId = "XAUUSD" | "NAS100";
+
+/**
+ * Phase 15 Track B — the five newly SHIP'ed H1 markets. Kept OUT of
+ * `SymbolId` so the existing switcher/H4-variant wiring (keyed on SymbolId)
+ * stays byte-identical; these ids appear only on the new configs below.
+ */
+export type Phase15SymbolId = "US30" | "GER40" | "EURUSD" | "GBPUSD" | "USDJPY";
 
 export interface SessionBand {
   hours: number[];
@@ -30,7 +47,7 @@ export interface SessionBand {
 }
 
 export interface SymbolConfig {
-  symbol: SymbolId;
+  symbol: SymbolId | Phase15SymbolId;
   /** MT5 point size (XAUUSD 0.01, NAS100 0.1). */
   pointSize: number;
   /** Pip size (XAUUSD 0.10, NAS100 1.0 = 10 points — documented convention). */
@@ -235,8 +252,192 @@ export const XAUUSD_H4_CONFIG: SymbolConfig = {
   scoreRange: goldH4Range,
 };
 
+/**
+ * GoldCast Phase 15 Track B — five newly SHIP'ed H1 engines.
+ *
+ * Each uses the EXACT H1 20-feature gbm_price set (price-only, computed
+ * identically for any instrument) scored by its own H1-trained classic GBM
+ * (models/gbm_classic_<sym>_h1.pkl -> modelHvol<Sym>H1/modelRange<Sym>H1,
+ * m2cgen tree-assembler export, same path as gold/NAS100). Validation
+ * numbers below are the Phase-15 classic-GBM pooled-OOS numbers from
+ * results/phase15_gbm_classic_<sym>_h1_oos.csv (NOT the HGB research
+ * reference). Direction is NO-SHIP on all five (display-only drift policy;
+ * directionModelPct/directionAlwaysUpPct are the Phase-15 research numbers,
+ * display metadata only).
+ *
+ * ALL FIVE ARE STATIC: hasLiveFeed false (fixed historical exports; EURUSD
+ * H1 ends 2026-07-03 16:00 UTC, the other four end 2026-08-04 16:00 UTC).
+ * `sessions` reuses the gold H1 session profile (display metadata only;
+ * nothing here feeds the engine — the engine's session field is pinned by
+ * the parity gate to vol_engine.session_name's fixed windows).
+ *
+ * Registered as SEPARATE variant keys ("<sym>-h1") so the existing
+ * XAUUSD/NAS100/H4 configs — and their parity — stay untouched. The UI
+ * symbol switcher (keyed on SymbolId) does not surface these yet; Track C
+ * owns the registry/switcher redesign.
+ */
+export const US30_H1_CONFIG: SymbolConfig = {
+  symbol: "US30",
+  pointSize: 0.1, // Track A verified (data, not the 1.0 prior)
+  pipSize: 1.0,   // 1 index point = 10 MT5 points (mirrors gold)
+  priceDecimals: 1,
+  sessionBands: GOLD_CONFIG.sessionBands, // display only
+  timeframe: "H1",
+  dataFiles: {
+    bars: "data/bars_us30_h1.json",
+    daily: "data/daily_us30.json",
+    sessions: "data/sessions.json", // reused: display only
+    latest: "data/latest_us30_h1.json",
+  },
+  modelModules: { hvol: "./modelHvolUs30H1.js", range: "./modelRangeUs30H1.js" },
+  hasLiveFeed: false,
+  validation: {
+    // Phase-15 classic-GBM OOS (n_test 16434): acc 0.8320 / AUC 0.8887
+    // (HGB reference 0.8316 / 0.8876).
+    hvolAccuracyPct: 83.20,
+    hvolAuc: 0.8887,
+    hvolAucDecimals: 4,
+    bars: 27396,
+    directionModelPct: 50.62,     // research Model C T+1 — NO-SHIP
+    directionAlwaysUpPct: 51.92,
+    driftPeriod: "2022–2026",
+  },
+  scoreHvol: us30H1Hvol,
+  scoreRange: us30H1Range,
+};
+
+export const GER40_H1_CONFIG: SymbolConfig = {
+  symbol: "GER40",
+  pointSize: 0.1, // Track A verified
+  pipSize: 1.0,
+  priceDecimals: 1,
+  sessionBands: GOLD_CONFIG.sessionBands, // display only
+  timeframe: "H1",
+  dataFiles: {
+    bars: "data/bars_ger40_h1.json",
+    daily: "data/daily_ger40.json",
+    sessions: "data/sessions.json", // reused: display only
+    latest: "data/latest_ger40_h1.json",
+  },
+  modelModules: { hvol: "./modelHvolGer40H1.js", range: "./modelRangeGer40H1.js" },
+  hasLiveFeed: false,
+  validation: {
+    // Phase-15 classic-GBM OOS (n_test 15198): acc 0.7965 / AUC 0.8353
+    // (HGB reference 0.7982 / 0.8345).
+    hvolAccuracyPct: 79.65,
+    hvolAuc: 0.8353,
+    hvolAucDecimals: 4,
+    bars: 25332,
+    directionModelPct: 50.41,     // research Model C T+1 — NO-SHIP
+    directionAlwaysUpPct: 52.42,
+    driftPeriod: "2022–2026",
+  },
+  scoreHvol: ger40H1Hvol,
+  scoreRange: ger40H1Range,
+};
+
+export const EURUSD_H1_CONFIG: SymbolConfig = {
+  symbol: "EURUSD",
+  pointSize: 0.00001, // Track A verified (5-digit quoting)
+  pipSize: 0.0001,    // 1 pip = 10 points for 5-digit FX
+  priceDecimals: 5,
+  sessionBands: GOLD_CONFIG.sessionBands, // display only
+  timeframe: "H1",
+  dataFiles: {
+    bars: "data/bars_eurusd_h1.json",
+    daily: "data/daily_eurusd.json",
+    sessions: "data/sessions.json", // reused: display only
+    latest: "data/latest_eurusd_h1.json",
+  },
+  modelModules: { hvol: "./modelHvolEurusdH1.js", range: "./modelRangeEurusdH1.js" },
+  hasLiveFeed: false,
+  validation: {
+    // Phase-15 classic-GBM OOS (n_test 16805): acc 0.7989 / AUC 0.8303
+    // (HGB reference 0.8032 / 0.8349).
+    hvolAccuracyPct: 79.89,
+    hvolAuc: 0.8303,
+    hvolAucDecimals: 4,
+    bars: 28010,
+    directionModelPct: 48.63,     // research Model C T+1 — NO-SHIP
+    directionAlwaysUpPct: 49.59,
+    driftPeriod: "2022–2026",
+  },
+  scoreHvol: eurusdH1Hvol,
+  scoreRange: eurusdH1Range,
+};
+
+export const GBPUSD_H1_CONFIG: SymbolConfig = {
+  symbol: "GBPUSD",
+  pointSize: 0.00001,
+  pipSize: 0.0001,
+  priceDecimals: 5,
+  sessionBands: GOLD_CONFIG.sessionBands, // display only
+  timeframe: "H1",
+  dataFiles: {
+    bars: "data/bars_gbpusd_h1.json",
+    daily: "data/daily_gbpusd.json",
+    sessions: "data/sessions.json", // reused: display only
+    latest: "data/latest_gbpusd_h1.json",
+  },
+  modelModules: { hvol: "./modelHvolGbpusdH1.js", range: "./modelRangeGbpusdH1.js" },
+  hasLiveFeed: false,
+  validation: {
+    // Phase-15 classic-GBM OOS (n_test 17118): acc 0.7947 / AUC 0.8374
+    // (HGB reference 0.7945 / 0.8409).
+    hvolAccuracyPct: 79.47,
+    hvolAuc: 0.8374,
+    hvolAucDecimals: 4,
+    bars: 28538,
+    directionModelPct: 48.66,     // research Model C T+1 — NO-SHIP
+    directionAlwaysUpPct: 49.81,
+    driftPeriod: "2022–2026",
+  },
+  scoreHvol: gbpusdH1Hvol,
+  scoreRange: gbpusdH1Range,
+};
+
+export const USDJPY_H1_CONFIG: SymbolConfig = {
+  symbol: "USDJPY",
+  pointSize: 0.001, // Track A verified (3-digit quoting)
+  pipSize: 0.01,    // 1 pip = 10 points for 3-digit FX
+  priceDecimals: 3,
+  sessionBands: GOLD_CONFIG.sessionBands, // display only
+  timeframe: "H1",
+  dataFiles: {
+    bars: "data/bars_usdjpy_h1.json",
+    daily: "data/daily_usdjpy.json",
+    sessions: "data/sessions.json", // reused: display only
+    latest: "data/latest_usdjpy_h1.json",
+  },
+  modelModules: { hvol: "./modelHvolUsdjpyH1.js", range: "./modelRangeUsdjpyH1.js" },
+  hasLiveFeed: false,
+  validation: {
+    // Phase-15 classic-GBM OOS (n_test 17118): acc 0.7784 / AUC 0.7683
+    // (HGB reference 0.7794 / 0.7685). Range R2 is weak on USDJPY
+    // (classic -0.1852 vs HGB 0.1255) — shipped per Track-A SHIP verdict
+    // but honestly disclosed.
+    hvolAccuracyPct: 77.84,
+    hvolAuc: 0.7683,
+    hvolAucDecimals: 4,
+    bars: 28538,
+    directionModelPct: 50.69,     // research Model C T+1 — NO-SHIP
+    directionAlwaysUpPct: 51.54,
+    driftPeriod: "2022–2026",
+  },
+  scoreHvol: usdjpyH1Hvol,
+  scoreRange: usdjpyH1Range,
+};
+
 /** Timeframe/variant engine configs keyed separately from SYMBOL_CONFIGS. */
-export const VARIANT_CONFIGS: Record<"nas100-h4" | "xauusd-h4", SymbolConfig> = {
+export const VARIANT_CONFIGS: Record<
+  "nas100-h4" | "xauusd-h4" | "us30-h1" | "ger40-h1" | "eurusd-h1" | "gbpusd-h1" | "usdjpy-h1",
+  SymbolConfig
+> = {
   "nas100-h4": NAS100_H4_CONFIG,
   "xauusd-h4": XAUUSD_H4_CONFIG,
+  "us30-h1": US30_H1_CONFIG,
+  "ger40-h1": GER40_H1_CONFIG,
+  "eurusd-h1": EURUSD_H1_CONFIG,
+  "gbpusd-h1": GBPUSD_H1_CONFIG,
+  "usdjpy-h1": USDJPY_H1_CONFIG,
 };
