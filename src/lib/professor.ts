@@ -342,6 +342,13 @@ export async function askProfessor(req: ProfessorRequest): Promise<ProfessorResu
     body != null && typeof body === 'object' && 'error' in body && typeof (body as { error: unknown }).error === 'string'
       ? (body as { error: string }).error
       : null
+  /* The server explains failures in `detail` (Thai) — surface it so users
+     see the real cause (key rejected / quota / empty reply) instead of a
+     bare error label. */
+  const errDetail =
+    body != null && typeof body === 'object' && 'detail' in body && typeof (body as { detail: unknown }).detail === 'string'
+      ? (body as { detail: string }).detail
+      : null
 
   if (res.status === 501) {
     return {
@@ -359,18 +366,28 @@ export async function askProfessor(req: ProfessorRequest): Promise<ProfessorResu
     }
   }
   if (!res.ok) {
+    const cause = [errMsg, errDetail].filter((s) => s != null && s !== '').join(' — ')
     return {
       ok: false,
       kind: 'error',
-      message: errMsg != null ? `Professor ตอบไม่ได้: ${errMsg} (HTTP ${res.status})` : `Professor ตอบไม่ได้ (HTTP ${res.status})`,
+      message: cause !== '' ? `Professor ตอบไม่ได้: ${cause} (HTTP ${res.status})` : `Professor ตอบไม่ได้ (HTTP ${res.status})`,
     }
   }
   const text =
     body != null && typeof body === 'object' && 'text' in body && typeof (body as { text: unknown }).text === 'string'
       ? (body as { text: string }).text
       : null
-  if (text == null || text.trim() === '') {
+  if (text == null) {
     return { ok: false, kind: 'error', message: 'Professor ตอบกลับมาในรูปแบบที่อ่านไม่ได้' }
+  }
+  if (text.trim() === '') {
+    /* 200 with an empty answer — say so honestly and give the user a next
+       step instead of a dead end. */
+    return {
+      ok: false,
+      kind: 'error',
+      message: 'Professor ตอบกลับมาว่างเปล่า — ลองใหม่อีกครั้ง ถ้ายังเป็นแบบนี้แจ้งทีม',
+    }
   }
   return { ok: true, text }
 }
