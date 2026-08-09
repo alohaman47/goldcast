@@ -119,8 +119,12 @@ app.post("/api/professor", async (req, res) => {
   if (!VALID_MODES.has(body.mode)) {
     return res.status(400).json({ error: "invalid mode", detail: "mode ต้องเป็น explain|brief|chat|coach" });
   }
-  if (body.context == null || typeof body.context !== "object") {
-    return res.status(400).json({ error: "invalid body", detail: "ต้องส่ง context เป็น object" });
+  if (
+    body.context == null ||
+    typeof body.context !== "object" ||
+    Array.isArray(body.context)
+  ) {
+    return res.status(400).json({ error: "invalid body", detail: "ต้องส่ง context เป็น object (ห้ามเป็น array/null)" });
   }
 
   let kimiMessages;
@@ -184,7 +188,7 @@ app.post("/api/professor", async (req, res) => {
   }
 
   return res.json({
-    content,
+    text: content,
     model: data.model || KIMI_MODEL,
     usage: data.usage || undefined,
   });
