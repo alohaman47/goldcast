@@ -1,0 +1,41 @@
+{
+  "note": "Curated 2026 central-bank decision calendar (static fallback for /api/economic-calendar). Dates verified against official schedules: Fed (8 FOMC meetings, decision 14:00 ET day 2), ECB (Governing Council monetary-policy meetings, decision 14:15 Frankfurt), BoE (MPC, 12:00 London), BoJ (MPM day 2, time not fixed — ~11:45-13:00 JST, we pin 03:00 UTC and say so in the title). Times converted to UTC with DST applied (US EDT 2026-03-08→11-01; EU/UK DST 2026-03-29→10-25). Served ONLY when the live ForexFactory weekly feed is unreachable.",
+  "verified": "2026-08-10",
+  "events": [
+    { "title": "FOMC Interest Rate Decision", "currency": "USD", "timeUtc": "2026-01-28T19:00:00.000Z", "impact": "High", "forecast": null, "previous": null },
+    { "title": "FOMC Interest Rate Decision", "currency": "USD", "timeUtc": "2026-03-18T18:00:00.000Z", "impact": "High", "forecast": null, "previous": null },
+    { "title": "FOMC Interest Rate Decision", "currency": "USD", "timeUtc": "2026-04-29T18:00:00.000Z", "impact": "High", "forecast": null, "previous": null },
+    { "title": "FOMC Interest Rate Decision", "currency": "USD", "timeUtc": "2026-06-17T18:00:00.000Z", "impact": "High", "forecast": null, "previous": null },
+    { "title": "FOMC Interest Rate Decision", "currency": "USD", "timeUtc": "2026-07-29T18:00:00.000Z", "impact": "High", "forecast": null, "previous": null },
+    { "title": "FOMC Interest Rate Decision", "currency": "USD", "timeUtc": "2026-09-16T18:00:00.000Z", "impact": "High", "forecast": null, "previous": null },
+    { "title": "FOMC Interest Rate Decision", "currency": "USD", "timeUtc": "2026-10-28T18:00:00.000Z", "impact": "High", "forecast": null, "previous": null },
+    { "title": "FOMC Interest Rate Decision", "currency": "USD", "timeUtc": "2026-12-09T19:00:00.000Z", "impact": "High", "forecast": null, "previous": null },
+
+    { "title": "ECB Interest Rate Decision", "currency": "EUR", "timeUtc": "2026-02-05T13:15:00.000Z", "impact": "High", "forecast": null, "previous": null },
+    { "title": "ECB Interest Rate Decision", "currency": "EUR", "timeUtc": "2026-03-19T13:15:00.000Z", "impact": "High", "forecast": null, "previous": null },
+    { "title": "ECB Interest Rate Decision", "currency": "EUR", "timeUtc": "2026-04-30T12:15:00.000Z", "impact": "High", "forecast": null, "previous": null },
+    { "title": "ECB Interest Rate Decision", "currency": "EUR", "timeUtc": "2026-06-11T12:15:00.000Z", "impact": "High", "forecast": null, "previous": null },
+    { "title": "ECB Interest Rate Decision", "currency": "EUR", "timeUtc": "2026-07-23T12:15:00.000Z", "impact": "High", "forecast": null, "previous": null },
+    { "title": "ECB Interest Rate Decision", "currency": "EUR", "timeUtc": "2026-09-10T12:15:00.000Z", "impact": "High", "forecast": null, "previous": null },
+    { "title": "ECB Interest Rate Decision", "currency": "EUR", "timeUtc": "2026-10-29T13:15:00.000Z", "impact": "High", "forecast": null, "previous": null },
+    { "title": "ECB Interest Rate Decision", "currency": "EUR", "timeUtc": "2026-12-17T13:15:00.000Z", "impact": "High", "forecast": null, "previous": null },
+
+    { "title": "BoE MPC Interest Rate Decision", "currency": "GBP", "timeUtc": "2026-02-05T12:00:00.000Z", "impact": "High", "forecast": null, "previous": null },
+    { "title": "BoE MPC Interest Rate Decision", "currency": "GBP", "timeUtc": "2026-03-19T12:00:00.000Z", "impact": "High", "forecast": null, "previous": null },
+    { "title": "BoE MPC Interest Rate Decision", "currency": "GBP", "timeUtc": "2026-04-30T11:00:00.000Z", "impact": "High", "forecast": null, "previous": null },
+    { "title": "BoE MPC Interest Rate Decision", "currency": "GBP", "timeUtc": "2026-06-18T11:00:00.000Z", "impact": "High", "forecast": null, "previous": null },
+    { "title": "BoE MPC Interest Rate Decision", "currency": "GBP", "timeUtc": "2026-07-30T11:00:00.000Z", "impact": "High", "forecast": null, "previous": null },
+    { "title": "BoE MPC Interest Rate Decision", "currency": "GBP", "timeUtc": "2026-09-17T11:00:00.000Z", "impact": "High", "forecast": null, "previous": null },
+    { "title": "BoE MPC Interest Rate Decision", "currency": "GBP", "timeUtc": "2026-11-05T12:00:00.000Z", "impact": "High", "forecast": null, "previous": null },
+    { "title": "BoE MPC Interest Rate Decision", "currency": "GBP", "timeUtc": "2026-12-17T12:00:00.000Z", "impact": "High", "forecast": null, "previous": null },
+
+    { "title": "BoJ Interest Rate Decision (approx. time)", "currency": "JPY", "timeUtc": "2026-01-23T03:00:00.000Z", "impact": "High", "forecast": null, "previous": null },
+    { "title": "BoJ Interest Rate Decision (approx. time)", "currency": "JPY", "timeUtc": "2026-03-19T03:00:00.000Z", "impact": "High", "forecast": null, "previous": null },
+    { "title": "BoJ Interest Rate Decision (approx. time)", "currency": "JPY", "timeUtc": "2026-04-28T03:00:00.000Z", "impact": "High", "forecast": null, "previous": null },
+    { "title": "BoJ Interest Rate Decision (approx. time)", "currency": "JPY", "timeUtc": "2026-06-16T03:00:00.000Z", "impact": "High", "forecast": null, "previous": null },
+    { "title": "BoJ Interest Rate Decision (approx. time)", "currency": "JPY", "timeUtc": "2026-07-31T03:00:00.000Z", "impact": "High", "forecast": null, "previous": null },
+    { "title": "BoJ Interest Rate Decision (approx. time)", "currency": "JPY", "timeUtc": "2026-09-18T03:00:00.000Z", "impact": "High", "forecast": null, "previous": null },
+    { "title": "BoJ Interest Rate Decision (approx. time)", "currency": "JPY", "timeUtc": "2026-10-30T03:00:00.000Z", "impact": "High", "forecast": null, "previous": null },
+    { "title": "BoJ Interest Rate Decision (approx. time)", "currency": "JPY", "timeUtc": "2026-12-18T03:00:00.000Z", "impact": "High", "forecast": null, "previous": null }
+  ]
+}
