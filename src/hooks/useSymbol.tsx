@@ -137,7 +137,7 @@ export const SYMBOL_REGISTRY: Record<AppSymbolId, SymbolRegistryEntry> = {
     engineRangeNote: null,
     footer: {
       scalperM15: 'Data: MT5 NAS100 M15 · 100,317 bars · Static research export · As of 2026-05-21 11:00 UTC',
-      engineH1: 'Data: MT5 NAS100 H1/D1 · Precomputed engine export · As of 2026-07-17 15:00 UTC',
+      engineH1: 'Data: MT5 NAS100 H1/D1 · Precomputed engine export · As of 2026-08-04 16:00 UTC',
       engineH4: 'Data: MT5 NAS100 H4/D1 · Precomputed engine export · As of 2026-07-03 16:00 UTC',
     },
     headline: 'Nasdaq has a schedule. Volatility keeps it.',
@@ -201,7 +201,7 @@ export const SYMBOL_REGISTRY: Record<AppSymbolId, SymbolRegistryEntry> = {
     engineRangeNote: null,
     footer: {
       scalperM15: 'Data: MT5 EURUSD M15 · 99,972 bars · Static research export · As of 2026-05-22 08:00 UTC',
-      engineH1: 'Data: MT5 EURUSD H1/D1 · Precomputed engine export · As of 2026-07-03 16:00 UTC',
+      engineH1: 'Data: MT5 EURUSD H1/D1 · Precomputed engine export · As of 2026-08-04 16:00 UTC',
     },
     headline: 'EURUSD has a schedule. Volatility keeps it.',
   },

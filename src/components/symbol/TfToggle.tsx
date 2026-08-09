@@ -29,7 +29,7 @@ const SEGMENTS: Partial<Record<AppSymbolId, Segment[]>> = {
     { id: 'H4', label: 'H4', title: 'XAUUSD H4 — static export (AUC 0.735)', hint: 'STATIC' },
   ],
   NAS100: [
-    { id: 'H1', label: 'H1', title: 'NAS100 H1 — static export (AUC 0.8726)', hint: null },
+    { id: 'H1', label: 'H1', title: 'NAS100 H1 — static export (AUC 0.8716)', hint: null },
     { id: 'H4', label: 'H4', title: 'NAS100 H4 — static export (AUC 0.8715)', hint: null },
   ],
 }

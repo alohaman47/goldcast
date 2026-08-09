@@ -151,10 +151,17 @@ export const NAS100_CONFIG: SymbolConfig = {
   modelModules: { hvol: "./modelHvolNas100.js", range: "./modelRangeNas100.js" },
   hasLiveFeed: false,
   validation: {
-    hvolAccuracyPct: 82.98,
-    hvolAuc: 0.8726,
+    // Phase 18 refresh (data extended to 2026-08-04, 27,098 bars):
+    // classic-GBM pooled OOS (results/phase18_gbm_classic_nas100_oos.csv,
+    // n_test 16,254): acc 0.8328 / AUC 0.8716 — vs the HGB revalidation on
+    // the same refreshed data 0.8326 / 0.8712 and the pre-refresh verified
+    // 0.8298 / 0.8726 (within the 0.01-AUC no-regression gate).
+    // directionModelPct/directionAlwaysUpPct remain the published Phase-8
+    // direction study numbers (direction NO-SHIP, display-only drift policy).
+    hvolAccuracyPct: 83.28,
+    hvolAuc: 0.8716,
     hvolAucDecimals: 4,
-    bars: 26798,
+    bars: 27098,
     directionModelPct: 51.63,
     directionAlwaysUpPct: 52.91,
     driftPeriod: "2022–2026",
@@ -272,8 +279,9 @@ export const XAUUSD_H4_CONFIG: SymbolConfig = {
  * directionModelPct/directionAlwaysUpPct are the Phase-15 research numbers,
  * display metadata only).
  *
- * ALL FIVE ARE STATIC: hasLiveFeed false (fixed historical exports; EURUSD
- * H1 ends 2026-07-03 16:00 UTC, the other four end 2026-08-04 16:00 UTC).
+ * ALL FIVE ARE STATIC: hasLiveFeed false (fixed historical exports; as of
+ * the Phase-18 refresh ALL FIVE end 2026-08-04 16:00 UTC — EURUSD was on a
+ * 2026-07-03 16:00 UTC export before Phase 18).
  * `sessions` reuses the gold H1 session profile (display metadata only;
  * nothing here feeds the engine — the engine's session field is pinned by
  * the parity gate to vol_engine.session_name's fixed windows).
@@ -359,12 +367,17 @@ export const EURUSD_H1_CONFIG: SymbolConfig = {
   modelModules: { hvol: "./modelHvolEurusdH1.js", range: "./modelRangeEurusdH1.js" },
   hasLiveFeed: false,
   validation: {
-    // Phase-15 classic-GBM OOS (n_test 16805): acc 0.7989 / AUC 0.8303
-    // (HGB reference 0.8032 / 0.8349).
-    hvolAccuracyPct: 79.89,
-    hvolAuc: 0.8303,
+    // Phase 18 refresh (data extended to 2026-08-04, 28,538 bars):
+    // classic-GBM pooled OOS (results/phase18_gbm_classic_eurusd_oos.csv,
+    // n_test 17,118): acc 0.7978 / AUC 0.8294 — vs the HGB revalidation on
+    // the same refreshed data 0.8018 / 0.8321 and the pre-refresh verified
+    // 0.8032 / 0.8349 (within the 0.01-AUC no-regression gate).
+    // directionModelPct/directionAlwaysUpPct remain the published Phase-15
+    // research numbers (direction NO-SHIP, display-only drift policy).
+    hvolAccuracyPct: 79.78,
+    hvolAuc: 0.8294,
     hvolAucDecimals: 4,
-    bars: 28010,
+    bars: 28538,
     directionModelPct: 48.63,     // research Model C T+1 — NO-SHIP
     directionAlwaysUpPct: 49.59,
     driftPeriod: "2022–2026",
