@@ -1,11 +1,13 @@
 import { Outlet, useLocation } from 'react-router'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
+import ProfessorPanel from '@/components/professor/ProfessorPanel'
 
 /**
  * Shared app shell — nested-route (Outlet) pattern.
  * App.tsx MUST declare routes as children of `<Route element={<Layout/>}>`.
  * The dashboard renders its own compact status bar instead of the footer.
+ * ProfessorPanel (Phase 16) floats on every route.
  */
 export default function Layout() {
   const { pathname } = useLocation()
@@ -18,6 +20,7 @@ export default function Layout() {
         <Outlet />
       </main>
       {!isDashboard && <Footer />}
+      <ProfessorPanel />
     </div>
   )
 }
