@@ -1,20 +1,31 @@
 import type { SessionHour, SessionsData } from '@/hooks/useData'
 import type { SymbolConfig } from '@/engine/symbols'
+import { priceUnit, sessionsReusedFromGold } from '@/hooks/useSymbol'
 
 /**
- * Unit suffix for avg-range readouts, per active symbol (Phase 9 Stage 2):
- * gold research labels ranges in USD; NAS100 ranges are index points.
+ * Unit suffix for SESSIONS avg-range readouts, per active symbol (Phase 9
+ * Stage 2; Phase 15: delegates to the SYMBOL_REGISTRY via priceUnit so
+ * indices render `pts`, EURUSD/GBPUSD `USD`, USDJPY `JPY`). XAUUSD/NAS100
+ * output is byte-identical to the legacy hardcode (USD / pts).
+ *
+ * Phase-15 reuse caveat: the five new markets share the XAUUSD H1 session
+ * profile (display-only), so their sessions-sourced values are GOLD's and
+ * render with gold's USD unit — never with the market's own unit.
  */
 export function rangeUnit(config: SymbolConfig): string {
-  return config.symbol === 'NAS100' ? 'pts' : 'USD'
+  return sessionsReusedFromGold(config) ? 'USD' : priceUnit(config)
 }
 
 /**
- * Decimals for avg-range readouts. XAUUSD keeps the call-site fallback so
- * gold output stays byte-identical; other symbols follow config.priceDecimals.
+ * Decimals for SESSIONS avg-range readouts. XAUUSD keeps the call-site
+ * fallback so gold output stays byte-identical; symbols with their own
+ * sessions export (NAS100) follow config.priceDecimals; markets on the
+ * shared gold profile use the gold fallback (the values ARE gold's).
  */
 export function rangeDigits(config: SymbolConfig, goldFallback: number): number {
-  return config.symbol === 'XAUUSD' ? goldFallback : config.priceDecimals
+  return config.symbol === 'XAUUSD' || sessionsReusedFromGold(config)
+    ? goldFallback
+    : config.priceDecimals
 }
 
 /** Terminal ease (design.md §5) */

@@ -4,7 +4,7 @@ import Lenis from 'lenis'
 import HonestyBadge from '@/components/HonestyBadge'
 import { useSymbolData } from '@/hooks/useData'
 import type { LatestData, SessionsData } from '@/hooks/useData'
-import { useSymbol, rangeDigits, priceUnit } from '@/hooks/useSymbol'
+import { useSymbol, entryForSymbol, sessionsReusedFromGold } from '@/hooks/useSymbol'
 import { useTimezone, fmtWallClock, tzSuffix, utcHhMmToTz, utcHourInTz } from '@/hooks/useTimezone'
 import type { DisplayTz } from '@/hooks/useTimezone'
 import type { SymbolConfig } from '@/engine/symbols'
@@ -12,16 +12,14 @@ import BandCards from '@/components/sessions/BandCards'
 import HourlyDetail from '@/components/sessions/HourlyDetail'
 import RiskGuidance from '@/components/sessions/RiskGuidance'
 import SessionRadar from '@/components/sessions/SessionRadar'
-import { TERMINAL_EASE, bandForHour, fmtUsd, sessionDisplayName } from '@/components/sessions/utils'
+import { TERMINAL_EASE, bandForHour, fmtUsd, sessionDisplayName, rangeDigits, rangeUnit } from '@/components/sessions/utils'
 
-const HEADLINE = 'Gold has a schedule. Volatility keeps it.'
-const HEADLINE_NAS = 'Nasdaq has a schedule. Volatility keeps it.'
-
-/** Verified H1 bar counts per dataset (sum of sessions bar_count). */
-const TOTAL_BARS: Record<string, string> = {
-  XAUUSD: '26,836',
-  NAS100: '26,798',
-}
+/* Hero headline + verified bar count now come from the SYMBOL_REGISTRY /
+ * engine config (Phase 15): entry.headline matches the legacy strings for
+ * XAUUSD ("Gold has a schedule…") and NAS100 ("Nasdaq has a schedule…")
+ * byte-for-byte; config.validation.bars equals the sum of sessions bar_count
+ * for every dataset (26,836 gold · 26,798 NAS100), so the en-US grouping
+ * below reproduces the old per-symbol map exactly. */
 
 export default function Sessions() {
   const { config } = useSymbol()
@@ -120,9 +118,11 @@ function Hero({
   const utcHour = now.getUTCHours()
   const hourRow = sessions?.hours.find((h) => h.hour_utc === utcHour)
   const band = sessions ? bandForHour(sessions, utcHour) : null
-  const headline = config.symbol === 'NAS100' ? HEADLINE_NAS : HEADLINE
-  const totalBars = TOTAL_BARS[config.symbol]
-  const unit = priceUnit(config)
+  const headline = entryForSymbol(config.symbol).headline
+  const totalBars = config.validation.bars.toLocaleString('en-US')
+  /* sessions-sourced unit/digits (reuse-aware: markets on the shared gold
+     H1 session profile render gold's values with gold's USD unit) */
+  const unit = rangeUnit(config)
   const rangeD = rangeDigits(config, 1)
 
   /* Wall clock in the display tz; the hour lookup/marker stays UTC-slot-based. */
@@ -148,6 +148,16 @@ function Hero({
         {/* H4 view reuses the H1-derived session profile (sessions_nas100.json) — say so quietly */}
         {config.timeframe === 'H4' && (
           <p className="micro-mono mt-2">session profile computed on H1 bars — H4 view reuses it</p>
+        )}
+        {/* Phase-15 markets share the XAUUSD H1 session profile (display-only
+            — Track B); per-market session stats live on the Scalper's Clock.
+            Say so loudly: the range values below are GOLD's, not this
+            market's. */}
+        {sessionsReusedFromGold(config) && (
+          <p className="micro-mono mt-2 text-honest">
+            session profile is the shared XAUUSD H1 profile (display-only) — ranges below are gold&apos;s, in USD.
+            Per-market session stats: Scalper&apos;s Clock (M15, real export).
+          </p>
         )}
         <h1 className="mt-3 font-display text-[34px] font-bold leading-[42px] tracking-[-0.015em] text-text0 sm:text-[40px] sm:leading-[46px]">
           {headline.split(' ').map((word, i) => (

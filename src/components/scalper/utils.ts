@@ -1,4 +1,5 @@
 import type { ScalperSlot } from '@/hooks/useData'
+import { entryForSymbol } from '@/hooks/useSymbol'
 import { thermalColor } from '@/components/sessions/utils'
 
 /**
@@ -37,6 +38,20 @@ export function fmtAtr(v: number | null): string {
 
 export function fmtInt(v: number): string {
   return v.toLocaleString('en-US')
+}
+
+/**
+ * Range readout for a slot/hour value (the JSON's avg_range_usd field —
+ * schema-parity name; per market it is that market's price units). XAUUSD
+ * and NAS100 keep the legacy byte-identical `$x.xx` rendering; the Phase-15
+ * markets render in their own units at config decimals (indices `pts`,
+ * EURUSD/GBPUSD `USD`, USDJPY `JPY`) so 0.0009 never collapses to "$0.00".
+ * Unit/decimals come from the registry — no hardcoded per-symbol numbers.
+ */
+export function fmtSlotRange(v: number | null, symbol: string): string {
+  const entry = entryForSymbol(symbol)
+  if (entry.id === 'XAUUSD' || entry.id === 'NAS100') return `$${fmtUsd(v)}`
+  return `${fmtUsd(v, entry.h1.priceDecimals)} ${entry.rangeUnit}`
 }
 
 /** Min/max extent of avg_range_atr across slots that actually have bars. */
@@ -90,6 +105,12 @@ export const SCALPER_VERDICT_CHIP: Record<string, string> = {
   NAS100: 'no edge to pay the spread — timing only',
   XAUUSD: 'spread survivable · still no directional edge — timing only',
   'XAUUSD:M5': 'M5 spread tax +1.5pp — not survivable · prefer M15 timing',
+  /* Phase 15 (results/<sym>_m15 findings + econ blocks in the exports) */
+  US30: 'spread tax +2.7pp · no directional edge — timing only',
+  GER40: 'spread tax +2.0pp over zero-spread floor — timing only',
+  EURUSD: 'econ viable on user ECN account · still no directional edge',
+  GBPUSD: 'econ cheap on user ECN account · still no directional edge',
+  USDJPY: 'econ modeled (commission by analogy) · no directional edge',
 }
 
 /** Chip fallback if a future symbol+tf lands without a curated line above. */

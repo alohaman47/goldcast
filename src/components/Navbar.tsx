@@ -4,7 +4,7 @@ import { Menu, X } from 'lucide-react'
 import { useLatest } from '@/hooks/useData'
 import { useSymbol, symbolDisplayName } from '@/hooks/useSymbol'
 import { useTimezone, fmtWallClock, tzSuffix } from '@/hooks/useTimezone'
-import SymbolToggle from '@/components/symbol/SymbolToggle'
+import SymbolPicker from '@/components/symbol/SymbolPicker'
 import TfToggle from '@/components/symbol/TfToggle'
 import TzToggle from '@/components/TzToggle'
 import { cn } from '@/lib/utils'
@@ -28,7 +28,7 @@ function useUtcClock() {
 
 export default function Navbar() {
   const { data: latest } = useLatest()
-  const { symbol, config, tf } = useSymbol()
+  const { symbol, entry, config, tf } = useSymbol()
   const { tz } = useTimezone()
   const now = useUtcClock()
   const [drawerOpen, setDrawerOpen] = useState(false)
@@ -41,7 +41,7 @@ export default function Navbar() {
      navigation (defaults omitted: gold has no symbol param, H1 no tf param,
      UTC no tz param) */
   const qs = new URLSearchParams()
-  if (symbol === 'NAS100') qs.set('symbol', 'nas100')
+  if (symbol !== 'XAUUSD') qs.set('symbol', entry.param) // default gold keeps URLs clean
   if (tf === 'H4') qs.set('tf', 'h4')
   if (tz === 'NY') qs.set('tz', 'ny')
   const symbolQuery = qs.size > 0 ? `?${qs.toString()}` : ''
@@ -108,7 +108,7 @@ export default function Navbar() {
               </span>
             )}
           </div>
-          <SymbolToggle className="hidden sm:flex" />
+          <SymbolPicker />
           <TfToggle className="hidden sm:flex" />
           <TzToggle className="hidden sm:flex" />
           <nav className="hidden items-center gap-5 md:flex" aria-label="Primary">
@@ -145,7 +145,7 @@ export default function Navbar() {
       {drawerOpen && (
         <div className="fixed inset-x-0 top-16 bottom-0 z-50 border-t border-line bg-bg0 md:hidden">
           <nav className="flex flex-col gap-1 p-4" aria-label="Mobile">
-            <SymbolToggle className="mb-2 self-start" />
+            <SymbolPicker className="mb-2 self-start" />
             <TfToggle className="mb-2 self-start" />
             <TzToggle className="mb-2 self-start" />
             {NAV_LINKS.map((l, i) => (

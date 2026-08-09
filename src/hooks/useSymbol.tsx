@@ -1,69 +1,311 @@
 import { useCallback } from 'react'
 import { useSearchParams } from 'react-router'
-import { getSymbolConfig, VARIANT_CONFIGS } from '@/engine/symbols'
-import type { SymbolConfig, SymbolId } from '@/engine/symbols'
+import { SYMBOL_CONFIGS, VARIANT_CONFIGS } from '@/engine/symbols'
+import type { SymbolConfig, SymbolId, Phase15SymbolId } from '@/engine/symbols'
 
 /**
- * Active symbol state (GoldCast Phase 9 Stage 2 — Symbol Switcher).
+ * Active symbol state (GoldCast Phase 9 Stage 2 — Symbol Switcher;
+ * Phase 15 Track C — multi-market registry).
  *
- * Backed by the `?symbol=nas100|xauusd` URL search param (default: XAUUSD),
+ * Backed by the `?symbol=<param>` URL search param (default: XAUUSD),
  * so every Navbar link / internal navigation that carries the current search
  * string preserves the selection, and a refresh / shared link restores it.
- * No provider at App level — the param IS the store.
+ * No provider at App level — the param IS the store. Backward compatible:
+ * the legacy values `xauusd` and `nas100` resolve exactly as before.
  *
- * XAUUSD is the default and its H1 engine has a live feed; NAS100 and the
- * gold H4 variant are STATIC (no feed — the UI must show honest static
- * states, see hasLiveFeed on the config).
+ * XAUUSD is the default and its H1 engine has a live feed; every other
+ * market (NAS100, the gold H4 variant, and the five Phase-15 SHIP'ed H1
+ * markets US30/GER40/EURUSD/GBPUSD/USDJPY) is STATIC (no feed — the UI
+ * shows honest static states, see hasLiveFeed on the config).
  *
  * Phase 11 (Track B2) + Phase 12: `?tf=h1|h4` selects the engine timeframe
- * (default h1). tf=h4 resolves config to the symbol's H4 variant
- * (VARIANT_CONFIGS["xauusd-h4"] for gold, ["nas100-h4"] for NAS100) — both
- * symbols have H4 engines now. The lookup is data-driven (H4_VARIANTS), so a
- * future symbol without an H4 variant still can't reach a broken state: its
- * tf param is ignored and dropped.
+ * (default h1). tf=h4 resolves config to the symbol's H4 variant — only
+ * XAUUSD and NAS100 have H4 engines; the Phase-15 markets are H1-only, so
+ * their tf param is ignored and dropped (data-driven via entry.h4).
+ *
+ * Phase 15 Track C: SYMBOL_REGISTRY is the single source of truth for every
+ * market the UI can surface — engine config pointers, scalper-clock exports,
+ * display decimals/units, data-source provenance, footer strings, and
+ * economics honesty notes. Per-market ENGINE config (point size, decimals,
+ * validation metrics, data files) comes from src/engine/symbols.ts ONLY;
+ * this registry adds display/provenance metadata and pins every rendered
+ * number to a static JSON export (symbol_check.mjs verifies the pinning).
  */
 
 export type TimeframeId = 'H1' | 'H4'
 
-/**
- * Per-symbol H4 variant keys into VARIANT_CONFIGS. `null` = the symbol has
- * no H4 engine, so `tf=h4` can never resolve for it (guard stays data-driven).
- */
-const H4_VARIANTS: Record<SymbolId, keyof typeof VARIANT_CONFIGS | null> = {
-  XAUUSD: 'xauusd-h4',
-  NAS100: 'nas100-h4',
+/** Every market the UI can surface (legacy SymbolId ∪ Phase-15 SHIP'ed ids). */
+export type AppSymbolId = SymbolId | Phase15SymbolId
+
+export type SymbolGroup = 'Metals' | 'Indices' | 'Forex'
+
+/** Economics family of the symbol's scalper-clock export (EconPanel schema). */
+export type EconKind = 'spread' | 'commission' | 'commission-analogy'
+
+export interface SymbolRegistryEntry {
+  id: AppSymbolId
+  /** lowercase ?symbol= URL value ('xauusd' is the default — omitted from URLs). */
+  param: string
+  /** Short picker label (matches config.symbol). */
+  label: string
+  group: SymbolGroup
+  /** H1 engine config from src/engine/symbols.ts (single source of engine truth). */
+  h1: SymbolConfig
+  /** H4 variant key into VARIANT_CONFIGS; null = H1-only market. */
+  h4: keyof typeof VARIANT_CONFIGS | null
+  /** Scalper's Clock slot-map exports under /data/ (M15 always; M5 gold-only). */
+  scalperM15: string
+  scalperM5: string | null
+  /** Unit suffix for range/price-delta readouts (priceUnit). */
+  rangeUnit: 'USD' | 'pts' | 'JPY'
+  /** Short human name for the instrument (Navbar / headings). */
+  displayName: string
+  /** Engine data source for chart headers / status bars / Footer matrix. */
+  dataSource: 'OANDA' | 'MT5'
+  /** Scalper economics family (drives the EconPanel schema + honesty notes). */
+  econKind: EconKind
+  /**
+   * EconPanel honesty note for commission-modeled markets (spec §7): the FX
+   * economics are user-provided account economics, not broker-recorded spreads.
+   */
+  econNote: string | null
+  /**
+   * Engine range-model honesty note (spec §6): shown where range metrics are
+   * displayed. USDJPY's classic-GBM range R² is NEGATIVE (-0.1852 vs HGB
+   * 0.1255) — SHIP'ed per the Track-A verdict but honestly disclosed.
+   */
+  engineRangeNote: string | null
+  /**
+   * Footer dataLine strings (the provenance matrix). Every number in these
+   * strings mirrors a static JSON export's meta exactly — symbol_check.mjs
+   * pins each string against the JSON so nothing is invented.
+   */
+  footer: {
+    /** /scalper-clock M15 line. */
+    scalperM15: string
+    /** /scalper-clock M5 line (gold only). */
+    scalperM5?: string
+    /** Engine H1 line (all other routes). */
+    engineH1: string
+    /** Engine H4 line (symbols with an H4 variant). */
+    engineH4?: string
+  }
+  /** Session Radar hero headline. */
+  headline: string
 }
 
+const ORDERED_GROUPS: SymbolGroup[] = ['Metals', 'Indices', 'Forex']
+
+export const SYMBOL_REGISTRY: Record<AppSymbolId, SymbolRegistryEntry> = {
+  XAUUSD: {
+    id: 'XAUUSD',
+    param: 'xauusd',
+    label: 'Gold',
+    group: 'Metals',
+    h1: SYMBOL_CONFIGS.XAUUSD,
+    h4: 'xauusd-h4',
+    scalperM15: '/data/xauusd_m15_slots.json',
+    scalperM5: '/data/xauusd_m5_slots.json',
+    rangeUnit: 'USD',
+    displayName: 'Gold / U.S. Dollar',
+    dataSource: 'OANDA',
+    econKind: 'spread',
+    econNote: null,
+    engineRangeNote: null,
+    footer: {
+      scalperM15: 'Data: MT5 XAUUSD M15 · 99,599 bars · Static research export · As of 2026-07-03 16:00 UTC',
+      scalperM5: 'Data: MT5 XAUUSD M5 · 325,160 bars · Static research export · As of 2026-08-04 16:00 UTC',
+      engineH1: 'Data: OANDA XAUUSD H1/D1 · Precomputed engine export · As of 2026-07-17 15:00 UTC',
+      engineH4: 'Data: OANDA XAUUSD H4/D1 · Precomputed engine export · As of 2026-07-03 16:00 UTC',
+    },
+    headline: 'Gold has a schedule. Volatility keeps it.',
+  },
+  NAS100: {
+    id: 'NAS100',
+    param: 'nas100',
+    label: 'US100',
+    group: 'Indices',
+    h1: SYMBOL_CONFIGS.NAS100,
+    h4: 'nas100-h4',
+    scalperM15: '/data/nas100_m15_slots.json',
+    scalperM5: null,
+    rangeUnit: 'pts',
+    displayName: 'Nasdaq 100 Index',
+    dataSource: 'MT5',
+    econKind: 'spread',
+    econNote: null,
+    engineRangeNote: null,
+    footer: {
+      scalperM15: 'Data: MT5 NAS100 M15 · 100,317 bars · Static research export · As of 2026-05-21 11:00 UTC',
+      engineH1: 'Data: MT5 NAS100 H1/D1 · Precomputed engine export · As of 2026-07-17 15:00 UTC',
+      engineH4: 'Data: MT5 NAS100 H4/D1 · Precomputed engine export · As of 2026-07-03 16:00 UTC',
+    },
+    headline: 'Nasdaq has a schedule. Volatility keeps it.',
+  },
+  US30: {
+    id: 'US30',
+    param: 'us30',
+    label: 'US30',
+    group: 'Indices',
+    h1: VARIANT_CONFIGS['us30-h1'],
+    h4: null,
+    scalperM15: '/data/us30_m15_slots.json',
+    scalperM5: null,
+    rangeUnit: 'pts',
+    displayName: 'Dow Jones 30 Index',
+    dataSource: 'MT5',
+    econKind: 'spread',
+    econNote: null,
+    engineRangeNote: null,
+    footer: {
+      scalperM15: 'Data: MT5 US30 M15 · 99,812 bars · Static research export · As of 2026-03-09 18:30 UTC',
+      engineH1: 'Data: MT5 US30 H1/D1 · Precomputed engine export · As of 2026-08-04 16:00 UTC',
+    },
+    headline: 'US30 has a schedule. Volatility keeps it.',
+  },
+  GER40: {
+    id: 'GER40',
+    param: 'ger40',
+    label: 'GER40',
+    group: 'Indices',
+    h1: VARIANT_CONFIGS['ger40-h1'],
+    h4: null,
+    scalperM15: '/data/ger40_m15_slots.json',
+    scalperM5: null,
+    rangeUnit: 'pts',
+    displayName: 'DAX 40 Index',
+    dataSource: 'MT5',
+    econKind: 'spread',
+    econNote: null,
+    engineRangeNote: null,
+    footer: {
+      scalperM15: 'Data: MT5 GER40 M15 · 100,356 bars · Static research export · As of 2026-07-03 16:00 UTC',
+      engineH1: 'Data: MT5 GER40 H1/D1 · Precomputed engine export · As of 2026-08-04 16:00 UTC',
+    },
+    headline: 'GER40 has a schedule. Volatility keeps it.',
+  },
+  EURUSD: {
+    id: 'EURUSD',
+    param: 'eurusd',
+    label: 'EURUSD',
+    group: 'Forex',
+    h1: VARIANT_CONFIGS['eurusd-h1'],
+    h4: null,
+    scalperM15: '/data/eurusd_m15_slots.json',
+    scalperM5: null,
+    rangeUnit: 'USD',
+    displayName: 'Euro / U.S. Dollar',
+    dataSource: 'MT5',
+    econKind: 'commission',
+    econNote: 'commission $7/lot (user account)',
+    engineRangeNote: null,
+    footer: {
+      scalperM15: 'Data: MT5 EURUSD M15 · 99,972 bars · Static research export · As of 2026-05-22 08:00 UTC',
+      engineH1: 'Data: MT5 EURUSD H1/D1 · Precomputed engine export · As of 2026-07-03 16:00 UTC',
+    },
+    headline: 'EURUSD has a schedule. Volatility keeps it.',
+  },
+  GBPUSD: {
+    id: 'GBPUSD',
+    param: 'gbpusd',
+    label: 'GBPUSD',
+    group: 'Forex',
+    h1: VARIANT_CONFIGS['gbpusd-h1'],
+    h4: null,
+    scalperM15: '/data/gbpusd_m15_slots.json',
+    scalperM5: null,
+    rangeUnit: 'USD',
+    displayName: 'British Pound / U.S. Dollar',
+    dataSource: 'MT5',
+    econKind: 'commission',
+    econNote: 'commission $7/lot (user account)',
+    engineRangeNote: null,
+    footer: {
+      scalperM15: 'Data: MT5 GBPUSD M15 · 100,338 bars · Static research export · As of 2026-05-28 22:00 UTC',
+      engineH1: 'Data: MT5 GBPUSD H1/D1 · Precomputed engine export · As of 2026-08-04 16:00 UTC',
+    },
+    headline: 'GBPUSD has a schedule. Volatility keeps it.',
+  },
+  USDJPY: {
+    id: 'USDJPY',
+    param: 'usdjpy',
+    label: 'USDJPY',
+    group: 'Forex',
+    h1: VARIANT_CONFIGS['usdjpy-h1'],
+    h4: null,
+    scalperM15: '/data/usdjpy_m15_slots.json',
+    scalperM5: null,
+    rangeUnit: 'JPY',
+    displayName: 'U.S. Dollar / Japanese Yen',
+    dataSource: 'MT5',
+    econKind: 'commission-analogy',
+    econNote: 'commission $7/lot (user account) — applied to USDJPY by analogy',
+    engineRangeNote:
+      'range model weak on USDJPY: classic-GBM OOS R² = −0.185 (HGB reference 0.126) — shipped per the research verdict, honestly disclosed',
+    footer: {
+      scalperM15: 'Data: MT5 USDJPY M15 · 114,119 bars · Static research export · As of 2026-08-04 16:00 UTC',
+      engineH1: 'Data: MT5 USDJPY H1/D1 · Precomputed engine export · As of 2026-08-04 16:00 UTC',
+    },
+    headline: 'USDJPY has a schedule. Volatility keeps it.',
+  },
+}
+
+/** Picker order: group blocks (Metals → Indices → Forex), registry order inside. */
+export const SYMBOL_GROUPS: { group: SymbolGroup; symbols: AppSymbolId[] }[] = ORDERED_GROUPS.map((group) => ({
+  group,
+  symbols: (Object.keys(SYMBOL_REGISTRY) as AppSymbolId[]).filter((id) => SYMBOL_REGISTRY[id].group === group),
+}))
+
 export interface SymbolState {
-  symbol: SymbolId
+  /** Active market (legacy ids unchanged; Phase-15 ids added). */
+  symbol: AppSymbolId
+  /** Registry entry for the active market (display/provenance metadata). */
+  entry: SymbolRegistryEntry
+  /** Active engine config (tf-aware: H4 variant when resolved). */
   config: SymbolConfig
   /** True when the active config has a live price feed (XAUUSD H1 only). */
   isLive: boolean
   /** Active engine timeframe (H4 where the symbol has an H4 variant; H1 elsewhere). */
   tf: TimeframeId
-  setSymbol: (next: SymbolId) => void
+  setSymbol: (next: AppSymbolId) => void
   setTf: (next: TimeframeId) => void
 }
 
+/** Legacy parser — kept for the H1/H4 tf wiring and backward compatibility. */
 export function parseSymbolParam(raw: string | null): SymbolId {
   return raw != null && raw.toLowerCase() === 'nas100' ? 'NAS100' : 'XAUUSD'
 }
 
+/**
+ * Phase-15 parser: any registry param resolves to its market; unknown/missing
+ * values fall back to XAUUSD (the default). Legacy `xauusd`/`nas100` behave
+ * exactly as before.
+ */
+export function parseAppSymbolParam(raw: string | null): AppSymbolId {
+  if (raw != null) {
+    const key = raw.toLowerCase()
+    for (const id of Object.keys(SYMBOL_REGISTRY) as AppSymbolId[]) {
+      if (SYMBOL_REGISTRY[id].param === key) return id
+    }
+  }
+  return 'XAUUSD'
+}
+
 export function useSymbol(): SymbolState {
   const [params, setParams] = useSearchParams()
-  const symbol = parseSymbolParam(params.get('symbol'))
-  /* tf=h4 takes effect only for symbols with an H4 variant (both today) */
-  const variantKey = H4_VARIANTS[symbol]
-  const tf: TimeframeId = variantKey != null && params.get('tf')?.toLowerCase() === 'h4' ? 'H4' : 'H1'
-  const config = tf === 'H4' && variantKey != null ? VARIANT_CONFIGS[variantKey] : getSymbolConfig(symbol)
+  const symbol = parseAppSymbolParam(params.get('symbol'))
+  const entry = SYMBOL_REGISTRY[symbol]
+  /* tf=h4 takes effect only for symbols with an H4 variant (XAUUSD/NAS100) */
+  const tf: TimeframeId = entry.h4 != null && params.get('tf')?.toLowerCase() === 'h4' ? 'H4' : 'H1'
+  const config = tf === 'H4' && entry.h4 != null ? VARIANT_CONFIGS[entry.h4] : entry.h1
 
   const setSymbol = useCallback(
-    (next: SymbolId) => {
+    (next: AppSymbolId) => {
       setParams((prev) => {
         const p = new URLSearchParams(prev)
         if (next === 'XAUUSD') p.delete('symbol') // default — keep URLs clean
-        else p.set('symbol', 'nas100')
-        if (H4_VARIANTS[next] == null) p.delete('tf') // target has no H4 engine
+        else p.set('symbol', SYMBOL_REGISTRY[next].param)
+        if (SYMBOL_REGISTRY[next].h4 == null) p.delete('tf') // target has no H4 engine
         return p
       })
     },
@@ -75,7 +317,7 @@ export function useSymbol(): SymbolState {
       setParams((prev) => {
         const p = new URLSearchParams(prev)
         /* default h1 keeps URLs clean; h4 only for symbols with an H4 variant */
-        if (next === 'H1' || H4_VARIANTS[parseSymbolParam(p.get('symbol'))] == null) p.delete('tf')
+        if (next === 'H1' || SYMBOL_REGISTRY[parseAppSymbolParam(p.get('symbol'))].h4 == null) p.delete('tf')
         else p.set('tf', 'h4')
         return p
       })
@@ -83,14 +325,19 @@ export function useSymbol(): SymbolState {
     [setParams],
   )
 
-  return { symbol, config, isLive: config.hasLiveFeed, tf, setSymbol, setTf }
+  return { symbol, entry, config, isLive: config.hasLiveFeed, tf, setSymbol, setTf }
 }
 
 /* ------------------------------------------------------------------ */
-/* Display helpers (respect config.priceDecimals / pip conventions)    */
+/* Display helpers (respect the registry / config.priceDecimals)       */
 /* ------------------------------------------------------------------ */
 
-/** Price string honoring the symbol's display decimals (XAUUSD 2, NAS100 1). */
+/** Registry lookup by engine symbol id (config.symbol) with a gold fallback. */
+export function entryForSymbol(symbol: string): SymbolRegistryEntry {
+  return SYMBOL_REGISTRY[symbol as AppSymbolId] ?? SYMBOL_REGISTRY.XAUUSD
+}
+
+/** Price string honoring the symbol's display decimals (XAUUSD 2, NAS100 1, FX 5/3). */
 export function fmtSymPrice(v: number, config: SymbolConfig): string {
   return v.toLocaleString('en-US', {
     minimumFractionDigits: config.priceDecimals,
@@ -99,32 +346,50 @@ export function fmtSymPrice(v: number, config: SymbolConfig): string {
 }
 
 /**
- * Unit suffix for range/price-delta readouts. Gold research labels ranges in
- * USD; NAS100 ranges are index points (pip = 1.0 pt per engine convention).
+ * Unit suffix for range/price-delta readouts, from the registry. Gold
+ * research labels ranges in USD; indices are points; FX ranges are quote
+ * currency (USD for EURUSD/GBPUSD, JPY for USDJPY). XAUUSD/NAS100 output is
+ * byte-identical to the legacy hardcode.
  */
 export function priceUnit(config: SymbolConfig): string {
-  return config.symbol === 'NAS100' ? 'pts' : 'USD'
+  return entryForSymbol(config.symbol).rangeUnit
 }
 
 /**
  * Decimals for avg-range readouts in the sessions views. Gold output must
  * stay byte-identical to the research export, so XAUUSD keeps the call-site
- * fallback; other symbols follow config.priceDecimals.
+ * fallback; NAS100 already followed config.priceDecimals (1dp) and the
+ * Phase-15 markets do the same (indices 1dp, FX 5/3dp).
  */
 export function rangeDigits(config: SymbolConfig, goldFallback: number): number {
   return config.symbol === 'XAUUSD' ? goldFallback : config.priceDecimals
 }
 
-/** Short human name for the instrument (Navbar / headings). */
+/** Short human name for the instrument (Navbar / headings), from the registry. */
 export function symbolDisplayName(config: SymbolConfig): string {
-  return config.symbol === 'NAS100' ? 'Nasdaq 100 Index' : 'Gold / U.S. Dollar'
+  return entryForSymbol(config.symbol).displayName
 }
 
 /**
  * Data-source label for chart headers / status bars, matching the Footer
- * provenance matrix (Phase 12): gold engine data is OANDA, NAS100 engine
- * data is MT5. XAUUSD output stays byte-identical to the legacy hardcode.
+ * provenance matrix: gold engine data is OANDA, every MT5 static export
+ * (NAS100 + the five Phase-15 markets) is MT5. XAUUSD/NAS100 output stays
+ * byte-identical to the legacy hardcode.
  */
 export function dataSourceLabel(config: SymbolConfig): string {
-  return config.symbol === 'NAS100' ? 'MT5' : 'OANDA'
+  return entryForSymbol(config.symbol).dataSource
+}
+
+/**
+ * True when the config's sessions file is the SHARED XAUUSD H1 session
+ * profile rather than the symbol's own dataset. Track B wired the five
+ * Phase-15 markets to data/sessions.json as display-only metadata (nothing
+ * feeds the engine), so their session BAND structure is real but the range
+ * VALUES are gold's — sessions-sourced readouts must format with gold's
+ * unit/digits and carry the reuse note, never pretend to be per-market
+ * stats. Engine-sourced values (latest.json: expected range, ATR14, cones)
+ * ARE per-market and keep config.priceDecimals via the helpers above.
+ */
+export function sessionsReusedFromGold(config: SymbolConfig): boolean {
+  return config.symbol !== 'XAUUSD' && config.dataFiles.sessions === SYMBOL_CONFIGS.XAUUSD.dataFiles.sessions
 }

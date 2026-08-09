@@ -4,7 +4,7 @@ import { AlertTriangle, Database, Clock3 } from 'lucide-react'
 import { useScalperClock, scalperClockFile } from '@/hooks/useData'
 import type { ScalperClockData, ScalperTf } from '@/hooks/useData'
 import { useSymbol } from '@/hooks/useSymbol'
-import { useTimezone, fmtWallClock, tzSuffix, utcHhMmToTz, utcLabelToTz } from '@/hooks/useTimezone'
+import { useTimezone, fmtWallClock, tzSuffix, utcLabelToTz } from '@/hooks/useTimezone'
 import type { DisplayTz } from '@/hooks/useTimezone'
 import SlotGrid from '@/components/scalper/SlotGrid'
 import HotCards from '@/components/scalper/HotCards'
@@ -17,9 +17,9 @@ import {
   scalperVerdictChip,
   SCALPER_VERDICT_CHIP_FALLBACK,
   fmtAtr,
-  fmtUsd,
   fmtPct,
   fmtInt,
+  fmtSlotRange,
   slotIndexFor,
 } from '@/components/scalper/utils'
 
@@ -59,11 +59,11 @@ export default function ScalperClock() {
 
       {data && (
         <div className="mt-14 flex flex-col gap-14">
-          <SlotGrid slots={data.slots} hottestSlotIdx={data.highlights.hottest_slot.slot} now={now} />
-          <HotCards highlights={data.highlights} />
+          <SlotGrid slots={data.slots} hottestSlotIdx={data.highlights.hottest_slot.slot} now={now} symbol={data.meta.symbol} />
+          <HotCards highlights={data.highlights} symbol={data.meta.symbol} />
           <EconPanel econ={data.econ} symbol={data.meta.symbol} timeframe={data.meta.timeframe} />
           <GuidancePanel guidance={data.guidance} />
-          <HourlyStrip hourly={data.hourly} now={now} timeframe={data.meta.timeframe} />
+          <HourlyStrip hourly={data.hourly} now={now} timeframe={data.meta.timeframe} symbol={data.meta.symbol} />
         </div>
       )}
     </div>
@@ -201,7 +201,8 @@ function Hero({
             </p>
             {nowSlot && (nowSlot.avg_range_atr == null || nowSlot.bar_count === 0) ? (
               <p className="mt-4 font-mono text-[12px] leading-5 text-honest">
-                session break — no bars in this slot. The clock resumes at {utcHhMmToTz(1, 0, tz, now)} {tzSuffix(tz)}.
+                session break — no bars in this slot. The clock resumes at{' '}
+                {utcLabelToTz(data.slots.find((s) => s.bar_count > 0)?.label ?? '01:00', tz, now)} {tzSuffix(tz)}.
               </p>
             ) : (
               <>
@@ -212,7 +213,7 @@ function Hero({
                   </span>
                 </p>
                 <p className="mt-3 font-mono text-[12px] leading-5 text-text1">
-                  ≈ ${fmtUsd(nowSlot?.avg_range_usd ?? null)} per {data.meta.timeframe} bar
+                  ≈ {fmtSlotRange(nowSlot?.avg_range_usd ?? null, data.meta.symbol)} per {data.meta.timeframe} bar
                   <span className="text-text2"> · P(high-vol) </span>
                   {fmtPct(nowSlot?.p_high_vol_empirical ?? null)}
                   <span className="text-text2"> · n=</span>

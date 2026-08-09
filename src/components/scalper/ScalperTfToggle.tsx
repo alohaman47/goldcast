@@ -43,7 +43,7 @@ interface ScalperTfToggleProps {
 export default memo(function ScalperTfToggle({ symbol, stf, setStf, meta, className }: ScalperTfToggleProps) {
   if (symbol !== 'XAUUSD') {
     return (
-      <span className={cn('micro-mono text-text3', className)} title="NAS100 has no M5 research export">
+      <span className={cn('micro-mono text-text3', className)} title={`${symbol} has no M5 research export`}>
         M5 map: gold only
       </span>
     )

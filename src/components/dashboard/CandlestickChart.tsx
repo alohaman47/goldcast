@@ -3,7 +3,7 @@ import type { Bar, LatestData } from '@/hooks/useData'
 import type { Bar as EngineBar } from '@/engine/bars'
 import { GOLD_CONFIG } from '@/engine/symbols'
 import type { SymbolConfig } from '@/engine/symbols'
-import { priceUnit } from '@/hooks/useSymbol'
+import { priceUnit, rangeDigits } from '@/hooks/useSymbol'
 import { useTimezone, fmtTimestampInTz, tzSuffix, wallParts } from '@/hooks/useTimezone'
 import { cn } from '@/lib/utils'
 
@@ -107,6 +107,10 @@ export default function CandlestickChart({
   const effLatest = live?.latest ?? latest
   const formingAbs = live ? effBars.length - 1 : -1
   const priceDecimals = config.priceDecimals
+  /* cone half-width decimals: gold keeps the legacy 1dp/2dp call-site
+     fallbacks; every other market follows config.priceDecimals (FX 5/3dp). */
+  const coneD1 = rangeDigits(config, 1)
+  const coneD2 = rangeDigits(config, 2)
   /* engine timeframe label (H4 variant for NAS100; H1 everywhere else) */
   const tf = config.timeframe ?? 'H1'
   /* Phase 14: display tz for axis/tooltip time labels — bar identity,
@@ -363,7 +367,9 @@ export default function CandlestickChart({
         ctx.textAlign = 'right'
         const labelX = PAD_L + g.plotW - 4
         halves.forEach((hw, i) => {
-          ctx.fillText(`T+${i + 1} ±${hw.toFixed(1)}`, labelX, g.yOf(effLatest.price + hw * coneP) - 6)
+          /* per-market decimals (gold keeps the legacy 1dp; FX 5/3dp — a
+             0.0005 cone must never render as "±0.0") */
+          ctx.fillText(`T+${i + 1} ±${hw.toFixed(coneD1)}`, labelX, g.yOf(effLatest.price + hw * coneP) - 6)
         })
 
         /* ghost candles T+1..T+3 */
@@ -477,7 +483,7 @@ export default function CandlestickChart({
         ctx.setLineDash([])
       }
     }
-  }, [effBars, effLatest, live, layout, priceDecimals, tz])
+  }, [effBars, effLatest, live, layout, priceDecimals, coneD1, tz])
 
   const drawRef = useRef(draw)
   drawRef.current = draw
@@ -696,7 +702,7 @@ export default function CandlestickChart({
             </>
           ) : (
             <>
-              <div className="text-gold">T+{hover!.ghostK} cone half-width ±{ghostHw!.toFixed(2)}</div>
+              <div className="text-gold">T+{hover!.ghostK} cone half-width ±{ghostHw!.toFixed(coneD2)}</div>
               <div className="text-text1">√-time scaling · not a direction call</div>
             </>
           )}
@@ -705,7 +711,7 @@ export default function CandlestickChart({
 
       {/* data-table fallback summary (a11y) */}
       <p id="chart-data-summary" className="sr-only">
-        {`Showing the last ${Math.min(viewRef.current.count, effBars.length)} of ${effBars.length} ${config.symbol} ${tf} bars. Latest price ${fmtPrice(effLatest.price, priceDecimals)}. Forecast cone half-widths: T+1 ±${effLatest.cone.T1.half_width.toFixed(1)}, T+2 ±${effLatest.cone.T2.half_width.toFixed(1)}, T+3 ±${effLatest.cone.T3.half_width.toFixed(1)} ${priceUnit(config)}. Range forecast only — direction not predicted.`}
+        {`Showing the last ${Math.min(viewRef.current.count, effBars.length)} of ${effBars.length} ${config.symbol} ${tf} bars. Latest price ${fmtPrice(effLatest.price, priceDecimals)}. Forecast cone half-widths: T+1 ±${effLatest.cone.T1.half_width.toFixed(coneD1)}, T+2 ±${effLatest.cone.T2.half_width.toFixed(coneD1)}, T+3 ±${effLatest.cone.T3.half_width.toFixed(coneD1)} ${priceUnit(config)}. Range forecast only — direction not predicted.`}
       </p>
     </div>
   )

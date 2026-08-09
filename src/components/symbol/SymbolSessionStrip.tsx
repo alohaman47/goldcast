@@ -3,7 +3,8 @@ import { motion } from 'framer-motion'
 import { Link } from 'react-router'
 import type { LatestData, SessionsData } from '@/hooks/useData'
 import type { SymbolConfig } from '@/engine/symbols'
-import { priceUnit, rangeDigits } from '@/hooks/useSymbol'
+import { sessionsReusedFromGold } from '@/hooks/useSymbol'
+import { rangeDigits, rangeUnit } from '@/components/sessions/utils'
 import { useTimezone, formatRunsInTz, tzSuffix, utcHhMmToTz } from '@/hooks/useTimezone'
 import { contiguousRuns } from '@/components/sessions/utils'
 import { cn } from '@/lib/utils'
@@ -49,7 +50,11 @@ export default function SymbolSessionStrip({
     return () => window.clearInterval(iv)
   }, [])
 
-  const unit = priceUnit(config)
+  /* reuse-aware sessions formatting (Phase 15): markets on the shared gold
+     H1 session profile render gold's values with gold's USD unit + digits,
+     with a visible provenance note — never as the market's own stats. */
+  const reused = sessionsReusedFromGold(config)
+  const unit = rangeUnit(config)
   const digits = rangeDigits(config, 2)
   /* Phase 14: now-cell identity stays the UTC hour; labels convert. */
   const { tz } = useTimezone()
@@ -91,6 +96,13 @@ export default function SymbolSessionStrip({
           </Link>
         </div>
       </div>
+
+      {reused && (
+        <p className="micro-mono mt-1.5 text-honest">
+          shared XAUUSD H1 session profile (display-only) — ranges are gold&apos;s, in USD. Per-market map:
+          Scalper&apos;s Clock (M15, real export).
+        </p>
+      )}
 
       <div className="relative mt-3">
         <div className="flex items-end gap-[3px]" style={{ height: 56 }}>

@@ -4,6 +4,7 @@ import { Activity, ArrowUp, ArrowDown, BarChart2, ChevronRight, Clock, Gauge, In
 import type { LucideIcon } from 'lucide-react'
 import type { LatestData } from '@/hooks/useData'
 import type { SymbolConfig } from '@/engine/symbols'
+import { rangeDigits } from '@/hooks/useSymbol'
 import HonestyBadge from '@/components/HonestyBadge'
 import LiveBadge, { type LiveBadgeProps } from '@/components/live/LiveBadge'
 import { cn } from '@/lib/utils'
@@ -76,7 +77,9 @@ export default function EvidencePanel({
       icon: BarChart2,
       iconTone: 'gold',
       name: 'ATR baseline',
-      sub: `ATR14 = ${latest.atr14.toFixed(2)}`,
+      /* per-market decimals: gold keeps the legacy 2dp; others follow
+         config.priceDecimals (NAS100/indices 1dp, FX 5/3dp) */
+      sub: `ATR14 = ${latest.atr14.toFixed(rangeDigits(config, 2))}`,
       score: 0.2,
       weight: '20%',
     },

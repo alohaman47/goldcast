@@ -1,12 +1,14 @@
 import { memo } from 'react'
 import { useSymbol } from '@/hooks/useSymbol'
-import type { TimeframeId } from '@/hooks/useSymbol'
-import type { SymbolId } from '@/engine/symbols'
+import type { AppSymbolId, TimeframeId } from '@/hooks/useSymbol'
 import { cn } from '@/lib/utils'
 
 /**
- * H1 | H4 segmented control (Navbar, right of the SymbolToggle).
- * Rendered for BOTH symbols (Phase 12 — gold has an H4 engine now).
+ * H1 | H4 segmented control (Navbar, right of the SymbolPicker).
+ * Rendered for the two symbols with an H4 engine (Phase 12 — gold has an
+ * H4 engine now). The five Phase-15 markets are H1-ONLY: instead of a fake
+ * or disabled control they get a quiet mono note ("H1 only") — honest, the
+ * same pattern the Scalper's Clock uses for the gold-only M5 map.
  * Honesty hints are per-symbol:
  *  - XAUUSD: per-segment chips — H1 is the LIVE engine (green/live language),
  *    H4 is a STATIC export.
@@ -21,7 +23,7 @@ interface Segment {
   hint: 'LIVE' | 'STATIC' | null
 }
 
-const SEGMENTS: Record<SymbolId, Segment[]> = {
+const SEGMENTS: Partial<Record<AppSymbolId, Segment[]>> = {
   XAUUSD: [
     { id: 'H1', label: 'H1', title: 'XAUUSD H1 — live engine (AUC 0.778)', hint: 'LIVE' },
     { id: 'H4', label: 'H4', title: 'XAUUSD H4 — static export (AUC 0.735)', hint: 'STATIC' },
@@ -35,6 +37,15 @@ const SEGMENTS: Record<SymbolId, Segment[]> = {
 export default memo(function TfToggle({ className }: { className?: string }) {
   const { symbol, tf, setTf } = useSymbol()
   const segments = SEGMENTS[symbol]
+
+  /* H1-only markets (Phase 15): no choice to make — honest note, no control. */
+  if (segments == null) {
+    return (
+      <span className={cn('micro-mono text-text3', className)} title={`${symbol} has an H1 engine only — static export`}>
+        H1 only
+      </span>
+    )
+  }
 
   return (
     <div

@@ -3,12 +3,12 @@ import { Flame, Snowflake } from 'lucide-react'
 import type { ScalperClockData, ScalperHighlightSlot } from '@/hooks/useData'
 import { useTimezone, tzSuffix, utcLabelToTz } from '@/hooks/useTimezone'
 import { cn } from '@/lib/utils'
-import { TERMINAL_EASE, fmtAtr, fmtInt, fmtPct, fmtUsd } from './utils'
+import { TERMINAL_EASE, fmtAtr, fmtInt, fmtPct, fmtSlotRange } from './utils'
 
 type Highlights = ScalperClockData['highlights']
 
 /** Top-5 hottest slot stat cards + the quietest-slot honesty card. */
-export default function HotCards({ highlights }: { highlights: Highlights }) {
+export default function HotCards({ highlights, symbol }: { highlights: Highlights; symbol: string }) {
   const reducedMotion = useReducedMotion()
   const { tz } = useTimezone()
 
@@ -23,7 +23,7 @@ export default function HotCards({ highlights }: { highlights: Highlights }) {
 
       <div className="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
         {highlights.top5_hottest_slots.map((s, i) => (
-          <SlotCard key={s.slot} slot={s} rank={i + 1} top={i === 0} delay={reducedMotion ? 0 : i * 0.08} />
+          <SlotCard key={s.slot} slot={s} rank={i + 1} top={i === 0} delay={reducedMotion ? 0 : i * 0.08} symbol={symbol} />
         ))}
       </div>
 
@@ -44,7 +44,7 @@ export default function HotCards({ highlights }: { highlights: Highlights }) {
         </span>
         <span className="font-mono text-[13px] tnum text-text1">{fmtAtr(highlights.quietest_slot.avg_range_atr)}ATR</span>
         <span className="font-mono text-[13px] tnum text-text1">
-          range ${fmtUsd(highlights.quietest_slot.avg_range_usd)}
+          range {fmtSlotRange(highlights.quietest_slot.avg_range_usd, symbol)}
         </span>
         <span className="font-mono text-[13px] tnum text-text1">
           P(high-vol) {fmtPct(highlights.quietest_slot.p_high_vol_empirical)}
@@ -61,11 +61,13 @@ function SlotCard({
   rank,
   top,
   delay,
+  symbol,
 }: {
   slot: ScalperHighlightSlot
   rank: number
   top: boolean
   delay: number
+  symbol: string
 }) {
   const reducedMotion = useReducedMotion()
   const { tz } = useTimezone()
@@ -89,7 +91,7 @@ function SlotCard({
       <dl className="mt-3 space-y-1 font-mono text-[11px] leading-[16px] tnum">
         <div className="flex justify-between">
           <dt className="text-text2">range</dt>
-          <dd className="text-text1">${fmtUsd(slot.avg_range_usd)}</dd>
+          <dd className="text-text1">{fmtSlotRange(slot.avg_range_usd, symbol)}</dd>
         </div>
         <div className="flex justify-between">
           <dt className="text-text2">P(high-vol)</dt>

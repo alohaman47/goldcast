@@ -9,7 +9,7 @@ import {
   fmtAtr,
   fmtInt,
   fmtPct,
-  fmtUsd,
+  fmtSlotRange,
   pad2,
   slotAtrExtent,
   slotFill,
@@ -51,6 +51,8 @@ interface SlotGridProps {
   slots: ScalperSlot[]
   hottestSlotIdx: number
   now: Date
+  /** meta.symbol of the active export — per-market range units/decimals. */
+  symbol: string
 }
 
 /**
@@ -60,7 +62,7 @@ interface SlotGridProps {
  * 1440/slots.length. Thermal fill is avg_range_atr normalized per dataset;
  * null slots (00:xx session break) render hollow/dashed.
  */
-export default function SlotGrid({ slots, hottestSlotIdx, now }: SlotGridProps) {
+export default function SlotGrid({ slots, hottestSlotIdx, now, symbol }: SlotGridProps) {
   const [hover, setHover] = useState<HoverState | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const inView = useInView(containerRef, { once: true, amount: 0.2 })
@@ -87,6 +89,10 @@ export default function SlotGrid({ slots, hottestSlotIdx, now }: SlotGridProps) 
 
   const nowIdx = slotIndexFor(now, slotsPerDay)
   const hoverSlot = hover ? byIdx.get(hover.idx) : undefined
+  /* Session-break presence is data-driven (gold/NAS100/GER40 break at
+     00:xx; US30 + FX trade 24h) — the legend never claims a break that
+     isn't in the JSON. */
+  const hasBreak = slots.some((s) => s.avg_range_atr == null || s.bar_count === 0)
 
   const handleMove = (idx: number) => (e: MouseEvent<HTMLDivElement>) => {
     const rect = containerRef.current?.getBoundingClientRect()
@@ -150,7 +156,7 @@ export default function SlotGrid({ slots, hottestSlotIdx, now }: SlotGridProps) 
                     aria-label={
                       isNull
                         ? `${utcLabelToTz(s?.label ?? `${pad2(h)}:${pad2(minute)}`, tz, now)} ${tzSuffix(tz)} — session break, no bars`
-                        : `${utcLabelToTz(s.label, tz, now)} ${tzSuffix(tz)} · ${fmtAtr(s.avg_range_atr)}ATR · range $${fmtUsd(s.avg_range_usd)} · P(high-vol) ${fmtPct(s.p_high_vol_empirical)} · n=${fmtInt(s.bar_count)}`
+                        : `${utcLabelToTz(s.label, tz, now)} ${tzSuffix(tz)} · ${fmtAtr(s.avg_range_atr)}ATR · range ${fmtSlotRange(s.avg_range_usd, symbol)} · P(high-vol) ${fmtPct(s.p_high_vol_empirical)} · n=${fmtInt(s.bar_count)}`
                     }
                     initial={{ opacity: 0, scale: 0.6 }}
                     animate={inView ? { opacity: dimmed ? 0.35 : 1, scale: 1 } : { opacity: 0, scale: 0.6 }}
@@ -202,8 +208,8 @@ export default function SlotGrid({ slots, hottestSlotIdx, now }: SlotGridProps) 
                   </span>
                   <span className="text-text2"> · </span>
                   {fmtAtr(hoverSlot.avg_range_atr)}ATR
-                  <span className="text-text2"> · range $</span>
-                  {fmtUsd(hoverSlot.avg_range_usd)}
+                  <span className="text-text2"> · range </span>
+                  {fmtSlotRange(hoverSlot.avg_range_usd, symbol)}
                   <span className="text-text2"> · P(high-vol) </span>
                   {fmtPct(hoverSlot.p_high_vol_empirical)}
                   <span className="text-text2"> · n=</span>
@@ -224,10 +230,14 @@ export default function SlotGrid({ slots, hottestSlotIdx, now }: SlotGridProps) 
                 {fmtAtr(extent[0])} → {fmtAtr(extent[1])} ATR
               </span>
             </span>
-            <span className="micro-mono flex items-center gap-1.5">
-              <span className="inline-block h-3 w-3 rounded-[3px] border border-dashed border-text3/80" />
-              {tz === 'NY' ? `${utcHourInTz(0, tz, now)}:xx NY` : '00:xx'} hollow = session break (no bars)
-            </span>
+            {/* session-break legend only when the dataset HAS a break —
+                US30 + the FX markets trade all 24 hours (no hollow slots) */}
+            {hasBreak && (
+              <span className="micro-mono flex items-center gap-1.5">
+                <span className="inline-block h-3 w-3 rounded-[3px] border border-dashed border-text3/80" />
+                {tz === 'NY' ? `${utcHourInTz(0, tz, now)}:xx NY` : '00:xx'} hollow = session break (no bars)
+              </span>
+            )}
             <span className="micro-mono flex items-center gap-1.5">
               <span className="inline-block h-3 w-3 rounded-[3px] border-2 border-goldhi" />
               gold ring = hottest slot · outline = now

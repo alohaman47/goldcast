@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion'
 import { useSymbolData } from '@/hooks/useData'
 import type { Bar, LatestData, SessionsData } from '@/hooks/useData'
-import { useSymbol, fmtSymPrice, dataSourceLabel } from '@/hooks/useSymbol'
+import { useSymbol, fmtSymPrice, dataSourceLabel, sessionsReusedFromGold } from '@/hooks/useSymbol'
 import type { SymbolConfig } from '@/engine/symbols'
 import { useLivePrice } from '@/hooks/useLivePrice'
 import { useLivePrediction } from '@/hooks/useLivePrediction'
@@ -348,6 +348,8 @@ function StaticDashboard({
             The ontology map and DXY / US10Y quote context are XAUUSD H1 research artifacts. The {config.symbol}{' '}
             {config.timeframe ?? 'H1'} export is static (no live feed, engine verified OOS) and covers the chart,
             forecast, and session stats above — nothing more is claimed.
+            {sessionsReusedFromGold(config) &&
+              ' Session stats are the shared XAUUSD H1 profile (display-only); the per-market session map is the Scalper’s Clock (M15, real export).'}
           </p>
         </section>
       </div>
