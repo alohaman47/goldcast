@@ -16,7 +16,7 @@ const MOONSHOT_API_KEY = process.env.MOONSHOT_API_KEY || "";
 const KIMI_MODEL = process.env.KIMI_MODEL || "kimi-k2.6";
 const KIMI_URL = "https://api.moonshot.ai/v1/chat/completions";
 const FETCH_TIMEOUT_MS = 60_000;
-const MAX_COMPLETION_TOKENS = 800;
+const MAX_COMPLETION_TOKENS = 1200; // headroom so replies aren't cut off
 const MAX_CONTEXT_CHARS = 12_000;
 const MAX_HISTORY = 10;
 const RATE_LIMIT = 30; // requests per minute per IP
@@ -149,6 +149,13 @@ app.post("/api/professor", async (req, res) => {
         model: KIMI_MODEL,
         messages: kimiMessages,
         max_completion_tokens: MAX_COMPLETION_TOKENS,
+        // Professor is an explainer, not a deep-reasoning task. kimi-k2.6
+        // defaults to thinking ENABLED (docs: thinking defaults to
+        // {"type":"enabled"}); reasoning tokens then consume the completion
+        // budget and message.content can come back EMPTY → users saw
+        // "Professor ตอบกลับมาในรูปแบบที่อ่านไม่ได้". Disable it per the
+        // official k2.6 guide ("thinking": {"type": "disabled"}).
+        thinking: { type: "disabled" },
         stream: false,
       }),
       signal: controller.signal,
@@ -182,9 +189,32 @@ app.post("/api/professor", async (req, res) => {
     return res.status(502).json({ error, detail, status: upstream.status });
   }
 
-  const content = data?.choices?.[0]?.message?.content;
+  const message = data?.choices?.[0]?.message;
+  const content = message?.content;
+  const reasoning = message?.reasoning_content;
+  const finishReason = data?.choices?.[0]?.finish_reason;
+
   if (typeof content !== "string") {
     return res.status(502).json({ error: "AI bad response", detail: text.slice(0, 500) });
+  }
+
+  if (content.trim() === "") {
+    // Never forward an empty text silently — the frontend can only show
+    // "อ่านไม่ได้" for that. Answer honestly with a diagnosable 502 instead.
+    // (reasoning_content is internal chain-of-thought, often truncated
+    // mid-thought — leaking it as the user-facing answer would be dishonest,
+    // so we report the condition rather than substitute it.)
+    const why =
+      typeof reasoning === "string" && reasoning.trim() !== ""
+        ? "โมเดลตอบว่าง — token หมดไปกับ reasoning (thinking mode) จนไม่เหลือเนื้อคำตอบ"
+        : finishReason === "length"
+          ? "โมเดลตอบว่าง — คำตอบถูกตัดเพราะเกิน max_completion_tokens"
+          : "โมเดลตอบกลับมาว่างเปล่าโดยไม่ทราบสาเหตุ";
+    return res.status(502).json({
+      error: "AI empty reply",
+      detail: `${why} (model: ${data?.model || KIMI_MODEL}, finish_reason: ${finishReason ?? "unknown"})`,
+      model: data?.model || KIMI_MODEL,
+    });
   }
 
   return res.json({
