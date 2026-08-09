@@ -7,6 +7,7 @@
 import express from "express";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { createCalendarHandler } from "./calendar.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DIST = path.join(__dirname, "..", "dist");
@@ -224,6 +225,9 @@ app.post("/api/professor", async (req, res) => {
   });
 });
 
+// ─── Economic calendar (ForexFactory weekly XML → static CB fallback) ───────
+app.get("/api/economic-calendar", createCalendarHandler());
+
 // ─── Static SPA (equivalent to `serve -s dist`) ─────────────────────────────
 app.use(
   express.static(DIST, {
@@ -261,4 +265,5 @@ app.listen(PORT, () => {
   console.log(`GoldCast server listening on :${PORT}`);
   console.log(`  static: ${DIST} (SPA fallback)`);
   console.log(`  AI: ${MOONSHOT_API_KEY ? `configured (model ${KIMI_MODEL})` : "NOT configured (POST /api/professor → 501)"}`);
+  console.log(`  calendar: GET /api/economic-calendar (ForexFactory weekly feed + static fallback)`);
 });
