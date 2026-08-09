@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion'
 import { useLatest, useSessions, useTruth } from '@/hooks/useData'
+import { SYMBOL_REGISTRY, type AppSymbolId } from '@/hooks/useSymbol'
 import Toc from '@/components/methodology/Toc'
 import PipelineDiagram from '@/components/methodology/PipelineDiagram'
 import DataSection from '@/components/methodology/DataSection'
@@ -13,6 +14,13 @@ import { Eyebrow, SectionTitle } from '@/components/truth/shared'
 import { useLenis } from '@/components/truth/motion'
 
 const EASE = [0.16, 1, 0.3, 1] as [number, number, number, number]
+
+/** Markets whose research reaches the UI only as static MT5 exports (H1
+ *  engines + M15 scalper clocks) — everything except live-feed XAUUSD.
+ *  Derived from SYMBOL_REGISTRY.dataSource, not hardcoded (Phase 15). */
+const STATIC_RESEARCH_MARKETS = (Object.keys(SYMBOL_REGISTRY) as AppSymbolId[]).filter(
+  (id) => SYMBOL_REGISTRY[id].dataSource === 'MT5',
+)
 
 function Hero() {
   const words = 'An engine you can audit.'.split(' ')
@@ -42,9 +50,12 @@ function Hero() {
         GoldCast&apos;s forecasts are precomputed by a production scikit-learn gradient-boosting engine and exported
         as JSON. No live black box, no hidden overrides. Here&apos;s exactly what&apos;s inside.
       </motion.p>
-      {/* honesty caption: this audit documents the XAUUSD engine (Phase 9 multi-symbol) */}
+      {/* honesty caption: this audit documents the XAUUSD engine; the
+          static-market list is derived from the registry (every MT5-sourced
+          market) so a new market can't leave this caption stale */}
       <p className="micro-mono mt-4">
-        Research shown for XAUUSD — the NAS100 static export covers the dashboard and session radar only.
+        Research shown for XAUUSD (live OANDA feed) — {STATIC_RESEARCH_MARKETS.join(' · ')} ship as static MT5
+        research exports (H1 engines + M15 scalper clocks).
       </p>
     </div>
   )
