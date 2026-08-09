@@ -65,6 +65,15 @@ export interface SymbolRegistryEntry {
   /** Scalper economics family (drives the EconPanel schema + honesty notes). */
   econKind: EconKind
   /**
+   * Currencies whose scheduled news moves this market (Phase 17 Track B —
+   * NewsWarningBar filter). Matched case-insensitively against the
+   * /api/economic-calendar event `currency` codes; the feed covers
+   * USD/EUR/GBP/JPY. Gold and the U.S. indices are USD-priced and USD-driven;
+   * GER40 is EUR-denominated but answers to both EUR and USD releases; FX
+   * pairs answer to both legs (USD first — the dollar leg dominates).
+   */
+  newsCurrencies: string[]
+  /**
    * EconPanel honesty note for commission-modeled markets (spec §7): the FX
    * economics are user-provided account economics, not broker-recorded spreads.
    */
@@ -99,6 +108,7 @@ const ORDERED_GROUPS: SymbolGroup[] = ['Metals', 'Indices', 'Forex']
 export const SYMBOL_REGISTRY: Record<AppSymbolId, SymbolRegistryEntry> = {
   XAUUSD: {
     id: 'XAUUSD',
+    newsCurrencies: ['USD'],
     param: 'xauusd',
     label: 'Gold',
     group: 'Metals',
@@ -122,6 +132,7 @@ export const SYMBOL_REGISTRY: Record<AppSymbolId, SymbolRegistryEntry> = {
   },
   NAS100: {
     id: 'NAS100',
+    newsCurrencies: ['USD'],
     param: 'nas100',
     label: 'US100',
     group: 'Indices',
@@ -144,6 +155,7 @@ export const SYMBOL_REGISTRY: Record<AppSymbolId, SymbolRegistryEntry> = {
   },
   US30: {
     id: 'US30',
+    newsCurrencies: ['USD'],
     param: 'us30',
     label: 'US30',
     group: 'Indices',
@@ -165,6 +177,7 @@ export const SYMBOL_REGISTRY: Record<AppSymbolId, SymbolRegistryEntry> = {
   },
   GER40: {
     id: 'GER40',
+    newsCurrencies: ['EUR', 'USD'],
     param: 'ger40',
     label: 'GER40',
     group: 'Indices',
@@ -186,6 +199,7 @@ export const SYMBOL_REGISTRY: Record<AppSymbolId, SymbolRegistryEntry> = {
   },
   EURUSD: {
     id: 'EURUSD',
+    newsCurrencies: ['EUR', 'USD'],
     param: 'eurusd',
     label: 'EURUSD',
     group: 'Forex',
@@ -207,6 +221,7 @@ export const SYMBOL_REGISTRY: Record<AppSymbolId, SymbolRegistryEntry> = {
   },
   GBPUSD: {
     id: 'GBPUSD',
+    newsCurrencies: ['GBP', 'USD'],
     param: 'gbpusd',
     label: 'GBPUSD',
     group: 'Forex',
@@ -228,6 +243,7 @@ export const SYMBOL_REGISTRY: Record<AppSymbolId, SymbolRegistryEntry> = {
   },
   USDJPY: {
     id: 'USDJPY',
+    newsCurrencies: ['USD', 'JPY'],
     param: 'usdjpy',
     label: 'USDJPY',
     group: 'Forex',
