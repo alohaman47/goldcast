@@ -25,7 +25,7 @@ interface Segment {
 
 const SEGMENTS: Partial<Record<AppSymbolId, Segment[]>> = {
   XAUUSD: [
-    { id: 'H1', label: 'H1', title: 'XAUUSD H1 — live engine (AUC 0.778)', hint: 'LIVE' },
+    { id: 'H1', label: 'H1', title: 'XAUUSD H1 — live engine (AUC 0.777)', hint: 'LIVE' },
     { id: 'H4', label: 'H4', title: 'XAUUSD H4 — static export (AUC 0.735)', hint: 'STATIC' },
   ],
   NAS100: [

@@ -1,16 +1,16 @@
 {
   "dataset": {
     "h1": {
-      "bars": 26836,
-      "start": "2022-01-04",
-      "end": "2026-07-17",
+      "bars": 27136,
+      "start": "2022-01-03",
+      "end": "2026-08-04",
       "instrument": "XAUUSD",
       "timeframe": "H1"
     },
     "d1": {
-      "bars": 1679,
-      "start": "2020-01-02",
-      "end": "2026-07-03",
+      "bars": 1184,
+      "start": "2022-01-03",
+      "end": "2026-08-04",
       "instrument": "XAUUSD",
       "timeframe": "D1"
     }
@@ -29,26 +29,26 @@
     }
   },
   "phase2": {
-    "description": "Volatility is learnable; direction is not; fundamentals add ~nothing on top of price.",
+    "description": "Volatility is learnable; direction is not; fundamentals add ~nothing on top of price. (Revalidated 2026-08 on the refreshed dataset.)",
     "h1_hvol": {
       "model": "gbm_price (HistGradientBoosting)",
-      "accuracy": 0.8008,
-      "auc": 0.778,
-      "baseline_class_prior_auc": 0.7418
+      "accuracy": 0.8003,
+      "auc": 0.777,
+      "baseline_class_prior_auc": 0.7419
     },
     "h1_range": {
       "model": "gbm_price regressor",
-      "mae": 0.346,
-      "r2": 0.286,
-      "baseline_mae": 0.4316
+      "mae": 0.3457,
+      "r2": 0.289,
+      "baseline_mae": 0.431
     },
     "fundamentals_delta": 0.0,
     "top_features": [
-      "hour_cos",
       "hour_sin",
-      "ret1",
-      "rv20",
-      "rsi14"
+      "hour_cos",
+      "ret3",
+      "macd_hist_raw",
+      "rv20"
     ]
   },
   "phase3": {

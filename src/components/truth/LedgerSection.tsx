@@ -9,8 +9,8 @@ import { useReducedMotion } from './motion'
 gsap.registerPlugin(ScrollTrigger, useGSAP)
 
 const WORKS = [
-  { main: 'Next-candle volatility', detail: '80.08% acc, AUC 0.778' },
-  { main: 'Range forecasting', detail: 'R² 0.286, cones T+1..T+3' },
+  { main: 'Next-candle volatility', detail: '80.03% acc, AUC 0.777' },
+  { main: 'Range forecasting', detail: 'R² 0.289, cones T+1..T+3' },
   { main: 'Session seasonality', detail: 'the 24h volatility clock' },
   { main: 'Long-term drift display', detail: '2022–2026 uptrend, labeled as drift' },
 ]

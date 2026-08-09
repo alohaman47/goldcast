@@ -112,10 +112,17 @@ export const GOLD_CONFIG: SymbolConfig = {
   modelModules: { hvol: "./modelHvol.js", range: "./modelRange.js" },
   hasLiveFeed: true,
   validation: {
-    hvolAccuracyPct: 80.08,
-    hvolAuc: 0.778,
+    // Phase 17 Track D3 refresh (data extended to 2026-08-04, 27,136 bars):
+    // classic-GBM pooled OOS (results/phase17_gbm_classic_xauusd_oos.csv,
+    // n_test 16,278): acc 0.7999 / AUC 0.7751 — vs the HGB revalidation on the
+    // same refreshed data 0.8003 / 0.7767 and the pre-refresh verified
+    // 0.8008 / 0.7783 (within the 0.01-AUC no-regression gate).
+    // directionModelPct/directionAlwaysUpPct remain the published Phase-1
+    // direction study numbers (direction NO-SHIP, display-only drift policy).
+    hvolAccuracyPct: 79.99,
+    hvolAuc: 0.775,
     hvolAucDecimals: 3,
-    bars: 26836,
+    bars: 27136,
     directionModelPct: 50.1,
     directionAlwaysUpPct: 52.1,
     driftPeriod: "2022–2026",

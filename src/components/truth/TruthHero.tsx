@@ -35,7 +35,7 @@ export default function TruthHero({ data }: { data: TruthData | null }) {
     { scope: root, dependencies: [reduced] },
   )
 
-  const h1Bars = data ? fmtInt(data.dataset.h1.bars) : '26,836'
+  const h1Bars = data ? fmtInt(data.dataset.h1.bars) : '27,136'
 
   return (
     <section ref={root} className="relative overflow-hidden">
