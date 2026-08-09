@@ -194,9 +194,9 @@ export function usePhase5(): DataState<Phase5Data> {
 /* Phase 9 Stage 2 — multi-symbol (APPENDED; hooks above are unchanged) */
 /* ------------------------------------------------------------------ */
 
-import { useSymbol } from '@/hooks/useSymbol'
+import { useSymbol, SYMBOL_REGISTRY } from '@/hooks/useSymbol'
+import type { AppSymbolId } from '@/hooks/useSymbol'
 import type { DailyBar } from '@/engine/bars'
-import type { SymbolId } from '@/engine/symbols'
 
 export interface SymbolDataState {
   latest: DataState<LatestData>
@@ -269,23 +269,78 @@ export interface ScalperHighlightSlot {
   bar_count: number
 }
 
+/**
+ * Scalper economics block. TWO schema families, both real research exports:
+ *
+ *  SPREAD family (XAUUSD, NAS100, US30, GER40) — broker-recorded spreads:
+ *  median_spread_* / pct_bars_spread_* / gold_reference_win_pct present.
+ *  GER40 additionally carries reference_note (its "reference" is the
+ *  zero-spread 1:2-RR breakeven floor, NOT a verified trading system, and
+ *  its *_usd fields are DAX index-point EUR units kept for schema parity).
+ *
+ *  COMMISSION family (EURUSD, GBPUSD, USDJPY — Phase 15): user-provided
+ *  ECN account economics (commission $7/lot round trip, spread ≈ 0), so the
+ *  block models COST (pips/¥) instead of measuring spread: median_cost_* /
+ *  pct_bars_cost_* / zero-cost breakeven reference present. USDJPY carries
+ *  commission_assumption (applied by analogy, honestly labeled) and
+ *  cost_provenance; EURUSD carries cost_scenarios + p25/p75 breakevens;
+ *  GBPUSD carries the market-open stress scenario.
+ *
+ * All fields except source/trade_model/breakeven_win_pct_median/verdict are
+ * optional per family; the EconPanel branches on field presence (data-driven).
+ */
 export interface ScalperEcon {
   source: string
   trade_model: string
-  median_spread_atr: number
-  median_spread_usd: number
-  median_atr_usd: number
-  pct_bars_spread_gt_25pct_atr: number
+  verdict: string
   breakeven_win_pct_median: number
-  gold_reference_win_pct: number
+  /* ---- SPREAD family ---- */
+  median_spread_atr?: number
+  median_spread_usd?: number
+  median_atr_usd?: number
+  pct_bars_spread_gt_25pct_atr?: number
+  gold_reference_win_pct?: number
   /**
    * Research-cited breakeven-minus-reference gap in pp, rounded half-to-even
    * at 1dp from the UNROUNDED research inputs (the 1dp-rounded fields above
    * reproduce it for NAS100 but not for gold: 34.2 − 33.4 = 0.8 vs the cited
    * +0.7pp). Matches each symbol's findings doc and this block's verdict.
    */
-  breakeven_gap_pp: number
-  verdict: string
+  breakeven_gap_pp?: number
+  /** GER40: zero-spread-floor reference + EUR-units honesty note. */
+  reference_note?: string
+  /* ---- COMMISSION family (FX) ---- */
+  cost_pips_base?: number
+  cost_pips?: number
+  median_cost_atr?: number
+  median_cost_usd?: number
+  median_cost_yen?: number
+  median_atr_pips?: number
+  median_atr_yen?: number
+  pct_bars_cost_gt_25pct_atr?: number
+  breakeven_win_pct_p25?: number
+  breakeven_win_pct_p75?: number
+  zero_cost_breakeven_win_pct?: number
+  breakeven_win_pct_zero_cost?: number
+  edge_over_zero_cost_pp?: number
+  breakeven_gap_over_zero_cost_pp?: number
+  breakeven_win_pct_stress_market_open?: number
+  breakeven_gap_stress_pp?: number
+  market_open_note?: string
+  cost_scenarios?: Record<
+    string,
+    { cost_pips: number; cost_atr_ratio_median: number; breakeven_win_pct_median: number }
+  >
+  cost_provenance?: string
+  commission_assumption?: {
+    structure: string
+    confirmed_for: string[]
+    usdjpy_status: string
+    pip_value_usd_at_mean_price: number
+    mean_price_full_history: number
+    commission_pips_rt: number
+    commission_yen_rt: number
+  }
 }
 
 export interface ScalperClockData {
@@ -345,20 +400,22 @@ export type ScalperTf = 'M15' | 'M5'
  * for NAS100 the param is ignored (resolves M15) and useScalperTf actively
  * removes it from the URL.
  */
-export function parseScalperTf(raw: string | null, symbol: SymbolId): ScalperTf {
+export function parseScalperTf(raw: string | null, symbol: AppSymbolId): ScalperTf {
   return symbol === 'XAUUSD' && raw != null && raw.toLowerCase() === 'm5' ? 'M5' : 'M15'
 }
 
 /**
- * Slot-map export for a symbol + scalper timeframe. All three files share
- * the ScalperClockData schema (meta/slots/hourly/highlights/econ/guidance);
- * values differ per export and everything on the page renders from the
- * fetched JSON. NAS100 resolves to its M15 file regardless of stf (honest:
- * there is no NAS100 M5 map).
+ * Slot-map export for a symbol + scalper timeframe, from the registry. All
+ * files share the ScalperClockData schema (meta/slots/hourly/highlights/
+ * econ/guidance); values differ per export and everything on the page
+ * renders from the fetched JSON. Markets without an M5 map (NAS100 + the
+ * five Phase-15 markets) resolve to their M15 file regardless of stf
+ * (honest: there is no M5 research export for them).
  */
-export function scalperClockFile(symbol: SymbolId, stf: ScalperTf = 'M15'): string {
-  if (symbol === 'XAUUSD') return stf === 'M5' ? '/data/xauusd_m5_slots.json' : '/data/xauusd_m15_slots.json'
-  return '/data/nas100_m15_slots.json'
+export function scalperClockFile(symbol: AppSymbolId, stf: ScalperTf = 'M15'): string {
+  const entry = SYMBOL_REGISTRY[symbol] ?? SYMBOL_REGISTRY.XAUUSD
+  if (stf === 'M5' && entry.scalperM5 != null) return entry.scalperM5
+  return entry.scalperM15
 }
 
 export interface ScalperTfState {

@@ -274,15 +274,27 @@ const main = async () => {
   );
 
   const footer = await readSrc("components/Footer.tsx");
+  const useSymbolSrc = await readSrc("hooks/useSymbol.tsx");
+  /* Phase 15: the provenance matrix moved into the SYMBOL_REGISTRY
+     (entry.footer) — Footer.tsx is data-driven now. The seven LEGACY lines
+     stay byte-pinned against the registry source here; CHECK 10 verifies the
+     resolved registry values (and the ten new Phase-15 lines) against the
+     static JSON exports. */
   check(
-    "Footer: data-source provenance matrix — all seven exact lines (per-symbol scalper M15 + gold scalper M5 + per-symbol H1/H4 engine)",
-    footer.includes("Data: MT5 XAUUSD M15 · 99,599 bars · Static research export · As of 2026-07-03 16:00 UTC") &&
-      footer.includes("Data: MT5 XAUUSD M5 · 325,160 bars · Static research export · As of 2026-08-04 16:00 UTC") &&
-      footer.includes("Data: MT5 NAS100 M15 · 100,317 bars · Static research export · As of 2026-05-21 11:00 UTC") &&
-      footer.includes("Data: OANDA XAUUSD H1/D1 · Precomputed engine export · As of 2026-07-17 15:00 UTC") &&
-      footer.includes("Data: OANDA XAUUSD H4/D1 · Precomputed engine export · As of 2026-07-03 16:00 UTC") &&
-      footer.includes("Data: MT5 NAS100 H1/D1 · Precomputed engine export · As of 2026-07-17 15:00 UTC") &&
-      footer.includes("Data: MT5 NAS100 H4/D1 · Precomputed engine export · As of 2026-07-03 16:00 UTC"),
+    "Footer: data-driven provenance matrix (entry.footer from SYMBOL_REGISTRY) — no hardcoded dataLine strings left",
+    footer.includes("entry.footer") &&
+      footer.includes("isStaticContext") &&
+      !footer.includes("Precomputed engine export · As of"),
+  );
+  check(
+    "Footer registry: all seven legacy exact lines (per-symbol scalper M15 + gold scalper M5 + per-symbol H1/H4 engine) pinned in SYMBOL_REGISTRY",
+    useSymbolSrc.includes("Data: MT5 XAUUSD M15 · 99,599 bars · Static research export · As of 2026-07-03 16:00 UTC") &&
+      useSymbolSrc.includes("Data: MT5 XAUUSD M5 · 325,160 bars · Static research export · As of 2026-08-04 16:00 UTC") &&
+      useSymbolSrc.includes("Data: MT5 NAS100 M15 · 100,317 bars · Static research export · As of 2026-05-21 11:00 UTC") &&
+      useSymbolSrc.includes("Data: OANDA XAUUSD H1/D1 · Precomputed engine export · As of 2026-07-17 15:00 UTC") &&
+      useSymbolSrc.includes("Data: OANDA XAUUSD H4/D1 · Precomputed engine export · As of 2026-07-03 16:00 UTC") &&
+      useSymbolSrc.includes("Data: MT5 NAS100 H1/D1 · Precomputed engine export · As of 2026-07-17 15:00 UTC") &&
+      useSymbolSrc.includes("Data: MT5 NAS100 H4/D1 · Precomputed engine export · As of 2026-07-03 16:00 UTC"),
   );
 
   // v7-fix: per-symbol data-source label (OANDA gold / MT5 NAS100, matching
@@ -524,6 +536,329 @@ const main = async () => {
     }
   }
 
+  // ---- CHECK 10 — Phase 15 Track C: multi-market registry + 5 new markets --
+  // (appended only — nothing above is re-asserted or weakened)
+  console.log(`\n[Phase-15 UI registry + 5 new SHIP'ed markets]`);
+  const uiOutfile = path.join(os.tmpdir(), `goldcast_symbol_check_ui_${process.pid}.mjs`);
+  const dataOutfile = path.join(os.tmpdir(), `goldcast_symbol_check_data_${process.pid}.mjs`);
+  await esbuild.build({
+    entryPoints: [path.join(ROOT, "src", "hooks", "useSymbol.tsx")],
+    bundle: true,
+    format: "esm",
+    platform: "node",
+    alias: { "@": path.join(ROOT, "src") },
+    outfile: uiOutfile,
+    logLevel: "silent",
+  });
+  await esbuild.build({
+    entryPoints: [path.join(ROOT, "src", "hooks", "useData.ts")],
+    bundle: true,
+    format: "esm",
+    platform: "node",
+    alias: { "@": path.join(ROOT, "src") },
+    outfile: dataOutfile,
+    logLevel: "silent",
+  });
+  const ui = await import(url.pathToFileURL(uiOutfile).href);
+  const dataHooks = await import(url.pathToFileURL(dataOutfile).href);
+  const { SYMBOL_REGISTRY, SYMBOL_GROUPS, parseAppSymbolParam, fmtSymPrice, priceUnit, dataSourceLabel, symbolDisplayName } = ui;
+  const { scalperClockFile, parseScalperTf } = dataHooks;
+
+  // 10a — registry integrity -------------------------------------------------
+  const REG_IDS = ["XAUUSD", "NAS100", "US30", "GER40", "EURUSD", "GBPUSD", "USDJPY"];
+  check(
+    "registry: exactly the 7 SHIP'ed markets, in order",
+    !!SYMBOL_REGISTRY && JSON.stringify(Object.keys(SYMBOL_REGISTRY)) === JSON.stringify(REG_IDS),
+    SYMBOL_REGISTRY ? JSON.stringify(Object.keys(SYMBOL_REGISTRY)) : "missing",
+  );
+  check(
+    "registry: groups Metals/Indices/Forex in order, covering all 7 markets",
+    Array.isArray(SYMBOL_GROUPS) &&
+      SYMBOL_GROUPS.length === 3 &&
+      SYMBOL_GROUPS[0].group === "Metals" &&
+      SYMBOL_GROUPS[1].group === "Indices" &&
+      SYMBOL_GROUPS[2].group === "Forex" &&
+      JSON.stringify(SYMBOL_GROUPS[0].symbols) === JSON.stringify(["XAUUSD"]) &&
+      JSON.stringify(SYMBOL_GROUPS[1].symbols) === JSON.stringify(["NAS100", "US30", "GER40"]) &&
+      JSON.stringify(SYMBOL_GROUPS[2].symbols) === JSON.stringify(["EURUSD", "GBPUSD", "USDJPY"]),
+    JSON.stringify(SYMBOL_GROUPS),
+  );
+  check(
+    "registry: every entry's param is unique and lowercase",
+    new Set(REG_IDS.map((id) => SYMBOL_REGISTRY[id].param)).size === 7 &&
+      REG_IDS.every((id) => SYMBOL_REGISTRY[id].param === id.toLowerCase()),
+  );
+
+  // 10b — backward compatibility of ?symbol= ---------------------------------
+  check(
+    "?symbol= backward compatible: xauusd/nas100 resolve exactly as before; unknown/missing → XAUUSD",
+    parseAppSymbolParam("xauusd") === "XAUUSD" &&
+      parseAppSymbolParam("nas100") === "NAS100" &&
+      parseAppSymbolParam("NAS100") === "NAS100" &&
+      parseAppSymbolParam(null) === "XAUUSD" &&
+      parseAppSymbolParam("bogus") === "XAUUSD",
+  );
+  check(
+    "?symbol= accepts all five new markets (case-insensitive)",
+    ["us30", "ger40", "eurusd", "gbpusd", "usdjpy"].every(
+      (p) => parseAppSymbolParam(p) === p.toUpperCase() && parseAppSymbolParam(p.toUpperCase()) === p.toUpperCase(),
+    ),
+  );
+
+  // 10c — legacy entries unchanged -------------------------------------------
+  check(
+    "legacy entries unchanged: XAUUSD OANDA/live/H4+M5, NAS100 MT5/static/H4, range units USD/pts",
+    SYMBOL_REGISTRY.XAUUSD.dataSource === "OANDA" &&
+      SYMBOL_REGISTRY.XAUUSD.h1.hasLiveFeed === true &&
+      SYMBOL_REGISTRY.XAUUSD.h4 === "xauusd-h4" &&
+      SYMBOL_REGISTRY.XAUUSD.scalperM5 === "/data/xauusd_m5_slots.json" &&
+      SYMBOL_REGISTRY.XAUUSD.rangeUnit === "USD" &&
+      SYMBOL_REGISTRY.NAS100.dataSource === "MT5" &&
+      SYMBOL_REGISTRY.NAS100.h1.hasLiveFeed === false &&
+      SYMBOL_REGISTRY.NAS100.h4 === "nas100-h4" &&
+      SYMBOL_REGISTRY.NAS100.scalperM5 === null &&
+      SYMBOL_REGISTRY.NAS100.rangeUnit === "pts",
+  );
+  check(
+    "legacy display helpers byte-identical: displayName + headline",
+    symbolDisplayName(SYMBOL_REGISTRY.XAUUSD.h1) === "Gold / U.S. Dollar" &&
+      symbolDisplayName(SYMBOL_REGISTRY.NAS100.h1) === "Nasdaq 100 Index" &&
+      SYMBOL_REGISTRY.XAUUSD.headline === "Gold has a schedule. Volatility keeps it." &&
+      SYMBOL_REGISTRY.NAS100.headline === "Nasdaq has a schedule. Volatility keeps it.",
+  );
+  check(
+    "legacy units/dataSource via helpers: priceUnit USD/pts · dataSourceLabel OANDA/MT5",
+    priceUnit(SYMBOL_REGISTRY.XAUUSD.h1) === "USD" &&
+      priceUnit(SYMBOL_REGISTRY.NAS100.h1) === "pts" &&
+      dataSourceLabel(SYMBOL_REGISTRY.XAUUSD.h1) === "OANDA" &&
+      dataSourceLabel(SYMBOL_REGISTRY.NAS100.h1) === "MT5",
+  );
+
+  // 10d — per-market checks for the five Phase-15 markets ---------------------
+  const P15 = {
+    US30: { group: "Indices", variant: "us30-h1", decimals: 1, rangeUnit: "pts", econ: "spread" },
+    GER40: { group: "Indices", variant: "ger40-h1", decimals: 1, rangeUnit: "pts", econ: "spread" },
+    EURUSD: { group: "Forex", variant: "eurusd-h1", decimals: 5, rangeUnit: "USD", econ: "commission" },
+    GBPUSD: { group: "Forex", variant: "gbpusd-h1", decimals: 5, rangeUnit: "USD", econ: "commission" },
+    USDJPY: { group: "Forex", variant: "usdjpy-h1", decimals: 3, rangeUnit: "JPY", econ: "commission-analogy" },
+  };
+  const { VARIANT_CONFIGS: VC } = eng;
+  const grouped = (n) => n.toLocaleString("en-US");
+  for (const [id, exp] of Object.entries(P15)) {
+    console.log(`\n[${id}]`);
+    const e = SYMBOL_REGISTRY[id];
+    const vc = VC?.[exp.variant];
+    check(
+      `registry entry: group=${exp.group} · h1=${exp.variant} · H1-only · M15-only clock · MT5 static`,
+      !!e &&
+        e.group === exp.group &&
+        /* structural equality with the engine variant config (the UI and
+           engine bundles are separate esbuild products — no shared identity) */
+        !!vc &&
+        e.h1.symbol === vc.symbol &&
+        e.h1.pointSize === vc.pointSize &&
+        e.h1.pipSize === vc.pipSize &&
+        JSON.stringify(e.h1.dataFiles) === JSON.stringify(vc.dataFiles) &&
+        JSON.stringify(e.h1.validation) === JSON.stringify(vc.validation) &&
+        e.h4 === null &&
+        e.scalperM5 === null &&
+        e.scalperM15 === `/data/${exp.variant.replace("-h1", "")}_m15_slots.json` &&
+        e.dataSource === "MT5" &&
+        e.h1.hasLiveFeed === false,
+    );
+    check(
+      `decimals=${exp.decimals} (registry reads engine config, not a UI copy)`,
+      e.h1.priceDecimals === exp.decimals && vc.priceDecimals === exp.decimals,
+      `got ${e.h1.priceDecimals}`,
+    );
+    check(
+      `rangeUnit=${exp.rangeUnit} via priceUnit(config)`,
+      e.rangeUnit === exp.rangeUnit && priceUnit(e.h1) === exp.rangeUnit,
+    );
+    check(`econKind=${exp.econ}`, e.econKind === exp.econ);
+
+    // footer strings derived from the static JSONs (no invented numbers)
+    const slot = await loadJson(`data/${id.toLowerCase()}_m15_slots.json`);
+    check(`public/data/${id.toLowerCase()}_m15_slots.json exists and parses`, slot.exists && slot.json != null);
+    if (slot.json != null) {
+      const m = slot.json.meta;
+      const asOf = String(m.last_bar).slice(0, 16);
+      const expectedScalperLine = `Data: MT5 ${id} M15 · ${grouped(m.bar_count)} bars · Static research export · As of ${asOf} UTC`;
+      check(
+        "slot map: meta.symbol/timeframe match, 96 M15 slots, 24 hourly rows + 4 bands",
+        m.symbol === id &&
+          m.timeframe === "M15" &&
+          Array.isArray(slot.json.slots) &&
+          slot.json.slots.length === 96 &&
+          Array.isArray(slot.json.hourly?.hours) &&
+          slot.json.hourly.hours.length === 24 &&
+          ["asia", "london", "ny", "off"].every((k) => slot.json.hourly.bands?.[k]),
+      );
+      check(
+        "slot map: econ/guidance/highlights blocks present with verdict text",
+        typeof slot.json.econ?.verdict === "string" &&
+          slot.json.econ.verdict.length > 0 &&
+          typeof slot.json.econ?.breakeven_win_pct_median === "number" &&
+          ["hot_slots", "quiet_slots", "economics", "general"].every((k) => typeof slot.json.guidance?.[k] === "string") &&
+          typeof slot.json.highlights?.hottest_slot?.label === "string",
+      );
+      check(
+        `footer scalper M15 line derived from JSON meta exactly ("${expectedScalperLine}")`,
+        e.footer.scalperM15 === expectedScalperLine,
+        `got "${e.footer.scalperM15}"`,
+      );
+    }
+    const latest = await loadJson(vc.dataFiles.latest);
+    check(`public/${vc.dataFiles.latest} exists and parses`, latest.exists && latest.json != null);
+    if (latest.json != null) {
+      const asOf = String(latest.json.asof).slice(0, 16);
+      const expectedEngineLine = `Data: MT5 ${id} H1/D1 · Precomputed engine export · As of ${asOf} UTC`;
+      check(
+        `footer engine H1 line derived from latest JSON asof exactly ("${expectedEngineLine}")`,
+        e.footer.engineH1 === expectedEngineLine,
+        `got "${e.footer.engineH1}"`,
+      );
+      check(
+        "latest: positive price + cone T1..T3",
+        latest.json.price > 0 && latest.json.cone?.T1?.half_width > 0 && latest.json.cone?.T3?.half_width > 0,
+      );
+    }
+    for (const kind of ["bars", "daily"]) {
+      const rel = vc.dataFiles[kind];
+      const { exists, json } = await loadJson(rel);
+      check(
+        `public/${rel} exists, parses, non-empty OHLC`,
+        exists && Array.isArray(json) && json.length > 0 && typeof json[json.length - 1].c === "number",
+      );
+    }
+
+    // scalperClockFile + stf guard from the bundled data hooks
+    check(
+      `scalperClockFile(${id}) → M15 export; stf=m5 ignored (M15 only)`,
+      scalperClockFile(id, "M15") === e.scalperM15 &&
+        scalperClockFile(id, "M5") === e.scalperM15 &&
+        parseScalperTf("m5", id) === "M15",
+      `${scalperClockFile(id, "M15")} / ${scalperClockFile(id, "M5")}`,
+    );
+
+    // price formatting at market decimals (from the bundled registry helpers)
+    const probe = exp.decimals === 1 ? 53764.04 : exp.decimals === 5 ? 1.14404 : 157.4316;
+    const expectedPrice = probe.toLocaleString("en-US", {
+      minimumFractionDigits: exp.decimals,
+      maximumFractionDigits: exp.decimals,
+    });
+    check(
+      `fmtSymPrice honors ${exp.decimals}dp ("${expectedPrice}")`,
+      fmtSymPrice(probe, e.h1) === expectedPrice,
+      `got "${fmtSymPrice(probe, e.h1)}"`,
+    );
+  }
+
+  // 10e — honesty notes --------------------------------------------------------
+  console.log(`\n[Phase-15 honesty notes]`);
+  check(
+    "FX commission honesty: EURUSD/GBPUSD econNote is exactly 'commission $7/lot (user account)'",
+    SYMBOL_REGISTRY.EURUSD.econNote === "commission $7/lot (user account)" &&
+      SYMBOL_REGISTRY.GBPUSD.econNote === "commission $7/lot (user account)",
+  );
+  check(
+    "USDJPY econNote: commission $7/lot (user account) — applied by analogy",
+    typeof SYMBOL_REGISTRY.USDJPY.econNote === "string" &&
+      SYMBOL_REGISTRY.USDJPY.econNote.includes("commission $7/lot (user account)") &&
+      SYMBOL_REGISTRY.USDJPY.econNote.includes("analogy"),
+  );
+  check(
+    "non-FX markets carry no commission note",
+    ["XAUUSD", "NAS100", "US30", "GER40"].every((id) => SYMBOL_REGISTRY[id].econNote === null),
+  );
+  check(
+    "USDJPY range-model honesty: negative classic R² disclosed (engineRangeNote), other markets null",
+    typeof SYMBOL_REGISTRY.USDJPY.engineRangeNote === "string" &&
+      SYMBOL_REGISTRY.USDJPY.engineRangeNote.includes("−0.185") &&
+      REG_IDS.filter((id) => id !== "USDJPY").every((id) => SYMBOL_REGISTRY[id].engineRangeNote === null),
+  );
+
+  // 10f — component sources ----------------------------------------------------
+  console.log(`\n[Phase-15 component sources]`);
+  const picker = await readSrc("components/symbol/SymbolPicker.tsx");
+  check(
+    "SymbolPicker: grouped dropdown from SYMBOL_GROUPS (shadcn DropdownMenu), registry-driven",
+    picker.includes("SYMBOL_GROUPS") &&
+      picker.includes("DropdownMenu") &&
+      picker.includes("setSymbol") &&
+      !picker.includes("xauusd_m15_slots"),
+  );
+  const navbarSrc = await readSrc("components/Navbar.tsx");
+  check(
+    "Navbar: uses SymbolPicker (old 2-button SymbolToggle gone)",
+    navbarSrc.includes("SymbolPicker") && !navbarSrc.includes("SymbolToggle"),
+  );
+  const toggleGone = await fs
+    .readFile(path.join(ROOT, "src", "components", "symbol", "SymbolToggle.tsx"), "utf8")
+    .then(() => false)
+    .catch(() => true);
+  check("SymbolToggle.tsx removed (replaced by SymbolPicker)", toggleGone);
+  const tfToggle = await readSrc("components/symbol/TfToggle.tsx");
+  check(
+    "TfToggle: H1-only markets get an honest note instead of a fake control",
+    tfToggle.includes("H1 only") && tfToggle.includes("SEGMENTS[symbol]"),
+  );
+  const econPanel = await readSrc("components/scalper/EconPanel.tsx");
+  check(
+    "EconPanel: commission family (FX) schema + econNote + zero-cost reference, spread family kept",
+    econPanel.includes("median_cost_atr") &&
+      econPanel.includes("entry.econNote") &&
+      econPanel.includes("zero-cost") &&
+      econPanel.includes("commission $7/lot (user account)") &&
+      econPanel.includes("median_spread_atr"),
+  );
+  const scalperUtils = await readSrc("components/scalper/utils.ts");
+  check(
+    "scalper utils: verdict chips for all 5 new markets + fmtSlotRange (per-market units)",
+    ["US30", "GER40", "EURUSD", "GBPUSD", "USDJPY"].every((s) => scalperUtils.includes(`${s}:`)) &&
+      scalperUtils.includes("fmtSlotRange"),
+  );
+  const slotGrid = await readSrc("components/scalper/SlotGrid.tsx");
+  const hotCards = await readSrc("components/scalper/HotCards.tsx");
+  const hourlyStrip = await readSrc("components/scalper/HourlyStrip.tsx");
+  const scalperPage = await readSrc("pages/ScalperClock.tsx");
+  check(
+    "scalper page: per-market range formatting (fmtSlotRange) in SlotGrid/HotCards/HourlyStrip/hero",
+    slotGrid.includes("fmtSlotRange") &&
+      hotCards.includes("fmtSlotRange") &&
+      hourlyStrip.includes("fmtSlotRange") &&
+      scalperPage.includes("fmtSlotRange"),
+  );
+  check(
+    "24h markets honest: HourlyStrip trading-hours count + SlotGrid break legend are data-driven",
+    hourlyStrip.includes("tradingHours") && slotGrid.includes("hasBreak"),
+  );
+  const forecastStrip = await readSrc("components/dashboard/ForecastStrip.tsx");
+  check(
+    "ForecastStrip: per-market range decimals + engineRangeNote disclosure (USDJPY negative R²)",
+    forecastStrip.includes("rangeDigits(config, 1)") && forecastStrip.includes("engineRangeNote"),
+  );
+  const sessionsPage = await readSrc("pages/Sessions.tsx");
+  check(
+    "Sessions: headline + verified bar count from registry/config (no per-symbol hardcode map)",
+    sessionsPage.includes("entryForSymbol(config.symbol).headline") &&
+      sessionsPage.includes("config.validation.bars") &&
+      !sessionsPage.includes("TOTAL_BARS"),
+  );
+  const sessionsUtils = await readSrc("components/sessions/utils.ts");
+  const symbolStrip = await readSrc("components/symbol/SymbolSessionStrip.tsx");
+  const homePage = await readSrc("pages/Home.tsx");
+  check(
+    "shared gold session profile honesty: reuse-aware formatting + visible notes (Sessions utils/hero, SymbolSessionStrip, Home context)",
+    sessionsUtils.includes("sessionsReusedFromGold") &&
+      sessionsPage.includes("sessionsReusedFromGold") &&
+      symbolStrip.includes("sessionsReusedFromGold") &&
+      symbolStrip.includes("shared XAUUSD H1 session profile") &&
+      homePage.includes("sessionsReusedFromGold"),
+  );
+
+  await fs.unlink(uiOutfile).catch(() => {});
+  await fs.unlink(dataOutfile).catch(() => {});
   await fs.unlink(outfile).catch(() => {});
   console.log(failures === 0 ? "\nSYMBOL CHECK: PASS" : `\nSYMBOL CHECK: FAIL (${failures} failing checks)`);
   process.exit(failures === 0 ? 0 : 1);

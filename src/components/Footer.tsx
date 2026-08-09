@@ -3,14 +3,17 @@ import { useSymbol } from '@/hooks/useSymbol'
 import { parseScalperTf } from '@/hooks/useData'
 
 export default function Footer() {
-  const { symbol, config } = useSymbol()
+  const { symbol, entry, config } = useSymbol()
   const { pathname } = useLocation()
   const [searchParams] = useSearchParams()
-  /* data-source provenance matrix (Phase 12; Phase 13 stf-aware): /scalper-clock
-     names the static per-symbol slot-map research export first (route
-     precedence) — gold follows the page-local ?stf toggle (M15 default, M5),
-     NAS100 is M15-only regardless of stf — then the active symbol/timeframe
-     engine export. Gold H1 + NAS100 H1/H4 lines byte-identical. */
+  /* data-source provenance matrix (Phase 12; Phase 13 stf-aware; Phase 15
+     registry-driven): /scalper-clock names the static per-symbol slot-map
+     research export first (route precedence) — gold follows the page-local
+     ?stf toggle (M15 default, M5), every other market is M15-only regardless
+     of stf — then the active symbol/timeframe engine export. All strings
+     come from the SYMBOL_REGISTRY (entry.footer) and are pinned against the
+     static JSON exports by symbol_check.mjs; the seven legacy XAUUSD/NAS100
+     lines stay byte-identical. */
   const tf = config.timeframe ?? 'H1'
   const stf = parseScalperTf(searchParams.get('stf'), symbol)
   /* Honest update indicator: the pulsing "Auto-updated" claim is only true
@@ -20,18 +23,12 @@ export default function Footer() {
   const isStaticContext = pathname === '/scalper-clock' || !config.hasLiveFeed
   const dataLine =
     pathname === '/scalper-clock'
-      ? symbol === 'XAUUSD'
-        ? stf === 'M5'
-          ? 'Data: MT5 XAUUSD M5 · 325,160 bars · Static research export · As of 2026-08-04 16:00 UTC'
-          : 'Data: MT5 XAUUSD M15 · 99,599 bars · Static research export · As of 2026-07-03 16:00 UTC'
-        : 'Data: MT5 NAS100 M15 · 100,317 bars · Static research export · As of 2026-05-21 11:00 UTC'
-      : symbol === 'XAUUSD'
-        ? tf === 'H4'
-          ? 'Data: OANDA XAUUSD H4/D1 · Precomputed engine export · As of 2026-07-03 16:00 UTC'
-          : 'Data: OANDA XAUUSD H1/D1 · Precomputed engine export · As of 2026-07-17 15:00 UTC'
-        : tf === 'H4'
-          ? 'Data: MT5 NAS100 H4/D1 · Precomputed engine export · As of 2026-07-03 16:00 UTC'
-          : 'Data: MT5 NAS100 H1/D1 · Precomputed engine export · As of 2026-07-17 15:00 UTC'
+      ? stf === 'M5' && entry.footer.scalperM5 != null
+        ? entry.footer.scalperM5
+        : entry.footer.scalperM15
+      : tf === 'H4' && entry.footer.engineH4 != null
+        ? entry.footer.engineH4
+        : entry.footer.engineH1
   return (
     <footer className="border-t border-line bg-bg0">
       <div className="mx-auto grid max-w-[1180px] gap-10 px-6 py-12 md:grid-cols-3">

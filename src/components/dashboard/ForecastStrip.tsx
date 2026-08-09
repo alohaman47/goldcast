@@ -3,7 +3,7 @@ import { motion, useMotionValue, useTransform, animate } from 'framer-motion'
 import { Crosshair } from 'lucide-react'
 import type { LatestData } from '@/hooks/useData'
 import type { SymbolConfig } from '@/engine/symbols'
-import { priceUnit } from '@/hooks/useSymbol'
+import { priceUnit, rangeDigits, entryForSymbol } from '@/hooks/useSymbol'
 import HonestyBadge from '@/components/HonestyBadge'
 import ConfidencePips from '@/components/ConfidencePips'
 import LiveBadge, { type LiveBadgeProps } from '@/components/live/LiveBadge'
@@ -54,6 +54,14 @@ export default function ForecastStrip({
   const accText = v.hvolAccuracyPct.toFixed(2)
   const aucText = v.hvolAuc.toFixed(v.hvolAucDecimals)
   const unit = priceUnit(config)
+  /* Range readouts honor per-market decimals: gold keeps the legacy 1dp
+     (byte-identical), NAS100 1dp, indices 1dp, FX 5/3dp — a 0.0005 EURUSD
+     cone must never collapse to "± 0.0". */
+  const rd = rangeDigits(config, 1)
+  /* Engine range-model honesty note (spec §6): USDJPY's classic-GBM range
+     R² is NEGATIVE — SHIP'ed per the research verdict, disclosed wherever
+     range metrics are shown. Null for every other market (no UI change). */
+  const rangeNote = entryForSymbol(config.symbol).engineRangeNote
 
   return (
     <section className="panel" aria-label="Forecast summary">
@@ -98,12 +106,13 @@ export default function ForecastStrip({
           <Crosshair size={14} className="text-gold" />
         </div>
         <div className="mt-2 font-mono text-[32px] font-bold leading-9 tnum text-gold stat-glow md:text-[38px]">
-          <CountUp to={latest.expected_range_price} format={(v) => `± ${v.toFixed(1)}`} delay={0.5} />{' '}
+          <CountUp to={latest.expected_range_price} format={(v) => `± ${v.toFixed(rd)}`} delay={0.5} />{' '}
           <span className="text-[16px] font-semibold text-golddim">{unit}</span>
         </div>
         <p className="micro-mono mt-1">
-          {latest.expected_range_atr.toFixed(2)} × ATR14 · cone T+3 ±{latest.cone.T3.half_width.toFixed(1)}
+          {latest.expected_range_atr.toFixed(2)} × ATR14 · cone T+3 ±{latest.cone.T3.half_width.toFixed(rd)}
         </p>
+        {rangeNote != null && <p className="micro-mono mt-1 text-honest">{rangeNote}</p>}
       </motion.div>
 
       {/* Confidence */}
