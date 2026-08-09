@@ -1,0 +1,25 @@
+{
+  "asof": "2026-08-04 16:00:00",
+  "session": "ny",
+  "regime": "neutral",
+  "p_high_vol": 0.6111,
+  "expected_range_atr": 1.511,
+  "expected_range_price": 0.4824,
+  "cone": {
+    "T1": {
+      "half_width": 0.4824
+    },
+    "T2": {
+      "half_width": 0.6822
+    },
+    "T3": {
+      "half_width": 0.8355
+    }
+  },
+  "direction_policy": "drift",
+  "drift_sign": -1,
+  "confidence": 2,
+  "engine_version": "goldcast-gbm-classic-usdjpy-h1/15.0",
+  "price": 157.431,
+  "atr14": 0.3193
+}

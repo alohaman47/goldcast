@@ -1,7 +1,8 @@
 /**
- * GoldCast Phase 6 Stage 1 / Phase 9 Stage 1 / Phase 11 / Phase 12 — PARITY
- * GATE for gold, nas100, nas100-h4 AND xauusd-h4 (must print PASS for all
- * four before merge).
+ * GoldCast Phase 6 Stage 1 / Phase 9 Stage 1 / Phase 11 / Phase 12 /
+ * Phase 15 Track B — PARITY GATE for gold, nas100, nas100-h4, xauusd-h4
+ * AND the five Phase-15 H1 markets us30/ger40/eurusd/gbpusd/usdjpy
+ * (must print PASS for all nine before merge).
  *
  * Recomputes, in TS/JS, everything the Python side exported
  * (goldcast_phase1/src/export_parity.py --symbol gold|nas100) and compares,
@@ -66,6 +67,52 @@ const SYMBOLS = [
     scoreCsv: "scripts/parity/parity_xauusd_h4_scores.csv",
     predJson: "scripts/parity/parity_xauusd_h4_predict.json",
     configExport: "XAUUSD_H4_CONFIG",
+  },
+  // ---- Phase 15 Track B: five SHIP'ed H1 markets ----
+  {
+    id: "US30-H1",
+    barsJson: "public/data/bars_us30_h1.json",
+    dailyJson: "public/data/daily_us30.json",
+    featCsv: "scripts/parity/parity_us30_h1_features.csv",
+    scoreCsv: "scripts/parity/parity_us30_h1_scores.csv",
+    predJson: "scripts/parity/parity_us30_h1_predict.json",
+    configExport: "US30_H1_CONFIG",
+  },
+  {
+    id: "GER40-H1",
+    barsJson: "public/data/bars_ger40_h1.json",
+    dailyJson: "public/data/daily_ger40.json",
+    featCsv: "scripts/parity/parity_ger40_h1_features.csv",
+    scoreCsv: "scripts/parity/parity_ger40_h1_scores.csv",
+    predJson: "scripts/parity/parity_ger40_h1_predict.json",
+    configExport: "GER40_H1_CONFIG",
+  },
+  {
+    id: "EURUSD-H1",
+    barsJson: "public/data/bars_eurusd_h1.json",
+    dailyJson: "public/data/daily_eurusd.json",
+    featCsv: "scripts/parity/parity_eurusd_h1_features.csv",
+    scoreCsv: "scripts/parity/parity_eurusd_h1_scores.csv",
+    predJson: "scripts/parity/parity_eurusd_h1_predict.json",
+    configExport: "EURUSD_H1_CONFIG",
+  },
+  {
+    id: "GBPUSD-H1",
+    barsJson: "public/data/bars_gbpusd_h1.json",
+    dailyJson: "public/data/daily_gbpusd.json",
+    featCsv: "scripts/parity/parity_gbpusd_h1_features.csv",
+    scoreCsv: "scripts/parity/parity_gbpusd_h1_scores.csv",
+    predJson: "scripts/parity/parity_gbpusd_h1_predict.json",
+    configExport: "GBPUSD_H1_CONFIG",
+  },
+  {
+    id: "USDJPY-H1",
+    barsJson: "public/data/bars_usdjpy_h1.json",
+    dailyJson: "public/data/daily_usdjpy.json",
+    featCsv: "scripts/parity/parity_usdjpy_h1_features.csv",
+    scoreCsv: "scripts/parity/parity_usdjpy_h1_scores.csv",
+    predJson: "scripts/parity/parity_usdjpy_h1_predict.json",
+    configExport: "USDJPY_H1_CONFIG",
   },
 ];
 
