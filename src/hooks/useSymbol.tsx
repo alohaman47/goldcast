@@ -147,7 +147,7 @@ export const SYMBOL_REGISTRY: Record<AppSymbolId, SymbolRegistryEntry> = {
     econNote: null,
     engineRangeNote: null,
     footer: {
-      scalperM15: 'Data: MT5 NAS100 M15 · 100,317 bars · Static research export · As of 2026-05-21 11:00 UTC',
+      scalperM15: 'Data: MT5 NAS100 M15 · 108,290 bars · Static research export · As of 2026-08-04 16:00 UTC',
       engineH1: 'Data: MT5 NAS100 H1/D1 · Precomputed engine export · As of 2026-08-04 16:00 UTC',
       engineH4: 'Data: MT5 NAS100 H4/D1 · Precomputed engine export · As of 2026-07-03 16:00 UTC',
     },
@@ -170,7 +170,7 @@ export const SYMBOL_REGISTRY: Record<AppSymbolId, SymbolRegistryEntry> = {
     econNote: null,
     engineRangeNote: null,
     footer: {
-      scalperM15: 'Data: MT5 US30 M15 · 99,812 bars · Static research export · As of 2026-03-09 18:30 UTC',
+      scalperM15: 'Data: MT5 US30 M15 · 109,477 bars · Static research export · As of 2026-08-04 16:00 UTC',
       engineH1: 'Data: MT5 US30 H1/D1 · Precomputed engine export · As of 2026-08-04 16:00 UTC',
     },
     headline: 'US30 has a schedule. Volatility keeps it.',
@@ -192,7 +192,7 @@ export const SYMBOL_REGISTRY: Record<AppSymbolId, SymbolRegistryEntry> = {
     econNote: null,
     engineRangeNote: null,
     footer: {
-      scalperM15: 'Data: MT5 GER40 M15 · 100,356 bars · Static research export · As of 2026-07-03 16:00 UTC',
+      scalperM15: 'Data: MT5 GER40 M15 · 100,191 bars · Static research export · As of 2026-08-04 16:00 UTC',
       engineH1: 'Data: MT5 GER40 H1/D1 · Precomputed engine export · As of 2026-08-04 16:00 UTC',
     },
     headline: 'GER40 has a schedule. Volatility keeps it.',
@@ -214,7 +214,7 @@ export const SYMBOL_REGISTRY: Record<AppSymbolId, SymbolRegistryEntry> = {
     econNote: 'commission $7/lot (user account)',
     engineRangeNote: null,
     footer: {
-      scalperM15: 'Data: MT5 EURUSD M15 · 99,972 bars · Static research export · As of 2026-05-22 08:00 UTC',
+      scalperM15: 'Data: MT5 EURUSD M15 · 114,140 bars · Static research export · As of 2026-08-04 16:00 UTC',
       engineH1: 'Data: MT5 EURUSD H1/D1 · Precomputed engine export · As of 2026-08-04 16:00 UTC',
     },
     headline: 'EURUSD has a schedule. Volatility keeps it.',
@@ -236,7 +236,7 @@ export const SYMBOL_REGISTRY: Record<AppSymbolId, SymbolRegistryEntry> = {
     econNote: 'commission $7/lot (user account)',
     engineRangeNote: null,
     footer: {
-      scalperM15: 'Data: MT5 GBPUSD M15 · 100,338 bars · Static research export · As of 2026-05-28 22:00 UTC',
+      scalperM15: 'Data: MT5 GBPUSD M15 · 114,134 bars · Static research export · As of 2026-08-04 16:00 UTC',
       engineH1: 'Data: MT5 GBPUSD H1/D1 · Precomputed engine export · As of 2026-08-04 16:00 UTC',
     },
     headline: 'GBPUSD has a schedule. Volatility keeps it.',
