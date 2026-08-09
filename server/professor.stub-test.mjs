@@ -26,6 +26,7 @@ import * as esbuild from "esbuild";
 
 const ROOT = path.dirname(path.dirname(url.fileURLToPath(import.meta.url)));
 const KIMI_HOST = "api.moonshot.ai";
+const FF_HOST = "nfs.faireconomy.media";
 const PORT = 3199;
 const BASE = `http://127.0.0.1:${PORT}`;
 
@@ -38,10 +39,59 @@ function check(name, cond, extra = "") {
 /* ── 1. Stub the Kimi upstream via fetch interception ────────────────────── */
 const realFetch = globalThis.fetch;
 let scenario = "normal";
+let ffScenario = "down"; // ForexFactory stub: "down" (throws) | "up" (news XML)
 const capturedRequests = [];
+
+/* ── ForexFactory stub: dynamic weekly XML around Date.now() ─────────────── */
+// The server's news window is now−30m … now+48h, so fixture times must be
+// generated relative to NOW (the calendar feed itself is weekly-relative).
+const pad2 = (n) => String(n).padStart(2, "0");
+function ffStamp(msFromNow) {
+  const d = new Date(Date.now() + msFromNow);
+  const date = `${pad2(d.getUTCMonth() + 1)}-${pad2(d.getUTCDate())}-${d.getUTCFullYear()}`;
+  let h = d.getUTCHours();
+  const ampm = h < 12 ? "am" : "pm";
+  h = h % 12 || 12;
+  return { date, time: `${h}:${pad2(d.getUTCMinutes())}${ampm}` };
+}
+const H = 3_600_000;
+function ffEvent(title, currency, impact, msFromNow) {
+  const { date, time } = ffStamp(msFromNow);
+  return (
+    `<event><title>${title}</title><country>${currency}</country>` +
+    `<date>${date}</date><time>${time}</time><impact>${impact}</impact>` +
+    `<forecast>0.2%</forecast><previous>0.1%</previous></event>`
+  );
+}
+function buildNewsXml() {
+  const fillers = Array.from({ length: 10 }, (_, i) =>
+    ffEvent(`Filler Event ${i}`, "USD", "High", (5 + i * 0.5) * H)
+  );
+  return (
+    `<?xml version="1.0" encoding="windows-1252"?>\n<weeklyevents>\n` +
+    [
+      ffEvent("Medium Impact Event", "USD", "Medium", 1.5 * H), // in window
+      ffEvent("FOMC Test Event", "USD", "High", 2 * H),         // in window
+      ffEvent("ECB Test Event", "EUR", "High", 3 * H),          // EUR only
+      ffEvent("BoJ Test Event", "JPY", "High", 4 * H),          // JPY only
+      ffEvent("Low Impact Event", "USD", "Low", 1 * H),         // impact filtered
+      ffEvent("Old Event", "USD", "High", -2 * H),              // past window
+      ffEvent("Far Future Event", "USD", "High", 72 * H),       // future window
+      ...fillers, // 10 more USD High in-window → 12 qualifying (cap = 8)
+    ].join("\n") +
+    `\n</weeklyevents>`
+  );
+}
 
 const stubbedFetch = async (input, init) => {
   const u = typeof input === "string" ? input : input?.url ?? "";
+  if (u.includes(FF_HOST)) {
+    if (ffScenario === "down") throw new Error("stub: FF network unreachable");
+    return new Response(buildNewsXml(), {
+      status: 200,
+      headers: { "content-type": "text/xml" },
+    });
+  }
   if (u.includes(KIMI_HOST)) {
     const body = JSON.parse(init.body);
     capturedRequests.push(body);
@@ -80,15 +130,19 @@ globalThis.fetch = stubbedFetch;
 /* ── 2. Boot the real server in-process ──────────────────────────────────── */
 process.env.MOONSHOT_API_KEY = "stub-test-key";
 process.env.PORT = String(PORT);
+// Test-only: point the calendar static fallback at a missing file so the
+// "calendar totally down" scenario (feed throws + fallback unreadable) makes
+// getEvents() THROW — proving Professor survives without the news block.
+process.env.ECON_FALLBACK_PATH = path.join(os.tmpdir(), `no-such-fallback-${process.pid}.json`);
 await import("./index.js"); // app.listen(PORT) runs on import
 await new Promise((r) => setTimeout(r, 500));
 
 const VALID_BODY = { mode: "coach", symbol: "XAUUSD", tf: "M15", route: "/scalper-clock", tz: "UTC", context: { app: "GoldCast" } };
-async function postProfessor() {
+async function postProfessor(body = VALID_BODY) {
   const res = await realFetch(`${BASE}/api/professor`, {
     method: "POST",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify(VALID_BODY),
+    body: JSON.stringify(body),
   });
   return { status: res.status, body: await res.json().catch(() => null) };
 }
@@ -114,6 +168,74 @@ check("S3 → error 'AI key rejected' + upstream detail", r3.body?.error === "AI
 const last = capturedRequests.at(-1) ?? {};
 check("R1 request sets thinking:{type:'disabled'} (k2.6 defaults to enabled)", last.thinking?.type === "disabled", JSON.stringify(last.thinking));
 check("R2 request max_completion_tokens = 1200", last.max_completion_tokens === 1200, String(last.max_completion_tokens));
+
+/* ── 4b. Professor news injection (economic calendar → Kimi context) ─────── */
+const NEWS_HEADER = "ข่าววันนี้-พรุ่งนี้ (เวลา UTC):";
+const NEWS_RULE = "เวลาข่าวคือกำหนดการล่วงหน้า ห้ามคาดการณ์ผลของข่าวหรือทิศทางราคาจากข่าว";
+const msgOf = (req, role) => req?.messages?.find((m) => m.role === role)?.content ?? "";
+const newsBlockOf = (req) => {
+  const c = msgOf(req, "user");
+  const i = c.indexOf(NEWS_HEADER);
+  return i === -1 ? "" : c.slice(i);
+};
+
+// N1 (c): calendar TOTALLY down (FF throws + fallback path missing) →
+// getEvents() throws → no injection, Professor still answers 200 normally.
+scenario = "normal";
+ffScenario = "down";
+const n1 = await postProfessor();
+const n1req = capturedRequests.at(-1);
+check("N1 calendar down → Professor still 200 + text", n1.status === 200 && typeof n1.body?.text === "string", `got ${n1.status} ${JSON.stringify(n1.body)}`);
+check("N1 calendar down → NO news block + NO news rule line injected",
+  newsBlockOf(n1req) === "" && !msgOf(n1req, "system").includes(NEWS_RULE),
+  msgOf(n1req, "user").slice(-300));
+
+// N2 (a): XAUUSD → USD only. USD High/Medium events inside now−30m…now+48h
+// are injected; EUR/JPY events (b), Low impact, and out-of-window events are not.
+ffScenario = "up";
+const n2 = await postProfessor(); // VALID_BODY symbol XAUUSD
+const n2req = capturedRequests.at(-1);
+const n2user = msgOf(n2req, "user");
+const n2block = newsBlockOf(n2req);
+check("N2 inject → 200 + news block appended to user context", n2.status === 200 && n2block !== "", `got ${n2.status}`);
+check("N2 → in-window USD High+Medium events present (FOMC 2h, Medium 1.5h)",
+  n2user.includes("FOMC Test Event") && n2user.includes("Medium Impact Event"),
+  n2block);
+check("N2 → EUR/JPY events NOT injected for XAUUSD (currency mismatch)",
+  !n2user.includes("ECB Test Event") && !n2user.includes("BoJ Test Event"),
+  n2block);
+check("N2 → Low impact / older-than-30m / beyond-48h events NOT injected",
+  !n2user.includes("Low Impact Event") && !n2user.includes("Old Event") && !n2user.includes("Far Future Event"),
+  n2block);
+check("N2 → system prompt gains the news iron-rule line",
+  msgOf(n2req, "system").includes(NEWS_RULE), msgOf(n2req, "system"));
+
+// N3 (b, reverse): EURUSD → EUR+USD, so the ECB event must now be injected.
+const n3 = await postProfessor({ ...VALID_BODY, symbol: "EURUSD" });
+check("N3 EURUSD → ECB event injected (symbol currency match)",
+  n3.status === 200 && msgOf(capturedRequests.at(-1), "user").includes("ECB Test Event"),
+  JSON.stringify(n3.body));
+
+// N4: unknown symbol → no mapping → no news injected at all.
+const n4 = await postProfessor({ ...VALID_BODY, symbol: "BTCUSD" });
+check("N4 unknown symbol → no news block, still 200",
+  n4.status === 200 && newsBlockOf(capturedRequests.at(-1)) === "",
+  `got ${n4.status}`);
+
+// N5 (d): feed has 12 qualifying USD events → block capped at 8 lines and
+// within the ~800-char budget (events sorted by time, furthest dropped first).
+const n5lines = n2block.split("\n").filter((l) => /^\d{2}-\d{2} \d{2}:\d{2} \[(High|Medium)\] /.test(l));
+check("N5 → at most 8 news lines despite 12 qualifying events", n5lines.length > 0 && n5lines.length <= 8, `lines=${n5lines.length}`);
+check("N5 → news block within ~800-char budget", n2block.length <= 800, `chars=${n2block.length}`);
+check("N5 → events sorted by time ascending",
+  (() => {
+    const mins = n5lines.map((l) => {
+      const m = l.match(/^(\d{2})-(\d{2}) (\d{2}):(\d{2})/);
+      return m ? Number(m[1]) * 1e6 + Number(m[2]) * 1e4 + Number(m[3]) * 60 + Number(m[4]) : NaN;
+    });
+    return mins.every((v, i) => i === 0 || v >= mins[i - 1]);
+  })(),
+  n5lines.join(" | "));
 
 /* ── 5. Frontend predicate (real src/lib/professor.ts) on real responses ─── */
 const outfile = path.join(os.tmpdir(), `professor-bundle-${process.pid}.mjs`);

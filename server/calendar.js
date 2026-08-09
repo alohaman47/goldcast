@@ -92,39 +92,34 @@ export function parseFfXml(xml) {
   return events;
 }
 
-/* ─── Handler factory (fetchImpl injectable for tests) ───────────────────── */
-export function createCalendarHandler({
+/* ─── Store factory: shared cache + getEvents() for HTTP AND Professor ───── */
+// createCalendarStore() returns { getEvents, handler }:
+//   - getEvents(): async → { events, source, fetchedAt } — the same contract
+//     payload the HTTP route serves. Throws ONLY if the live feed fails AND
+//     there is no stale cache AND the static fallback is unreadable. Server-
+//     side consumers (Professor news injection) call this directly so both
+//     paths share ONE cache (one upstream fetch per hour process-wide).
+//   - handler: the GET /api/economic-calendar Express handler (thin wrapper
+//     around getEvents — behavior identical to the pre-refactor handler).
+export function createCalendarStore({
   fetchImpl = globalThis.fetch,
   fallbackPath = FALLBACK_PATH,
   cacheTtlMs = CACHE_TTL_MS,
 } = {}) {
   let cache = null; // { events, fetchedAt, fetchedAtMs }
 
-  const serveFallback = async (res) => {
-    try {
-      const raw = await readFile(fallbackPath, "utf8");
-      const parsed = JSON.parse(raw);
-      const events = Array.isArray(parsed?.events) ? parsed.events : [];
-      if (events.length === 0) throw new Error("fallback file has no events");
-      return res.json({
-        events,
-        source: "static-fallback",
-        fetchedAt: new Date().toISOString(),
-      });
-    } catch (e) {
-      return res.status(500).json({
-        error: "economic calendar unavailable",
-        detail: `live feed failed and static fallback unreadable: ${String(e?.message || e)}`,
-      });
-    }
+  const loadFallback = async () => {
+    const raw = await readFile(fallbackPath, "utf8");
+    const parsed = JSON.parse(raw);
+    const events = Array.isArray(parsed?.events) ? parsed.events : [];
+    if (events.length === 0) throw new Error("fallback file has no events");
+    return events;
   };
 
-  return async function economicCalendarHandler(_req, res) {
-    res.setHeader("Cache-Control", "public, max-age=300");
-
+  async function getEvents() {
     // 1) fresh cache
     if (cache && Date.now() - cache.fetchedAtMs < cacheTtlMs) {
-      return res.json({ events: cache.events, source: "forexfactory", fetchedAt: cache.fetchedAt });
+      return { events: cache.events, source: "forexfactory", fetchedAt: cache.fetchedAt };
     }
 
     // 2) live fetch
@@ -143,15 +138,112 @@ export function createCalendarHandler({
       const events = parseFfXml(xml);
       if (events.length === 0) throw new Error("FF feed parsed to 0 events");
       cache = { events, fetchedAt: new Date().toISOString(), fetchedAtMs: Date.now() };
-      return res.json({ events, source: "forexfactory", fetchedAt: cache.fetchedAt });
+      return { events, source: "forexfactory", fetchedAt: cache.fetchedAt };
     } catch (e) {
       clearTimeout(timer);
       // 3) stale cache beats the static fallback (real weekly events > CB dates only)
       if (cache) {
-        return res.json({ events: cache.events, source: "forexfactory", fetchedAt: cache.fetchedAt });
+        return { events: cache.events, source: "forexfactory", fetchedAt: cache.fetchedAt };
       }
-      // 4) curated static fallback; 5) 500 only if that fails too
-      return serveFallback(res);
+      // 4) curated static fallback — throws if unreadable (caller decides)
+      const events = await loadFallback();
+      return { events, source: "static-fallback", fetchedAt: new Date().toISOString() };
     }
-  };
+  }
+
+  async function economicCalendarHandler(_req, res) {
+    res.setHeader("Cache-Control", "public, max-age=300");
+    try {
+      return res.json(await getEvents());
+    } catch (e) {
+      // 500 only if live feed AND static fallback both fail
+      return res.status(500).json({
+        error: "economic calendar unavailable",
+        detail: `live feed failed and static fallback unreadable: ${String(e?.message || e)}`,
+      });
+    }
+  }
+
+  return { getEvents, handler: economicCalendarHandler };
+}
+
+// Back-compat wrapper: same factory shape as before the getEvents() split.
+export function createCalendarHandler(options) {
+  return createCalendarStore(options).handler;
+}
+
+/* ─── Professor news injection (server-side, pure helpers) ───────────────── */
+// Which currencies move each symbol. Unknown symbol → no news injected.
+export const NEWS_SYMBOL_CURRENCIES = {
+  xauusd: ["USD"],
+  nas100: ["USD"],
+  us100: ["USD"],
+  us30: ["USD"],
+  ger40: ["EUR"],
+  eurusd: ["EUR", "USD"],
+  gbpusd: ["GBP", "USD"],
+  usdjpy: ["JPY", "USD"],
+};
+
+// Extra system-prompt line while news is in context — extends the iron rule
+// (no direction calls) to scheduled events.
+export const NEWS_RULE_LINE =
+  "เวลาข่าวคือกำหนดการล่วงหน้า ห้ามคาดการณ์ผลของข่าวหรือทิศทางราคาจากข่าว";
+
+const NEWS_WINDOW_PAST_MS = 30 * 60 * 1000; // just-released events still count
+const NEWS_WINDOW_FUTURE_MS = 48 * 60 * 60 * 1000; // "today + tomorrow"
+const NEWS_MAX_EVENTS = 8;
+export const NEWS_BUDGET_CHARS = 800;
+
+// Filter (High/Medium impact, matching currencies, now−30m … now+48h), sort
+// by time, cap at 8, render compactly within ~800 chars. Returns "" when the
+// symbol is unknown or nothing matches → caller injects nothing.
+export function buildNewsBlock(events, symbol, nowMs = Date.now()) {
+  const currencies = NEWS_SYMBOL_CURRENCIES[String(symbol ?? "").toLowerCase()];
+  if (!currencies || !Array.isArray(events)) return "";
+  const wanted = new Set(currencies);
+
+  const picked = events
+    .filter(
+      (e) =>
+        e &&
+        wanted.has(String(e.currency ?? "").toUpperCase()) &&
+        (e.impact === "High" || e.impact === "Medium")
+    )
+    .map((e) => ({ e, t: Date.parse(e.timeUtc) }))
+    .filter(
+      (x) =>
+        Number.isFinite(x.t) &&
+        x.t >= nowMs - NEWS_WINDOW_PAST_MS &&
+        x.t <= nowMs + NEWS_WINDOW_FUTURE_MS
+    )
+    .sort((a, b) => a.t - b.t)
+    .slice(0, NEWS_MAX_EVENTS)
+    .map((x) => x.e);
+
+  const pad = (n) => String(n).padStart(2, "0");
+  const render = (list) =>
+    "ข่าววันนี้-พรุ่งนี้ (เวลา UTC):\n" +
+    list
+      .map((e) => {
+        const d = new Date(Date.parse(e.timeUtc));
+        let line =
+          `${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())} ` +
+          `${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())} ` +
+          `[${e.impact}] ${String(e.currency).toUpperCase()} ${e.title}`;
+        const extra = [];
+        if (e.forecast) extra.push(`คาด ${e.forecast}`);
+        if (e.previous) extra.push(`ก่อน ${e.previous}`);
+        if (extra.length > 0) line += ` (${extra.join(" / ")})`;
+        return line;
+      })
+      .join("\n");
+
+  // Drop the furthest-out events until the block fits the char budget.
+  while (picked.length > 0) {
+    const block = render(picked);
+    if (block.length <= NEWS_BUDGET_CHARS) return block;
+    picked.pop();
+  }
+  return "";
 }
