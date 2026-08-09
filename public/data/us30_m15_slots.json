@@ -2,14 +2,14 @@
   "meta": {
     "symbol": "US30",
     "timeframe": "M15",
-    "bar_count": 99812,
+    "bar_count": 109477,
     "first_bar": "2022-01-03 01:00:00",
-    "last_bar": "2026-03-09 18:30:00",
-    "date_range": "2022-01-03 \u2192 2026-03-09",
+    "last_bar": "2026-08-04 16:00:00",
+    "date_range": "2022-01-03 \u2192 2026-08-04",
     "point": 0.1,
     "atr": "Wilder ATR14 (alpha=1/14), recomputed from raw CSV",
-    "note": "M15 data ends 2026-03-09 \u2014 shorter than the H1 series (2026-08-04); static research export, no model, no live feed",
-    "source_csv": "US30_M15_202201030100_202603091830.csv",
+    "note": "data ends 2026-08-04 \u2014 static research export, no model, no live feed. Phase-17 refresh: the M15 series now reaches 2026-08-04 16:00, in line with the H1 series (the old export ended 2026-03-09).",
+    "source_csv": "US30_M15_202201030100_202608041600.csv",
     "cross_check": {
       "reference": [
         "results/us30_m15_slots.csv",
@@ -17,7 +17,7 @@
       ],
       "tolerance": 1e-06,
       "slots_max_abs_diff": 1.4210854715202004e-14,
-      "hourly_max_abs_diff": 7.105427357601002e-15,
+      "hourly_max_abs_diff": 1.4210854715202004e-14,
       "passed": true
     },
     "definitions": {
@@ -73,920 +73,920 @@
       "label": "01:00",
       "utc_hour": 1,
       "utc_minute": 0,
-      "avg_range_atr": 0.7816,
-      "avg_range_usd": 44.4265,
-      "p_high_vol_empirical": 0.0241,
-      "bar_count": 1081
+      "avg_range_atr": 0.7958,
+      "avg_range_usd": 46.648,
+      "p_high_vol_empirical": 0.0262,
+      "bar_count": 1186
     },
     {
       "slot": 5,
       "label": "01:15",
       "utc_hour": 1,
       "utc_minute": 15,
-      "avg_range_atr": 0.4994,
-      "avg_range_usd": 27.2919,
-      "p_high_vol_empirical": 0.0213,
-      "bar_count": 1080
+      "avg_range_atr": 0.505,
+      "avg_range_usd": 28.4714,
+      "p_high_vol_empirical": 0.0228,
+      "bar_count": 1186
     },
     {
       "slot": 6,
       "label": "01:30",
       "utc_hour": 1,
       "utc_minute": 30,
-      "avg_range_atr": 0.4785,
-      "avg_range_usd": 24.8091,
-      "p_high_vol_empirical": 0.0148,
-      "bar_count": 1080
+      "avg_range_atr": 0.483,
+      "avg_range_usd": 26.2186,
+      "p_high_vol_empirical": 0.0203,
+      "bar_count": 1186
     },
     {
       "slot": 7,
       "label": "01:45",
       "utc_hour": 1,
       "utc_minute": 45,
-      "avg_range_atr": 0.4279,
-      "avg_range_usd": 21.4099,
-      "p_high_vol_empirical": 0.0297,
-      "bar_count": 1079
+      "avg_range_atr": 0.4371,
+      "avg_range_usd": 22.7613,
+      "p_high_vol_empirical": 0.0296,
+      "bar_count": 1185
     },
     {
       "slot": 8,
       "label": "02:00",
       "utc_hour": 2,
       "utc_minute": 0,
-      "avg_range_atr": 0.557,
-      "avg_range_usd": 26.5033,
-      "p_high_vol_empirical": 0.0232,
-      "bar_count": 1079
+      "avg_range_atr": 0.5541,
+      "avg_range_usd": 27.1721,
+      "p_high_vol_empirical": 0.0228,
+      "bar_count": 1185
     },
     {
       "slot": 9,
       "label": "02:15",
       "utc_hour": 2,
       "utc_minute": 15,
-      "avg_range_atr": 0.4999,
-      "avg_range_usd": 23.6101,
+      "avg_range_atr": 0.4972,
+      "avg_range_usd": 24.1113,
       "p_high_vol_empirical": 0.0278,
-      "bar_count": 1080
+      "bar_count": 1186
     },
     {
       "slot": 10,
       "label": "02:30",
       "utc_hour": 2,
       "utc_minute": 30,
-      "avg_range_atr": 0.5184,
-      "avg_range_usd": 23.4082,
-      "p_high_vol_empirical": 0.0334,
-      "bar_count": 1080
+      "avg_range_atr": 0.5171,
+      "avg_range_usd": 24.0161,
+      "p_high_vol_empirical": 0.0346,
+      "bar_count": 1186
     },
     {
       "slot": 11,
       "label": "02:45",
       "utc_hour": 2,
       "utc_minute": 45,
-      "avg_range_atr": 0.5628,
-      "avg_range_usd": 24.5476,
-      "p_high_vol_empirical": 0.1196,
-      "bar_count": 1080
+      "avg_range_atr": 0.5704,
+      "avg_range_usd": 25.6187,
+      "p_high_vol_empirical": 0.1291,
+      "bar_count": 1186
     },
     {
       "slot": 12,
       "label": "03:00",
       "utc_hour": 3,
       "utc_minute": 0,
-      "avg_range_atr": 0.7843,
-      "avg_range_usd": 33.4364,
-      "p_high_vol_empirical": 0.0667,
-      "bar_count": 1081
+      "avg_range_atr": 0.806,
+      "avg_range_usd": 35.73,
+      "p_high_vol_empirical": 0.0742,
+      "bar_count": 1187
     },
     {
       "slot": 13,
       "label": "03:15",
       "utc_hour": 3,
       "utc_minute": 15,
-      "avg_range_atr": 0.6748,
-      "avg_range_usd": 28.1447,
-      "p_high_vol_empirical": 0.0714,
-      "bar_count": 1080
+      "avg_range_atr": 0.6911,
+      "avg_range_usd": 30.1186,
+      "p_high_vol_empirical": 0.0709,
+      "bar_count": 1186
     },
     {
       "slot": 14,
       "label": "03:30",
       "utc_hour": 3,
       "utc_minute": 30,
-      "avg_range_atr": 0.6818,
-      "avg_range_usd": 27.9881,
-      "p_high_vol_empirical": 0.0538,
-      "bar_count": 1080
+      "avg_range_atr": 0.6913,
+      "avg_range_usd": 29.5965,
+      "p_high_vol_empirical": 0.054,
+      "bar_count": 1186
     },
     {
       "slot": 15,
       "label": "03:45",
       "utc_hour": 3,
       "utc_minute": 45,
-      "avg_range_atr": 0.624,
-      "avg_range_usd": 25.1493,
-      "p_high_vol_empirical": 0.0436,
-      "bar_count": 1080
+      "avg_range_atr": 0.6299,
+      "avg_range_usd": 26.2826,
+      "p_high_vol_empirical": 0.0523,
+      "bar_count": 1186
     },
     {
       "slot": 16,
       "label": "04:00",
       "utc_hour": 4,
       "utc_minute": 0,
-      "avg_range_atr": 0.6383,
-      "avg_range_usd": 25.139,
-      "p_high_vol_empirical": 0.0528,
-      "bar_count": 1081
+      "avg_range_atr": 0.6585,
+      "avg_range_usd": 27.1104,
+      "p_high_vol_empirical": 0.054,
+      "bar_count": 1187
     },
     {
       "slot": 17,
       "label": "04:15",
       "utc_hour": 4,
       "utc_minute": 15,
-      "avg_range_atr": 0.6508,
-      "avg_range_usd": 24.5522,
-      "p_high_vol_empirical": 0.0788,
-      "bar_count": 1080
+      "avg_range_atr": 0.6577,
+      "avg_range_usd": 25.9269,
+      "p_high_vol_empirical": 0.0768,
+      "bar_count": 1186
     },
     {
       "slot": 18,
       "label": "04:30",
       "utc_hour": 4,
       "utc_minute": 30,
-      "avg_range_atr": 0.711,
-      "avg_range_usd": 26.3138,
-      "p_high_vol_empirical": 0.0435,
-      "bar_count": 1080
+      "avg_range_atr": 0.7137,
+      "avg_range_usd": 27.4101,
+      "p_high_vol_empirical": 0.0455,
+      "bar_count": 1186
     },
     {
       "slot": 19,
       "label": "04:45",
       "utc_hour": 4,
       "utc_minute": 45,
-      "avg_range_atr": 0.6383,
-      "avg_range_usd": 23.1234,
-      "p_high_vol_empirical": 0.0547,
-      "bar_count": 1079
+      "avg_range_atr": 0.6457,
+      "avg_range_usd": 24.323,
+      "p_high_vol_empirical": 0.0565,
+      "bar_count": 1185
     },
     {
       "slot": 20,
       "label": "05:00",
       "utc_hour": 5,
       "utc_minute": 0,
-      "avg_range_atr": 0.645,
-      "avg_range_usd": 22.6991,
-      "p_high_vol_empirical": 0.037,
-      "bar_count": 1080
+      "avg_range_atr": 0.6496,
+      "avg_range_usd": 23.7068,
+      "p_high_vol_empirical": 0.0363,
+      "bar_count": 1186
     },
     {
       "slot": 21,
       "label": "05:15",
       "utc_hour": 5,
       "utc_minute": 15,
-      "avg_range_atr": 0.5935,
-      "avg_range_usd": 20.6028,
-      "p_high_vol_empirical": 0.0371,
-      "bar_count": 1079
+      "avg_range_atr": 0.5987,
+      "avg_range_usd": 21.5928,
+      "p_high_vol_empirical": 0.0397,
+      "bar_count": 1185
     },
     {
       "slot": 22,
       "label": "05:30",
       "utc_hour": 5,
       "utc_minute": 30,
-      "avg_range_atr": 0.614,
-      "avg_range_usd": 20.7677,
-      "p_high_vol_empirical": 0.0204,
-      "bar_count": 1079
+      "avg_range_atr": 0.6161,
+      "avg_range_usd": 21.6725,
+      "p_high_vol_empirical": 0.0194,
+      "bar_count": 1185
     },
     {
       "slot": 23,
       "label": "05:45",
       "utc_hour": 5,
       "utc_minute": 45,
-      "avg_range_atr": 0.57,
-      "avg_range_usd": 18.4364,
-      "p_high_vol_empirical": 0.0371,
-      "bar_count": 1079
+      "avg_range_atr": 0.5717,
+      "avg_range_usd": 19.2363,
+      "p_high_vol_empirical": 0.0363,
+      "bar_count": 1185
     },
     {
       "slot": 24,
       "label": "06:00",
       "utc_hour": 6,
       "utc_minute": 0,
-      "avg_range_atr": 0.6123,
-      "avg_range_usd": 19.729,
-      "p_high_vol_empirical": 0.0324,
-      "bar_count": 1080
+      "avg_range_atr": 0.6155,
+      "avg_range_usd": 20.5502,
+      "p_high_vol_empirical": 0.0312,
+      "bar_count": 1186
     },
     {
       "slot": 25,
       "label": "06:15",
       "utc_hour": 6,
       "utc_minute": 15,
-      "avg_range_atr": 0.585,
-      "avg_range_usd": 18.1269,
-      "p_high_vol_empirical": 0.0426,
-      "bar_count": 1080
+      "avg_range_atr": 0.5868,
+      "avg_range_usd": 18.8394,
+      "p_high_vol_empirical": 0.0455,
+      "bar_count": 1186
     },
     {
       "slot": 26,
       "label": "06:30",
       "utc_hour": 6,
       "utc_minute": 30,
-      "avg_range_atr": 0.6261,
-      "avg_range_usd": 18.4917,
-      "p_high_vol_empirical": 0.026,
-      "bar_count": 1079
+      "avg_range_atr": 0.6361,
+      "avg_range_usd": 19.6132,
+      "p_high_vol_empirical": 0.0262,
+      "bar_count": 1185
     },
     {
       "slot": 27,
       "label": "06:45",
       "utc_hour": 6,
       "utc_minute": 45,
-      "avg_range_atr": 0.558,
-      "avg_range_usd": 15.798,
-      "p_high_vol_empirical": 0.0538,
-      "bar_count": 1079
+      "avg_range_atr": 0.5625,
+      "avg_range_usd": 16.6332,
+      "p_high_vol_empirical": 0.0489,
+      "bar_count": 1185
     },
     {
       "slot": 28,
       "label": "07:00",
       "utc_hour": 7,
       "utc_minute": 0,
-      "avg_range_atr": 0.6601,
-      "avg_range_usd": 18.7564,
-      "p_high_vol_empirical": 0.0482,
-      "bar_count": 1079
+      "avg_range_atr": 0.6579,
+      "avg_range_usd": 19.3621,
+      "p_high_vol_empirical": 0.0447,
+      "bar_count": 1185
     },
     {
       "slot": 29,
       "label": "07:15",
       "utc_hour": 7,
       "utc_minute": 15,
-      "avg_range_atr": 0.6194,
-      "avg_range_usd": 17.1994,
-      "p_high_vol_empirical": 0.063,
-      "bar_count": 1079
+      "avg_range_atr": 0.6196,
+      "avg_range_usd": 17.8707,
+      "p_high_vol_empirical": 0.0616,
+      "bar_count": 1185
     },
     {
       "slot": 30,
       "label": "07:30",
       "utc_hour": 7,
       "utc_minute": 30,
-      "avg_range_atr": 0.6804,
-      "avg_range_usd": 18.0239,
-      "p_high_vol_empirical": 0.0399,
-      "bar_count": 1079
+      "avg_range_atr": 0.679,
+      "avg_range_usd": 18.6624,
+      "p_high_vol_empirical": 0.0413,
+      "bar_count": 1185
     },
     {
       "slot": 31,
       "label": "07:45",
       "utc_hour": 7,
       "utc_minute": 45,
-      "avg_range_atr": 0.6409,
-      "avg_range_usd": 16.458,
-      "p_high_vol_empirical": 0.1464,
-      "bar_count": 1079
+      "avg_range_atr": 0.6439,
+      "avg_range_usd": 17.1796,
+      "p_high_vol_empirical": 0.1477,
+      "bar_count": 1185
     },
     {
       "slot": 32,
       "label": "08:00",
       "utc_hour": 8,
       "utc_minute": 0,
-      "avg_range_atr": 0.8557,
-      "avg_range_usd": 21.9844,
-      "p_high_vol_empirical": 0.1131,
-      "bar_count": 1079
+      "avg_range_atr": 0.8584,
+      "avg_range_usd": 22.93,
+      "p_high_vol_empirical": 0.1148,
+      "bar_count": 1185
     },
     {
       "slot": 33,
       "label": "08:15",
       "utc_hour": 8,
       "utc_minute": 15,
-      "avg_range_atr": 0.8227,
-      "avg_range_usd": 20.9712,
-      "p_high_vol_empirical": 0.1891,
-      "bar_count": 1079
+      "avg_range_atr": 0.8251,
+      "avg_range_usd": 21.9222,
+      "p_high_vol_empirical": 0.1916,
+      "bar_count": 1185
     },
     {
       "slot": 34,
       "label": "08:30",
       "utc_hour": 8,
       "utc_minute": 30,
-      "avg_range_atr": 0.9305,
-      "avg_range_usd": 23.2589,
-      "p_high_vol_empirical": 0.1881,
-      "bar_count": 1079
+      "avg_range_atr": 0.932,
+      "avg_range_usd": 24.2568,
+      "p_high_vol_empirical": 0.184,
+      "bar_count": 1185
     },
     {
       "slot": 35,
       "label": "08:45",
       "utc_hour": 8,
       "utc_minute": 45,
-      "avg_range_atr": 0.9076,
-      "avg_range_usd": 22.7851,
-      "p_high_vol_empirical": 0.5802,
-      "bar_count": 1079
+      "avg_range_atr": 0.9049,
+      "avg_range_usd": 23.5556,
+      "p_high_vol_empirical": 0.5603,
+      "bar_count": 1185
     },
     {
       "slot": 36,
       "label": "09:00",
       "utc_hour": 9,
       "utc_minute": 0,
-      "avg_range_atr": 1.3364,
-      "avg_range_usd": 33.7181,
-      "p_high_vol_empirical": 0.3494,
-      "bar_count": 1079
+      "avg_range_atr": 1.3157,
+      "avg_range_usd": 34.2094,
+      "p_high_vol_empirical": 0.3544,
+      "bar_count": 1185
     },
     {
       "slot": 37,
       "label": "09:15",
       "utc_hour": 9,
       "utc_minute": 15,
-      "avg_range_atr": 1.1124,
-      "avg_range_usd": 28.4806,
-      "p_high_vol_empirical": 0.317,
-      "bar_count": 1079
+      "avg_range_atr": 1.1109,
+      "avg_range_usd": 29.4642,
+      "p_high_vol_empirical": 0.3215,
+      "bar_count": 1185
     },
     {
       "slot": 38,
       "label": "09:30",
       "utc_hour": 9,
       "utc_minute": 30,
-      "avg_range_atr": 1.0798,
-      "avg_range_usd": 27.7893,
-      "p_high_vol_empirical": 0.3846,
-      "bar_count": 1079
+      "avg_range_atr": 1.0826,
+      "avg_range_usd": 28.8577,
+      "p_high_vol_empirical": 0.3722,
+      "bar_count": 1185
     },
     {
       "slot": 39,
       "label": "09:45",
       "utc_hour": 9,
       "utc_minute": 45,
-      "avg_range_atr": 1.1285,
-      "avg_range_usd": 28.7257,
-      "p_high_vol_empirical": 0.8675,
-      "bar_count": 1079
+      "avg_range_atr": 1.1157,
+      "avg_range_usd": 29.4128,
+      "p_high_vol_empirical": 0.854,
+      "bar_count": 1185
     },
     {
       "slot": 40,
       "label": "10:00",
       "utc_hour": 10,
       "utc_minute": 0,
-      "avg_range_atr": 1.8056,
-      "avg_range_usd": 50.1214,
-      "p_high_vol_empirical": 0.7581,
-      "bar_count": 1079
+      "avg_range_atr": 1.7802,
+      "avg_range_usd": 50.8121,
+      "p_high_vol_empirical": 0.7333,
+      "bar_count": 1185
     },
     {
       "slot": 41,
       "label": "10:15",
       "utc_hour": 10,
       "utc_minute": 15,
-      "avg_range_atr": 1.5614,
-      "avg_range_usd": 45.2527,
-      "p_high_vol_empirical": 0.6348,
-      "bar_count": 1079
+      "avg_range_atr": 1.5349,
+      "avg_range_usd": 45.7247,
+      "p_high_vol_empirical": 0.6177,
+      "bar_count": 1185
     },
     {
       "slot": 42,
       "label": "10:30",
       "utc_hour": 10,
       "utc_minute": 30,
-      "avg_range_atr": 1.4128,
-      "avg_range_usd": 41.8738,
-      "p_high_vol_empirical": 0.4921,
-      "bar_count": 1079
+      "avg_range_atr": 1.3922,
+      "avg_range_usd": 42.3045,
+      "p_high_vol_empirical": 0.4844,
+      "bar_count": 1185
     },
     {
       "slot": 43,
       "label": "10:45",
       "utc_hour": 10,
       "utc_minute": 45,
-      "avg_range_atr": 1.248,
-      "avg_range_usd": 37.388,
-      "p_high_vol_empirical": 0.6654,
-      "bar_count": 1079
+      "avg_range_atr": 1.2405,
+      "avg_range_usd": 38.1218,
+      "p_high_vol_empirical": 0.67,
+      "bar_count": 1185
     },
     {
       "slot": 44,
       "label": "11:00",
       "utc_hour": 11,
       "utc_minute": 0,
-      "avg_range_atr": 1.4481,
-      "avg_range_usd": 44.9247,
-      "p_high_vol_empirical": 0.4254,
-      "bar_count": 1079
+      "avg_range_atr": 1.4524,
+      "avg_range_usd": 46.4592,
+      "p_high_vol_empirical": 0.4338,
+      "bar_count": 1185
     },
     {
       "slot": 45,
       "label": "11:15",
       "utc_hour": 11,
       "utc_minute": 15,
-      "avg_range_atr": 1.1841,
-      "avg_range_usd": 37.1767,
-      "p_high_vol_empirical": 0.3642,
-      "bar_count": 1079
+      "avg_range_atr": 1.1925,
+      "avg_range_usd": 38.7652,
+      "p_high_vol_empirical": 0.3662,
+      "bar_count": 1185
     },
     {
       "slot": 46,
       "label": "11:30",
       "utc_hour": 11,
       "utc_minute": 30,
-      "avg_range_atr": 1.1268,
-      "avg_range_usd": 35.6479,
-      "p_high_vol_empirical": 0.2769,
-      "bar_count": 1080
+      "avg_range_atr": 1.1279,
+      "avg_range_usd": 36.9124,
+      "p_high_vol_empirical": 0.2766,
+      "bar_count": 1186
     },
     {
       "slot": 47,
       "label": "11:45",
       "utc_hour": 11,
       "utc_minute": 45,
-      "avg_range_atr": 1.021,
-      "avg_range_usd": 32.5151,
-      "p_high_vol_empirical": 0.3231,
-      "bar_count": 1080
+      "avg_range_atr": 1.0293,
+      "avg_range_usd": 34.0654,
+      "p_high_vol_empirical": 0.3314,
+      "bar_count": 1186
     },
     {
       "slot": 48,
       "label": "12:00",
       "utc_hour": 12,
       "utc_minute": 0,
-      "avg_range_atr": 1.0763,
-      "avg_range_usd": 34.469,
-      "p_high_vol_empirical": 0.2298,
-      "bar_count": 1079
+      "avg_range_atr": 1.0859,
+      "avg_range_usd": 36.097,
+      "p_high_vol_empirical": 0.2371,
+      "bar_count": 1185
     },
     {
       "slot": 49,
       "label": "12:15",
       "utc_hour": 12,
       "utc_minute": 15,
-      "avg_range_atr": 0.9848,
-      "avg_range_usd": 31.388,
-      "p_high_vol_empirical": 0.2095,
-      "bar_count": 1079
+      "avg_range_atr": 0.9895,
+      "avg_range_usd": 32.7295,
+      "p_high_vol_empirical": 0.2143,
+      "bar_count": 1185
     },
     {
       "slot": 50,
       "label": "12:30",
       "utc_hour": 12,
       "utc_minute": 30,
-      "avg_range_atr": 0.9736,
-      "avg_range_usd": 31.3486,
-      "p_high_vol_empirical": 0.1993,
-      "bar_count": 1079
+      "avg_range_atr": 0.977,
+      "avg_range_usd": 32.6516,
+      "p_high_vol_empirical": 0.2025,
+      "bar_count": 1185
     },
     {
       "slot": 51,
       "label": "12:45",
       "utc_hour": 12,
       "utc_minute": 45,
-      "avg_range_atr": 0.9578,
-      "avg_range_usd": 30.7677,
-      "p_high_vol_empirical": 0.3114,
-      "bar_count": 1079
+      "avg_range_atr": 0.9661,
+      "avg_range_usd": 32.3198,
+      "p_high_vol_empirical": 0.3215,
+      "bar_count": 1185
     },
     {
       "slot": 52,
       "label": "13:00",
       "utc_hour": 13,
       "utc_minute": 0,
-      "avg_range_atr": 1.0967,
-      "avg_range_usd": 35.6499,
-      "p_high_vol_empirical": 0.1972,
-      "bar_count": 1080
+      "avg_range_atr": 1.1088,
+      "avg_range_usd": 37.5933,
+      "p_high_vol_empirical": 0.2007,
+      "bar_count": 1186
     },
     {
       "slot": 53,
       "label": "13:15",
       "utc_hour": 13,
       "utc_minute": 15,
-      "avg_range_atr": 0.9639,
-      "avg_range_usd": 31.7473,
-      "p_high_vol_empirical": 0.2651,
-      "bar_count": 1079
+      "avg_range_atr": 0.9673,
+      "avg_range_usd": 33.0834,
+      "p_high_vol_empirical": 0.2768,
+      "bar_count": 1185
     },
     {
       "slot": 54,
       "label": "13:30",
       "utc_hour": 13,
       "utc_minute": 30,
-      "avg_range_atr": 1.0652,
-      "avg_range_usd": 34.7601,
-      "p_high_vol_empirical": 0.2502,
-      "bar_count": 1079
+      "avg_range_atr": 1.082,
+      "avg_range_usd": 37.187,
+      "p_high_vol_empirical": 0.2616,
+      "bar_count": 1185
     },
     {
       "slot": 55,
       "label": "13:45",
       "utc_hour": 13,
       "utc_minute": 45,
-      "avg_range_atr": 1.0224,
-      "avg_range_usd": 33.6865,
-      "p_high_vol_empirical": 0.4185,
-      "bar_count": 1080
+      "avg_range_atr": 1.0273,
+      "avg_range_usd": 35.2978,
+      "p_high_vol_empirical": 0.4241,
+      "bar_count": 1186
     },
     {
       "slot": 56,
       "label": "14:00",
       "utc_hour": 14,
       "utc_minute": 0,
-      "avg_range_atr": 1.1866,
-      "avg_range_usd": 39.3462,
-      "p_high_vol_empirical": 0.2602,
-      "bar_count": 1080
+      "avg_range_atr": 1.2067,
+      "avg_range_usd": 43.0911,
+      "p_high_vol_empirical": 0.2664,
+      "bar_count": 1186
     },
     {
       "slot": 57,
       "label": "14:15",
       "utc_hour": 14,
       "utc_minute": 15,
-      "avg_range_atr": 1.0294,
-      "avg_range_usd": 34.7115,
-      "p_high_vol_empirical": 0.3188,
-      "bar_count": 1079
+      "avg_range_atr": 1.0407,
+      "avg_range_usd": 37.1539,
+      "p_high_vol_empirical": 0.3232,
+      "bar_count": 1185
     },
     {
       "slot": 58,
       "label": "14:30",
       "utc_hour": 14,
       "utc_minute": 30,
-      "avg_range_atr": 1.0875,
-      "avg_range_usd": 36.7608,
-      "p_high_vol_empirical": 0.2447,
-      "bar_count": 1079
+      "avg_range_atr": 1.097,
+      "avg_range_usd": 39.1499,
+      "p_high_vol_empirical": 0.2557,
+      "bar_count": 1185
     },
     {
       "slot": 59,
       "label": "14:45",
       "utc_hour": 14,
       "utc_minute": 45,
-      "avg_range_atr": 1.0084,
-      "avg_range_usd": 34.2076,
-      "p_high_vol_empirical": 0.4272,
-      "bar_count": 1079
+      "avg_range_atr": 1.02,
+      "avg_range_usd": 36.4041,
+      "p_high_vol_empirical": 0.4346,
+      "bar_count": 1185
     },
     {
       "slot": 60,
       "label": "15:00",
       "utc_hour": 15,
       "utc_minute": 0,
-      "avg_range_atr": 1.1974,
-      "avg_range_usd": 39.8954,
-      "p_high_vol_empirical": 0.3874,
-      "bar_count": 1079
+      "avg_range_atr": 1.2092,
+      "avg_range_usd": 42.6002,
+      "p_high_vol_empirical": 0.3932,
+      "bar_count": 1185
     },
     {
       "slot": 61,
       "label": "15:15",
       "utc_hour": 15,
       "utc_minute": 15,
-      "avg_range_atr": 1.1764,
-      "avg_range_usd": 39.6402,
-      "p_high_vol_empirical": 0.6608,
-      "bar_count": 1079
+      "avg_range_atr": 1.185,
+      "avg_range_usd": 42.2764,
+      "p_high_vol_empirical": 0.6473,
+      "bar_count": 1185
     },
     {
       "slot": 62,
       "label": "15:30",
       "utc_hour": 15,
       "utc_minute": 30,
-      "avg_range_atr": 1.9109,
-      "avg_range_usd": 74.3578,
-      "p_high_vol_empirical": 0.437,
-      "bar_count": 1080
+      "avg_range_atr": 1.8728,
+      "avg_range_usd": 75.1298,
+      "p_high_vol_empirical": 0.4317,
+      "bar_count": 1186
     },
     {
       "slot": 63,
       "label": "15:45",
       "utc_hour": 15,
       "utc_minute": 45,
-      "avg_range_atr": 1.2333,
-      "avg_range_usd": 46.8869,
-      "p_high_vol_empirical": 0.4602,
-      "bar_count": 1080
+      "avg_range_atr": 1.2277,
+      "avg_range_usd": 48.5511,
+      "p_high_vol_empirical": 0.4595,
+      "bar_count": 1186
     },
     {
       "slot": 64,
       "label": "16:00",
       "utc_hour": 16,
       "utc_minute": 0,
-      "avg_range_atr": 1.2315,
-      "avg_range_usd": 47.1756,
-      "p_high_vol_empirical": 0.6556,
-      "bar_count": 1080
+      "avg_range_atr": 1.2318,
+      "avg_range_usd": 49.1938,
+      "p_high_vol_empirical": 0.6574,
+      "bar_count": 1186
     },
     {
       "slot": 65,
       "label": "16:15",
       "utc_hour": 16,
       "utc_minute": 15,
-      "avg_range_atr": 1.4845,
-      "avg_range_usd": 56.2347,
-      "p_high_vol_empirical": 0.9926,
-      "bar_count": 1079
+      "avg_range_atr": 1.4825,
+      "avg_range_usd": 58.6295,
+      "p_high_vol_empirical": 0.9932,
+      "bar_count": 1183
     },
     {
       "slot": 66,
       "label": "16:30",
       "utc_hour": 16,
       "utc_minute": 30,
-      "avg_range_atr": 3.0967,
-      "avg_range_usd": 141.9408,
-      "p_high_vol_empirical": 0.9546,
-      "bar_count": 1079
+      "avg_range_atr": 3.0938,
+      "avg_range_usd": 147.785,
+      "p_high_vol_empirical": 0.9518,
+      "bar_count": 1183
     },
     {
       "slot": 67,
       "label": "16:45",
       "utc_hour": 16,
       "utc_minute": 45,
-      "avg_range_atr": 2.1062,
-      "avg_range_usd": 107.7968,
-      "p_high_vol_empirical": 0.9045,
-      "bar_count": 1078
+      "avg_range_atr": 2.1017,
+      "avg_range_usd": 111.8091,
+      "p_high_vol_empirical": 0.8993,
+      "bar_count": 1182
     },
     {
       "slot": 68,
       "label": "17:00",
       "utc_hour": 17,
       "utc_minute": 0,
-      "avg_range_atr": 1.9447,
-      "avg_range_usd": 108.838,
-      "p_high_vol_empirical": 0.7774,
-      "bar_count": 1078
+      "avg_range_atr": 1.9259,
+      "avg_range_usd": 111.4078,
+      "p_high_vol_empirical": 0.7665,
+      "bar_count": 1182
     },
     {
       "slot": 69,
       "label": "17:15",
       "utc_hour": 17,
       "utc_minute": 15,
-      "avg_range_atr": 1.5633,
-      "avg_range_usd": 92.8964,
-      "p_high_vol_empirical": 0.6892,
-      "bar_count": 1078
+      "avg_range_atr": 1.5531,
+      "avg_range_usd": 95.3789,
+      "p_high_vol_empirical": 0.681,
+      "bar_count": 1182
     },
     {
       "slot": 70,
       "label": "17:30",
       "utc_hour": 17,
       "utc_minute": 30,
-      "avg_range_atr": 1.4336,
-      "avg_range_usd": 86.4812,
-      "p_high_vol_empirical": 0.5083,
-      "bar_count": 1078
+      "avg_range_atr": 1.4278,
+      "avg_range_usd": 89.3139,
+      "p_high_vol_empirical": 0.5025,
+      "bar_count": 1182
     },
     {
       "slot": 71,
       "label": "17:45",
       "utc_hour": 17,
       "utc_minute": 45,
-      "avg_range_atr": 1.2619,
-      "avg_range_usd": 78.3083,
-      "p_high_vol_empirical": 0.4944,
-      "bar_count": 1078
+      "avg_range_atr": 1.2614,
+      "avg_range_usd": 81.1928,
+      "p_high_vol_empirical": 0.4822,
+      "bar_count": 1182
     },
     {
       "slot": 72,
       "label": "18:00",
       "utc_hour": 18,
       "utc_minute": 0,
-      "avg_range_atr": 1.2509,
-      "avg_range_usd": 79.0223,
-      "p_high_vol_empirical": 0.3822,
-      "bar_count": 1078
+      "avg_range_atr": 1.2416,
+      "avg_range_usd": 81.037,
+      "p_high_vol_empirical": 0.379,
+      "bar_count": 1182
     },
     {
       "slot": 73,
       "label": "18:15",
       "utc_hour": 18,
       "utc_minute": 15,
-      "avg_range_atr": 1.1546,
-      "avg_range_usd": 73.9464,
-      "p_high_vol_empirical": 0.3553,
-      "bar_count": 1078
+      "avg_range_atr": 1.1522,
+      "avg_range_usd": 76.5144,
+      "p_high_vol_empirical": 0.3469,
+      "bar_count": 1182
     },
     {
       "slot": 74,
       "label": "18:30",
       "utc_hour": 18,
       "utc_minute": 30,
-      "avg_range_atr": 1.1086,
-      "avg_range_usd": 72.4861,
-      "p_high_vol_empirical": 0.2507,
-      "bar_count": 1078
+      "avg_range_atr": 1.1,
+      "avg_range_usd": 74.1561,
+      "p_high_vol_empirical": 0.2411,
+      "bar_count": 1182
     },
     {
       "slot": 75,
       "label": "18:45",
       "utc_hour": 18,
       "utc_minute": 45,
-      "avg_range_atr": 1.0112,
-      "avg_range_usd": 65.8289,
-      "p_high_vol_empirical": 0.2526,
-      "bar_count": 1077
+      "avg_range_atr": 0.9998,
+      "avg_range_usd": 67.1096,
+      "p_high_vol_empirical": 0.242,
+      "bar_count": 1182
     },
     {
       "slot": 76,
       "label": "19:00",
       "utc_hour": 19,
       "utc_minute": 0,
-      "avg_range_atr": 1.0196,
-      "avg_range_usd": 66.628,
-      "p_high_vol_empirical": 0.2238,
-      "bar_count": 1077
+      "avg_range_atr": 1.0062,
+      "avg_range_usd": 67.6768,
+      "p_high_vol_empirical": 0.2191,
+      "bar_count": 1182
     },
     {
       "slot": 77,
       "label": "19:15",
       "utc_hour": 19,
       "utc_minute": 15,
-      "avg_range_atr": 0.9757,
-      "avg_range_usd": 63.411,
-      "p_high_vol_empirical": 0.2061,
-      "bar_count": 1077
+      "avg_range_atr": 0.9673,
+      "avg_range_usd": 64.8574,
+      "p_high_vol_empirical": 0.2005,
+      "bar_count": 1182
     },
     {
       "slot": 78,
       "label": "19:30",
       "utc_hour": 19,
       "utc_minute": 30,
-      "avg_range_atr": 0.9644,
-      "avg_range_usd": 62.6722,
-      "p_high_vol_empirical": 0.2108,
-      "bar_count": 1077
+      "avg_range_atr": 0.9575,
+      "avg_range_usd": 64.3747,
+      "p_high_vol_empirical": 0.2039,
+      "bar_count": 1182
     },
     {
       "slot": 79,
       "label": "19:45",
       "utc_hour": 19,
       "utc_minute": 45,
-      "avg_range_atr": 0.9587,
-      "avg_range_usd": 61.8458,
-      "p_high_vol_empirical": 0.2553,
-      "bar_count": 1077
+      "avg_range_atr": 0.9463,
+      "avg_range_usd": 62.6425,
+      "p_high_vol_empirical": 0.2453,
+      "bar_count": 1182
     },
     {
       "slot": 80,
       "label": "20:00",
       "utc_hour": 20,
       "utc_minute": 0,
-      "avg_range_atr": 1.0053,
-      "avg_range_usd": 66.2737,
-      "p_high_vol_empirical": 0.2287,
-      "bar_count": 1058
+      "avg_range_atr": 0.9922,
+      "avg_range_usd": 67.0714,
+      "p_high_vol_empirical": 0.2218,
+      "bar_count": 1163
     },
     {
       "slot": 81,
       "label": "20:15",
       "utc_hour": 20,
       "utc_minute": 15,
-      "avg_range_atr": 0.9765,
-      "avg_range_usd": 66.3102,
-      "p_high_vol_empirical": 0.2354,
-      "bar_count": 1045
+      "avg_range_atr": 0.968,
+      "avg_range_usd": 67.3977,
+      "p_high_vol_empirical": 0.2276,
+      "bar_count": 1147
     },
     {
       "slot": 82,
       "label": "20:30",
       "utc_hour": 20,
       "utc_minute": 30,
-      "avg_range_atr": 0.9907,
-      "avg_range_usd": 66.2614,
-      "p_high_vol_empirical": 0.1768,
-      "bar_count": 1041
+      "avg_range_atr": 0.9829,
+      "avg_range_usd": 67.5341,
+      "p_high_vol_empirical": 0.1662,
+      "bar_count": 1143
     },
     {
       "slot": 83,
       "label": "20:45",
       "utc_hour": 20,
       "utc_minute": 45,
-      "avg_range_atr": 0.917,
-      "avg_range_usd": 60.7929,
-      "p_high_vol_empirical": 0.2642,
-      "bar_count": 1041
+      "avg_range_atr": 0.9027,
+      "avg_range_usd": 61.3238,
+      "p_high_vol_empirical": 0.2493,
+      "bar_count": 1143
     },
     {
       "slot": 84,
       "label": "21:00",
       "utc_hour": 21,
       "utc_minute": 0,
-      "avg_range_atr": 1.0802,
-      "avg_range_usd": 71.5233,
-      "p_high_vol_empirical": 0.2325,
-      "bar_count": 1041
+      "avg_range_atr": 1.0663,
+      "avg_range_usd": 72.1095,
+      "p_high_vol_empirical": 0.2257,
+      "bar_count": 1143
     },
     {
       "slot": 85,
       "label": "21:15",
       "utc_hour": 21,
       "utc_minute": 15,
-      "avg_range_atr": 0.9841,
-      "avg_range_usd": 65.4865,
-      "p_high_vol_empirical": 0.2363,
-      "bar_count": 1041
+      "avg_range_atr": 0.9707,
+      "avg_range_usd": 65.9668,
+      "p_high_vol_empirical": 0.2257,
+      "bar_count": 1143
     },
     {
       "slot": 86,
       "label": "21:30",
       "utc_hour": 21,
       "utc_minute": 30,
-      "avg_range_atr": 1.0445,
-      "avg_range_usd": 70.6541,
-      "p_high_vol_empirical": 0.2229,
-      "bar_count": 1041
+      "avg_range_atr": 1.0256,
+      "avg_range_usd": 70.5649,
+      "p_high_vol_empirical": 0.2196,
+      "bar_count": 1143
     },
     {
       "slot": 87,
       "label": "21:45",
       "utc_hour": 21,
       "utc_minute": 45,
-      "avg_range_atr": 0.975,
-      "avg_range_usd": 66.5753,
-      "p_high_vol_empirical": 0.2728,
-      "bar_count": 1041
+      "avg_range_atr": 0.9601,
+      "avg_range_usd": 66.6122,
+      "p_high_vol_empirical": 0.2563,
+      "bar_count": 1143
     },
     {
       "slot": 88,
       "label": "22:00",
       "utc_hour": 22,
       "utc_minute": 0,
-      "avg_range_atr": 1.0264,
-      "avg_range_usd": 69.7097,
-      "p_high_vol_empirical": 0.2204,
-      "bar_count": 1039
+      "avg_range_atr": 1.0097,
+      "avg_range_usd": 69.696,
+      "p_high_vol_empirical": 0.2138,
+      "bar_count": 1141
     },
     {
       "slot": 89,
       "label": "22:15",
       "utc_hour": 22,
       "utc_minute": 15,
-      "avg_range_atr": 0.9783,
-      "avg_range_usd": 66.7678,
-      "p_high_vol_empirical": 0.3157,
-      "bar_count": 1039
+      "avg_range_atr": 0.9674,
+      "avg_range_usd": 67.2723,
+      "p_high_vol_empirical": 0.2997,
+      "bar_count": 1141
     },
     {
       "slot": 90,
       "label": "22:30",
       "utc_hour": 22,
       "utc_minute": 30,
-      "avg_range_atr": 1.0724,
-      "avg_range_usd": 73.0104,
-      "p_high_vol_empirical": 0.6083,
-      "bar_count": 1039
+      "avg_range_atr": 1.0563,
+      "avg_range_usd": 73.0798,
+      "p_high_vol_empirical": 0.5872,
+      "bar_count": 1141
     },
     {
       "slot": 91,
       "label": "22:45",
       "utc_hour": 22,
       "utc_minute": 45,
-      "avg_range_atr": 1.3711,
-      "avg_range_usd": 94.2261,
-      "p_high_vol_empirical": 0.1193,
-      "bar_count": 1039
+      "avg_range_atr": 1.3504,
+      "avg_range_usd": 93.896,
+      "p_high_vol_empirical": 0.1245,
+      "bar_count": 1141
     },
     {
       "slot": 92,
       "label": "23:00",
       "utc_hour": 23,
       "utc_minute": 0,
-      "avg_range_atr": 0.7931,
-      "avg_range_usd": 53.3203,
-      "p_high_vol_empirical": 0.026,
-      "bar_count": 1037
+      "avg_range_atr": 0.8043,
+      "avg_range_usd": 55.2659,
+      "p_high_vol_empirical": 0.0272,
+      "bar_count": 1139
     },
     {
       "slot": 93,
       "label": "23:15",
       "utc_hour": 23,
       "utc_minute": 15,
-      "avg_range_atr": 0.4433,
-      "avg_range_usd": 29.8148,
-      "p_high_vol_empirical": 0.0212,
-      "bar_count": 1037
+      "avg_range_atr": 0.4547,
+      "avg_range_usd": 31.2278,
+      "p_high_vol_empirical": 0.0219,
+      "bar_count": 1139
     },
     {
       "slot": 94,
       "label": "23:30",
       "utc_hour": 23,
       "utc_minute": 30,
-      "avg_range_atr": 0.3763,
-      "avg_range_usd": 23.8586,
-      "p_high_vol_empirical": 0.0077,
-      "bar_count": 1035
+      "avg_range_atr": 0.3862,
+      "avg_range_usd": 24.9926,
+      "p_high_vol_empirical": 0.0079,
+      "bar_count": 1137
     },
     {
       "slot": 95,
       "label": "23:45",
       "utc_hour": 23,
       "utc_minute": 45,
-      "avg_range_atr": 0.3585,
-      "avg_range_usd": 21.5172,
-      "p_high_vol_empirical": 0.113,
-      "bar_count": 1035
+      "avg_range_atr": 0.3675,
+      "avg_range_usd": 22.539,
+      "p_high_vol_empirical": 0.1214,
+      "bar_count": 1137
     }
   ],
   "hourly": {
@@ -1001,187 +1001,187 @@
       },
       {
         "hour_utc": 1,
-        "avg_range_price": 29.4897,
-        "avg_range_atr": 0.5469,
-        "avg_abs_ret": 0.000469,
-        "p_high_vol_empirical": 0.0225,
-        "bar_count": 4320
+        "avg_range_price": 31.0265,
+        "avg_range_atr": 0.5552,
+        "avg_abs_ret": 0.000484,
+        "p_high_vol_empirical": 0.0247,
+        "bar_count": 4743
       },
       {
         "hour_utc": 2,
-        "avg_range_price": 24.5169,
-        "avg_range_atr": 0.5345,
-        "avg_abs_ret": 0.000326,
-        "p_high_vol_empirical": 0.051,
-        "bar_count": 4319
+        "avg_range_price": 25.2291,
+        "avg_range_atr": 0.5347,
+        "avg_abs_ret": 0.000325,
+        "p_high_vol_empirical": 0.0536,
+        "bar_count": 4743
       },
       {
         "hour_utc": 3,
-        "avg_range_price": 28.6807,
-        "avg_range_atr": 0.6913,
-        "avg_abs_ret": 0.00038,
-        "p_high_vol_empirical": 0.0588,
-        "bar_count": 4321
+        "avg_range_price": 30.4331,
+        "avg_range_atr": 0.7046,
+        "avg_abs_ret": 0.00039,
+        "p_high_vol_empirical": 0.0629,
+        "bar_count": 4745
       },
       {
         "hour_utc": 4,
-        "avg_range_price": 24.7826,
-        "avg_range_atr": 0.6596,
-        "avg_abs_ret": 0.000336,
-        "p_high_vol_empirical": 0.0574,
-        "bar_count": 4320
+        "avg_range_price": 26.1932,
+        "avg_range_atr": 0.6689,
+        "avg_abs_ret": 0.000344,
+        "p_high_vol_empirical": 0.0582,
+        "bar_count": 4744
       },
       {
         "hour_utc": 5,
-        "avg_range_price": 20.627,
-        "avg_range_atr": 0.6057,
-        "avg_abs_ret": 0.000277,
+        "avg_range_price": 21.5526,
+        "avg_range_atr": 0.6091,
+        "avg_abs_ret": 0.00028,
         "p_high_vol_empirical": 0.0329,
-        "bar_count": 4317
+        "bar_count": 4741
       },
       {
         "hour_utc": 6,
-        "avg_range_price": 18.0368,
-        "avg_range_atr": 0.5954,
-        "avg_abs_ret": 0.000242,
-        "p_high_vol_empirical": 0.0387,
-        "bar_count": 4318
+        "avg_range_price": 18.9093,
+        "avg_range_atr": 0.6002,
+        "avg_abs_ret": 0.000245,
+        "p_high_vol_empirical": 0.038,
+        "bar_count": 4742
       },
       {
         "hour_utc": 7,
-        "avg_range_price": 17.6094,
-        "avg_range_atr": 0.6502,
-        "avg_abs_ret": 0.000236,
-        "p_high_vol_empirical": 0.0744,
-        "bar_count": 4316
+        "avg_range_price": 18.2687,
+        "avg_range_atr": 0.6501,
+        "avg_abs_ret": 0.000237,
+        "p_high_vol_empirical": 0.0738,
+        "bar_count": 4740
       },
       {
         "hour_utc": 8,
-        "avg_range_price": 22.2499,
-        "avg_range_atr": 0.8791,
-        "avg_abs_ret": 0.000299,
-        "p_high_vol_empirical": 0.2676,
-        "bar_count": 4316
+        "avg_range_price": 23.1662,
+        "avg_range_atr": 0.8801,
+        "avg_abs_ret": 0.000302,
+        "p_high_vol_empirical": 0.2627,
+        "bar_count": 4740
       },
       {
         "hour_utc": 9,
-        "avg_range_price": 29.6784,
-        "avg_range_atr": 1.1643,
-        "avg_abs_ret": 0.000415,
-        "p_high_vol_empirical": 0.4796,
-        "bar_count": 4316
+        "avg_range_price": 30.486,
+        "avg_range_atr": 1.1562,
+        "avg_abs_ret": 0.000413,
+        "p_high_vol_empirical": 0.4755,
+        "bar_count": 4740
       },
       {
         "hour_utc": 10,
-        "avg_range_price": 43.659,
-        "avg_range_atr": 1.507,
-        "avg_abs_ret": 0.000606,
-        "p_high_vol_empirical": 0.6376,
-        "bar_count": 4316
+        "avg_range_price": 44.2408,
+        "avg_range_atr": 1.487,
+        "avg_abs_ret": 0.000597,
+        "p_high_vol_empirical": 0.6264,
+        "bar_count": 4740
       },
       {
         "hour_utc": 11,
-        "avg_range_price": 37.5645,
-        "avg_range_atr": 1.1949,
-        "avg_abs_ret": 0.000508,
-        "p_high_vol_empirical": 0.3474,
-        "bar_count": 4318
+        "avg_range_price": 39.0491,
+        "avg_range_atr": 1.2005,
+        "avg_abs_ret": 0.000511,
+        "p_high_vol_empirical": 0.352,
+        "bar_count": 4742
       },
       {
         "hour_utc": 12,
-        "avg_range_price": 31.9933,
-        "avg_range_atr": 0.9981,
-        "avg_abs_ret": 0.000433,
-        "p_high_vol_empirical": 0.2375,
-        "bar_count": 4316
+        "avg_range_price": 33.4495,
+        "avg_range_atr": 1.0046,
+        "avg_abs_ret": 0.00044,
+        "p_high_vol_empirical": 0.2439,
+        "bar_count": 4740
       },
       {
         "hour_utc": 13,
-        "avg_range_price": 33.9613,
-        "avg_range_atr": 1.0371,
-        "avg_abs_ret": 0.000456,
-        "p_high_vol_empirical": 0.2828,
-        "bar_count": 4318
+        "avg_range_price": 35.7906,
+        "avg_range_atr": 1.0464,
+        "avg_abs_ret": 0.000464,
+        "p_high_vol_empirical": 0.2908,
+        "bar_count": 4742
       },
       {
         "hour_utc": 14,
-        "avg_range_price": 36.2572,
-        "avg_range_atr": 1.078,
-        "avg_abs_ret": 0.000495,
-        "p_high_vol_empirical": 0.3127,
-        "bar_count": 4317
+        "avg_range_price": 38.9506,
+        "avg_range_atr": 1.0911,
+        "avg_abs_ret": 0.000513,
+        "p_high_vol_empirical": 0.32,
+        "bar_count": 4741
       },
       {
         "hour_utc": 15,
-        "avg_range_price": 50.1999,
-        "avg_range_atr": 1.3796,
-        "avg_abs_ret": 0.000705,
-        "p_high_vol_empirical": 0.4863,
-        "bar_count": 4318
+        "avg_range_price": 52.1434,
+        "avg_range_atr": 1.3738,
+        "avg_abs_ret": 0.000707,
+        "p_high_vol_empirical": 0.4829,
+        "bar_count": 4742
       },
       {
         "hour_utc": 16,
-        "avg_range_price": 88.2729,
-        "avg_range_atr": 1.9795,
-        "avg_abs_ret": 0.001191,
-        "p_high_vol_empirical": 0.8767,
-        "bar_count": 4316
+        "avg_range_price": 91.8231,
+        "avg_range_atr": 1.977,
+        "avg_abs_ret": 0.001204,
+        "p_high_vol_empirical": 0.8753,
+        "bar_count": 4734
       },
       {
         "hour_utc": 17,
-        "avg_range_price": 91.631,
-        "avg_range_atr": 1.5509,
+        "avg_range_price": 94.3234,
+        "avg_range_atr": 1.542,
         "avg_abs_ret": 0.001225,
-        "p_high_vol_empirical": 0.6173,
-        "bar_count": 4312
+        "p_high_vol_empirical": 0.6081,
+        "bar_count": 4728
       },
       {
         "hour_utc": 18,
-        "avg_range_price": 72.8225,
-        "avg_range_atr": 1.1313,
-        "avg_abs_ret": 0.000968,
-        "p_high_vol_empirical": 0.3102,
-        "bar_count": 4311
+        "avg_range_price": 74.7043,
+        "avg_range_atr": 1.1234,
+        "avg_abs_ret": 0.000965,
+        "p_high_vol_empirical": 0.3022,
+        "bar_count": 4728
       },
       {
         "hour_utc": 19,
-        "avg_range_price": 63.6393,
-        "avg_range_atr": 0.9796,
-        "avg_abs_ret": 0.000835,
-        "p_high_vol_empirical": 0.224,
-        "bar_count": 4308
+        "avg_range_price": 64.8879,
+        "avg_range_atr": 0.9693,
+        "avg_abs_ret": 0.000825,
+        "p_high_vol_empirical": 0.2172,
+        "bar_count": 4728
       },
       {
         "hour_utc": 20,
-        "avg_range_price": 64.9164,
-        "avg_range_atr": 0.9725,
-        "avg_abs_ret": 0.000875,
-        "p_high_vol_empirical": 0.2263,
-        "bar_count": 4185
+        "avg_range_price": 65.8385,
+        "avg_range_atr": 0.9616,
+        "avg_abs_ret": 0.000866,
+        "p_high_vol_empirical": 0.2163,
+        "bar_count": 4596
       },
       {
         "hour_utc": 21,
-        "avg_range_price": 68.5598,
-        "avg_range_atr": 1.021,
-        "avg_abs_ret": 0.000921,
-        "p_high_vol_empirical": 0.2411,
-        "bar_count": 4164
+        "avg_range_price": 68.8134,
+        "avg_range_atr": 1.0057,
+        "avg_abs_ret": 0.000904,
+        "p_high_vol_empirical": 0.2318,
+        "bar_count": 4572
       },
       {
         "hour_utc": 22,
-        "avg_range_price": 75.9285,
-        "avg_range_atr": 1.112,
-        "avg_abs_ret": 0.001016,
-        "p_high_vol_empirical": 0.3159,
-        "bar_count": 4156
+        "avg_range_price": 75.986,
+        "avg_range_atr": 1.096,
+        "avg_abs_ret": 0.000996,
+        "p_high_vol_empirical": 0.3063,
+        "bar_count": 4564
       },
       {
         "hour_utc": 23,
-        "avg_range_price": 32.1368,
-        "avg_range_atr": 0.4929,
-        "avg_abs_ret": 0.000419,
-        "p_high_vol_empirical": 0.042,
-        "bar_count": 4144
+        "avg_range_price": 33.5149,
+        "avg_range_atr": 0.5033,
+        "avg_abs_ret": 0.000425,
+        "p_high_vol_empirical": 0.0446,
+        "bar_count": 4552
       }
     ],
     "bands": {
@@ -1196,10 +1196,10 @@
           6
         ],
         "label": "Asia (00-07 UTC)",
-        "avg_range_price": 23.7954,
-        "avg_range_atr": 0.588,
-        "p_high_vol_empirical": 0.0427,
-        "bar_count": 27065
+        "avg_range_price": 24.9985,
+        "avg_range_atr": 0.5959,
+        "p_high_vol_empirical": 0.0442,
+        "bar_count": 29608
       },
       "london": {
         "hours": [
@@ -1209,10 +1209,10 @@
           10
         ],
         "label": "London (07-11 UTC)",
-        "avg_range_price": 28.2992,
-        "avg_range_atr": 1.0501,
-        "p_high_vol_empirical": 0.3648,
-        "bar_count": 17264
+        "avg_range_price": 29.0404,
+        "avg_range_atr": 1.0433,
+        "p_high_vol_empirical": 0.3596,
+        "bar_count": 18960
       },
       "ny": {
         "hours": [
@@ -1223,10 +1223,10 @@
           16
         ],
         "label": "Overlap / New York (12-17 UTC)",
-        "avg_range_price": 48.1353,
-        "avg_range_atr": 1.2944,
-        "p_high_vol_empirical": 0.4392,
-        "bar_count": 21585
+        "avg_range_price": 50.4194,
+        "avg_range_atr": 1.2984,
+        "p_high_vol_empirical": 0.4424,
+        "bar_count": 23699
       },
       "off": {
         "hours": [
@@ -1240,22 +1240,22 @@
           23
         ],
         "label": "Off-hours (incl. 11 UTC)",
-        "avg_range_price": 63.464,
-        "avg_range_atr": 1.0599,
-        "p_high_vol_empirical": 0.2921,
-        "bar_count": 33898
+        "avg_range_price": 64.7055,
+        "avg_range_atr": 1.0532,
+        "p_high_vol_empirical": 0.2863,
+        "bar_count": 37210
       }
     },
-    "note": "US30 has a daily session break 00:00-01:00 UTC on most days: hour_utc 0 is PARTIALLY present (1150 bars, ~27% of days) \u2014 its stats are computed from the bars that exist. Same definitions as sessions.json."
+    "note": "US30 has a daily session break 00:00-01:00 UTC on most days: hour_utc 0 is PARTIALLY present (1150 bars, ~24% of days) \u2014 its stats are computed from the bars that exist. Same definitions as sessions.json."
   },
   "highlights": {
     "hottest_slot": {
       "slot": 66,
       "label": "16:30",
-      "avg_range_atr": 3.0967,
-      "avg_range_usd": 141.9408,
-      "p_high_vol_empirical": 0.9546,
-      "bar_count": 1079
+      "avg_range_atr": 3.0938,
+      "avg_range_usd": 147.785,
+      "p_high_vol_empirical": 0.9518,
+      "bar_count": 1183
     },
     "quietest_slot": {
       "slot": 2,
@@ -1270,63 +1270,63 @@
       {
         "slot": 66,
         "label": "16:30",
-        "avg_range_atr": 3.0967,
-        "avg_range_usd": 141.9408,
-        "p_high_vol_empirical": 0.9546,
-        "bar_count": 1079
+        "avg_range_atr": 3.0938,
+        "avg_range_usd": 147.785,
+        "p_high_vol_empirical": 0.9518,
+        "bar_count": 1183
       },
       {
         "slot": 67,
         "label": "16:45",
-        "avg_range_atr": 2.1062,
-        "avg_range_usd": 107.7968,
-        "p_high_vol_empirical": 0.9045,
-        "bar_count": 1078
+        "avg_range_atr": 2.1017,
+        "avg_range_usd": 111.8091,
+        "p_high_vol_empirical": 0.8993,
+        "bar_count": 1182
       },
       {
         "slot": 68,
         "label": "17:00",
-        "avg_range_atr": 1.9447,
-        "avg_range_usd": 108.838,
-        "p_high_vol_empirical": 0.7774,
-        "bar_count": 1078
+        "avg_range_atr": 1.9259,
+        "avg_range_usd": 111.4078,
+        "p_high_vol_empirical": 0.7665,
+        "bar_count": 1182
       },
       {
         "slot": 62,
         "label": "15:30",
-        "avg_range_atr": 1.9109,
-        "avg_range_usd": 74.3578,
-        "p_high_vol_empirical": 0.437,
-        "bar_count": 1080
+        "avg_range_atr": 1.8728,
+        "avg_range_usd": 75.1298,
+        "p_high_vol_empirical": 0.4317,
+        "bar_count": 1186
       },
       {
         "slot": 40,
         "label": "10:00",
-        "avg_range_atr": 1.8056,
-        "avg_range_usd": 50.1214,
-        "p_high_vol_empirical": 0.7581,
-        "bar_count": 1079
+        "avg_range_atr": 1.7802,
+        "avg_range_usd": 50.8121,
+        "p_high_vol_empirical": 0.7333,
+        "bar_count": 1185
       }
     ],
-    "ny_vs_asia_vol_ratio": 2.201,
-    "ny_vs_asia_note": "mean bar range in ATR units: NY band (1.2944x ATR) vs Asia band (0.588x ATR), full M15 history"
+    "ny_vs_asia_vol_ratio": 2.179,
+    "ny_vs_asia_note": "mean bar range in ATR units: NY band (1.2984x ATR) vs Asia band (0.5959x ATR), full M15 history"
   },
   "econ": {
-    "source": "results/us30_scalping_econ.csv (Stage-2 research, cited \u2014 not recomputed)",
+    "source": "results/us30_scalping_econ.csv (Phase-17 refreshed research, cited \u2014 not recomputed)",
     "trade_model": "1:2 RR, SL = 1xATR14, TP = 2xATR14, entry cost = spread; breakeven win% p* = (1 + spread/ATR) / 3",
-    "median_spread_atr": 0.085,
+    "median_spread_atr": 0.077,
     "median_spread_usd": 2.6,
-    "median_atr_usd": 37.02,
-    "pct_bars_spread_gt_25pct_atr": 3.1,
-    "breakeven_win_pct_median": 36.2,
+    "median_atr_usd": 38.54,
+    "pct_bars_spread_gt_25pct_atr": 2.8,
+    "breakeven_win_pct_median": 35.9,
     "gold_reference_win_pct": 33.4,
-    "breakeven_gap_pp": 2.7,
-    "verdict": "US30 M15 spread tax: median spread is 8.5% of ATR, pushing the 1:2-RR breakeven win rate to 36.2% \u2014 +2.7pp vs the 33.4% verified reference. This export carries no directional edge, only the clock."
+    "breakeven_gap_pp": 2.5,
+    "verdict": "US30 M15 spread tax: median spread is 7.7% of ATR, pushing the 1:2-RR breakeven win rate to 35.9% \u2014 +2.5pp vs the 33.4% verified reference. This export carries no directional edge, only the clock."
   },
   "guidance": {
     "hot_slots": "Hottest slots (e.g. 16:30 UTC: 3.1x ATR, 95% high-vol hit rate): size down or widen SL \u2014 US30's volatility is predictable by the clock, direction is not. A 2x-ATR M15 bar cuts both ways.",
     "quiet_slots": "Quiet slots (e.g. 00:30 UTC at 0.2x ATR): poor RR environment \u2014 the spread eats small ranges, so expected value after costs is worse than the raw calm suggests.",
-    "economics": "Median spread is 8.5% of ATR and 3.1% of bars have spread > 25% of ATR. Breakeven at 1:2 RR needs 36.2% wins vs the 33.4% verified reference \u2014 a +2.7pp spread tax. The clock tells you WHEN US30 moves, not WHICH WAY.",
-    "general": "This is a static research export, not a signal service: volatility by slot is an empirical average over 2022-01 to 2026-03, not a forecast for any specific day."
+    "economics": "Median spread is 7.7% of ATR and 2.8% of bars have spread > 25% of ATR. Breakeven at 1:2 RR needs 35.9% wins vs the 33.4% verified reference \u2014 a +2.5pp spread tax. The clock tells you WHEN US30 moves, not WHICH WAY.",
+    "general": "This is a static research export, not a signal service: volatility by slot is an empirical average over 2022-01 to 2026-08, not a forecast for any specific day."
   }
 }
