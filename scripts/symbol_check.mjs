@@ -99,10 +99,12 @@ const EXPECTED = {
     suffix: "_nas100",
     londonHours: [7, 8, 9, 10, 11],
     validation: {
-      hvolAccuracyPct: 82.98,
-      hvolAuc: 0.8726,
+      // Phase 18 refresh: classic-GBM OOS on the 2026-08-04 data
+      // (results/phase18_gbm_classic_nas100_oos.csv).
+      hvolAccuracyPct: 83.28,
+      hvolAuc: 0.8716,
       hvolAucDecimals: 4,
-      bars: 26798,
+      bars: 27098,
       directionModelPct: 51.63,
       directionAlwaysUpPct: 52.91,
       driftPeriod: "2022–2026",
@@ -295,7 +297,7 @@ const main = async () => {
       useSymbolSrc.includes("Data: MT5 NAS100 M15 · 100,317 bars · Static research export · As of 2026-05-21 11:00 UTC") &&
       useSymbolSrc.includes("Data: OANDA XAUUSD H1/D1 · Precomputed engine export · As of 2026-08-04 16:00 UTC") &&
       useSymbolSrc.includes("Data: OANDA XAUUSD H4/D1 · Precomputed engine export · As of 2026-07-03 16:00 UTC") &&
-      useSymbolSrc.includes("Data: MT5 NAS100 H1/D1 · Precomputed engine export · As of 2026-07-17 15:00 UTC") &&
+      useSymbolSrc.includes("Data: MT5 NAS100 H1/D1 · Precomputed engine export · As of 2026-08-04 16:00 UTC") &&
       useSymbolSrc.includes("Data: MT5 NAS100 H4/D1 · Precomputed engine export · As of 2026-07-03 16:00 UTC"),
   );
 

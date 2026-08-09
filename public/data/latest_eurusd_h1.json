@@ -1,25 +1,25 @@
 {
-  "asof": "2026-07-03 16:00:00",
+  "asof": "2026-08-04 16:00:00",
   "session": "ny",
-  "regime": "trending",
-  "p_high_vol": 0.7632,
-  "expected_range_atr": 1.8847,
-  "expected_range_price": 0.002,
+  "regime": "ranging",
+  "p_high_vol": 0.7815,
+  "expected_range_atr": 1.8474,
+  "expected_range_price": 0.0018,
   "cone": {
     "T1": {
-      "half_width": 0.002
+      "half_width": 0.0018
     },
     "T2": {
-      "half_width": 0.0029
+      "half_width": 0.0026
     },
     "T3": {
-      "half_width": 0.0035
+      "half_width": 0.0032
     }
   },
   "direction_policy": "drift",
-  "drift_sign": -1,
+  "drift_sign": 1,
   "confidence": 5,
-  "engine_version": "goldcast-gbm-classic-eurusd-h1/15.0",
-  "price": 1.14404,
-  "atr14": 0.0011
+  "engine_version": "goldcast-gbm-classic-eurusd-h1/18.0",
+  "price": 1.15236,
+  "atr14": 0.001
 }
