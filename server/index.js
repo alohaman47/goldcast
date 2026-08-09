@@ -7,7 +7,7 @@
 import express from "express";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { createCalendarHandler } from "./calendar.js";
+import { createCalendarStore, buildNewsBlock, NEWS_RULE_LINE } from "./calendar.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DIST = path.join(__dirname, "..", "dist");
@@ -65,10 +65,14 @@ const MODE_INSTRUCTIONS = {
 
 const VALID_MODES = new Set(Object.keys(MODE_INSTRUCTIONS));
 
-function buildMessages(body) {
+function buildMessages(body, newsBlock = "") {
   const { mode, symbol, tf, route, tz, messages, context } = body;
 
-  const system = `${BASE_SYSTEM_PROMPT}\n${MODE_INSTRUCTIONS[mode]}`;
+  // While news is in context, extend the iron rule: no predicting the
+  // outcome of scheduled events or the price direction from them.
+  const system =
+    `${BASE_SYSTEM_PROMPT}\n${MODE_INSTRUCTIONS[mode]}` +
+    (newsBlock ? `\n${NEWS_RULE_LINE}` : "");
 
   const meta = { symbol, tf, route, tz };
   let contextJson;
@@ -77,12 +81,16 @@ function buildMessages(body) {
   } catch {
     contextJson = "{}";
   }
-  if (contextJson.length > MAX_CONTEXT_CHARS) {
-    contextJson = contextJson.slice(0, MAX_CONTEXT_CHARS);
+  // News shares the 12k context budget: shrink the context cap by the news
+  // block's size so context + news never exceed MAX_CONTEXT_CHARS together.
+  const contextCap = Math.max(0, MAX_CONTEXT_CHARS - (newsBlock ? newsBlock.length + 1 : 0));
+  if (contextJson.length > contextCap) {
+    contextJson = contextJson.slice(0, contextCap);
   }
   const firstUser =
     `ข้อมูลหน้าจอปัจจุบัน (meta): ${JSON.stringify(meta)}\n` +
-    `context: ${contextJson}`;
+    `context: ${contextJson}` +
+    (newsBlock ? `\n${newsBlock}` : "");
 
   const history = Array.isArray(messages)
     ? messages
@@ -128,9 +136,20 @@ app.post("/api/professor", async (req, res) => {
     return res.status(400).json({ error: "invalid body", detail: "ต้องส่ง context เป็น object (ห้ามเป็น array/null)" });
   }
 
+  // News injection (best-effort): attach today's/tomorrow's High/Medium
+  // impact events for the symbol's currencies. A calendar failure must NEVER
+  // break Professor — skip the news block and answer normally.
+  let newsBlock = "";
+  try {
+    const { events } = await calendarStore.getEvents();
+    newsBlock = buildNewsBlock(events, body.symbol);
+  } catch {
+    newsBlock = "";
+  }
+
   let kimiMessages;
   try {
-    kimiMessages = buildMessages(body);
+    kimiMessages = buildMessages(body, newsBlock);
   } catch (e) {
     return res.status(400).json({ error: "invalid body", detail: String(e?.message || e) });
   }
@@ -226,7 +245,13 @@ app.post("/api/professor", async (req, res) => {
 });
 
 // ─── Economic calendar (ForexFactory weekly XML → static CB fallback) ───────
-app.get("/api/economic-calendar", createCalendarHandler());
+// ONE shared store: GET /api/economic-calendar and the Professor news
+// injection both go through the same 1h cache. ECON_FALLBACK_PATH is a
+// test-only override for the static fallback location (default unchanged).
+const calendarStore = createCalendarStore(
+  process.env.ECON_FALLBACK_PATH ? { fallbackPath: process.env.ECON_FALLBACK_PATH } : {}
+);
+app.get("/api/economic-calendar", calendarStore.handler);
 
 // ─── Static SPA (equivalent to `serve -s dist`) ─────────────────────────────
 app.use(
