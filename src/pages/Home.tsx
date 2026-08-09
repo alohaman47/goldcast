@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion'
+import { Link } from 'react-router'
 import { useSymbolData } from '@/hooks/useData'
 import type { Bar, LatestData, SessionsData } from '@/hooks/useData'
 import { useSymbol, fmtSymPrice, dataSourceLabel, sessionsReusedFromGold } from '@/hooks/useSymbol'
@@ -50,6 +51,17 @@ const NO_FEED_ALERTS_STATE: LivePredictionState = {
   status: 'stale',
   error: 'no live feed for this symbol',
   computedAtMs: null,
+}
+
+/** Phase 18 Track U — ลิงก์เล็กๆ ไปหน้าอัปโหลด CSV ข้อมูล MT5 ท้ายหน้า Home. */
+function UploadFooterLink() {
+  return (
+    <div className="flex justify-center border-t border-line px-4 py-2.5">
+      <Link to="/upload" className="font-mono text-[11px] text-text2 transition-colors hover:text-gold">
+        อัปโหลดข้อมูล MT5 →
+      </Link>
+    </div>
+  )
 }
 
 function DashboardSkeleton() {
@@ -253,6 +265,9 @@ function LiveDashboard({
 
       {/* G. Status bar */}
       <SymbolStatusBar latest={effLatest} liveActive={liveActive} config={config} barsVerified={barsVerified(config)} />
+
+      {/* H. Data upload link (Phase 18 Track U) */}
+      <UploadFooterLink />
     </>
   )
 }
@@ -363,6 +378,9 @@ function StaticDashboard({
 
       {/* G. Status bar */}
       <SymbolStatusBar latest={latest} liveActive={false} config={config} barsVerified={barsVerified(config)} />
+
+      {/* H. Data upload link (Phase 18 Track U) */}
+      <UploadFooterLink />
     </>
   )
 }
