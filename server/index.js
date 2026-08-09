@@ -8,6 +8,7 @@ import express from "express";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { createCalendarStore, buildNewsBlock, NEWS_RULE_LINE } from "./calendar.js";
+import { createUploadRouter } from "./upload.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DIST = path.join(__dirname, "..", "dist");
@@ -253,6 +254,10 @@ const calendarStore = createCalendarStore(
 );
 app.get("/api/economic-calendar", calendarStore.handler);
 
+// MT5 CSV data upload (PIN-gated via UPLOAD_TOKEN env; 501 when unset).
+// Router is self-contained: parses its own text body, no new dependencies.
+app.use("/api/data-upload", createUploadRouter());
+
 // ─── Static SPA (equivalent to `serve -s dist`) ─────────────────────────────
 app.use(
   express.static(DIST, {
@@ -291,4 +296,5 @@ app.listen(PORT, () => {
   console.log(`  static: ${DIST} (SPA fallback)`);
   console.log(`  AI: ${MOONSHOT_API_KEY ? `configured (model ${KIMI_MODEL})` : "NOT configured (POST /api/professor → 501)"}`);
   console.log(`  calendar: GET /api/economic-calendar (ForexFactory weekly feed + static fallback)`);
+  console.log(`  upload: /api/data-upload ${process.env.UPLOAD_TOKEN ? "configured (PIN required)" : "NOT configured (→ 501)"}`);
 });
