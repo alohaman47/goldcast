@@ -80,10 +80,12 @@ const EXPECTED = {
     suffix: "",
     londonHours: [7, 8, 9, 10],
     validation: {
-      hvolAccuracyPct: 80.08,
-      hvolAuc: 0.778,
+      // Phase 17 Track D3 refresh: classic-GBM OOS on the refreshed
+      // 27,136-bar dataset (was 80.08 / 0.778 / 26,836 pre-refresh).
+      hvolAccuracyPct: 79.99,
+      hvolAuc: 0.775,
       hvolAucDecimals: 3,
-      bars: 26836,
+      bars: 27136,
       directionModelPct: 50.1,
       directionAlwaysUpPct: 52.1,
       driftPeriod: "2022–2026",
@@ -288,10 +290,10 @@ const main = async () => {
   );
   check(
     "Footer registry: all seven legacy exact lines (per-symbol scalper M15 + gold scalper M5 + per-symbol H1/H4 engine) pinned in SYMBOL_REGISTRY",
-    useSymbolSrc.includes("Data: MT5 XAUUSD M15 · 99,599 bars · Static research export · As of 2026-07-03 16:00 UTC") &&
+    useSymbolSrc.includes("Data: MT5 XAUUSD M15 · 108,473 bars · Static research export · As of 2026-08-04 16:00 UTC") &&
       useSymbolSrc.includes("Data: MT5 XAUUSD M5 · 325,160 bars · Static research export · As of 2026-08-04 16:00 UTC") &&
       useSymbolSrc.includes("Data: MT5 NAS100 M15 · 100,317 bars · Static research export · As of 2026-05-21 11:00 UTC") &&
-      useSymbolSrc.includes("Data: OANDA XAUUSD H1/D1 · Precomputed engine export · As of 2026-07-17 15:00 UTC") &&
+      useSymbolSrc.includes("Data: OANDA XAUUSD H1/D1 · Precomputed engine export · As of 2026-08-04 16:00 UTC") &&
       useSymbolSrc.includes("Data: OANDA XAUUSD H4/D1 · Precomputed engine export · As of 2026-07-03 16:00 UTC") &&
       useSymbolSrc.includes("Data: MT5 NAS100 H1/D1 · Precomputed engine export · As of 2026-07-17 15:00 UTC") &&
       useSymbolSrc.includes("Data: MT5 NAS100 H4/D1 · Precomputed engine export · As of 2026-07-03 16:00 UTC"),

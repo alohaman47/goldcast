@@ -108,17 +108,17 @@ export default function DatasetSection({ data }: { data: TruthData | null }) {
 
       <div ref={statsRef} className="mt-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
         <StatBlock
-          value={h1?.bars ?? 26836}
+          value={h1?.bars ?? 27136}
           format={(v) => Math.round(v).toLocaleString('en-US')}
           label="H1 bars"
-          sub={h1 ? `${h1.start} → ${h1.end}` : '2022-01-04 → 2026-07-17'}
+          sub={h1 ? `${h1.start} → ${h1.end}` : '2022-01-03 → 2026-08-04'}
           started={statsInView}
         />
         <StatBlock
-          value={d1?.bars ?? 1679}
+          value={d1?.bars ?? 1184}
           format={(v) => Math.round(v).toLocaleString('en-US')}
           label="D1 bars"
-          sub={d1 ? `${d1.start} → ${d1.end}` : '2020-01-02 → 2026-07-03'}
+          sub={d1 ? `${d1.start} → ${d1.end}` : '2022-01-03 → 2026-08-04'}
           started={statsInView}
         />
         <StatBlock value="H1 + D1" label="Timeframes" sub="Hourly engine + daily context" started={statsInView} />

@@ -20,7 +20,7 @@ const RANK_WIDTHS = [100, 88, 60, 44, 32]
  * plus the rejected list, deliberately demoted in gray.
  */
 export default function FeaturesSection({ data }: { data: TruthData | null }) {
-  const features = data?.phase2.top_features ?? ['hour_cos', 'hour_sin', 'ret1', 'rv20', 'rsi14']
+  const features = data?.phase2.top_features ?? ['hour_sin', 'hour_cos', 'ret3', 'macd_hist_raw', 'rv20']
   const fundamentalsDelta = typeof data?.phase2.fundamentals_delta === 'number' ? data.phase2.fundamentals_delta : 0.0
 
   return (

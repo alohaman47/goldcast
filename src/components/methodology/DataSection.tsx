@@ -25,9 +25,9 @@ export default function DataSection({ data }: { data: TruthData | null }) {
       >
         <p>
           <span className="font-semibold text-text0">Source.</span> OANDA XAUUSD spot. Two timeframes: H1 (
-          {h1 ? `${h1.bars.toLocaleString('en-US')} bars, ${h1.start} → ${h1.end}` : '26,836 bars, 2022-01-04 → 2026-07-17'}
+          {h1 ? `${h1.bars.toLocaleString('en-US')} bars, ${h1.start} → ${h1.end}` : '27,136 bars, 2022-01-03 → 2026-08-04'}
           ) for the engine, and D1 (
-          {d1 ? `${d1.bars.toLocaleString('en-US')} bars, ${d1.start} → ${d1.end}` : '1,679 bars, 2020-01-02 → 2026-07-03'}
+          {d1 ? `${d1.bars.toLocaleString('en-US')} bars, ${d1.start} → ${d1.end}` : '1,184 bars, 2022-01-03 → 2026-08-04'}
           ) for daily context.
         </p>
         <p>
@@ -44,8 +44,8 @@ export default function DataSection({ data }: { data: TruthData | null }) {
 
       <div ref={ref} className="grid grid-cols-2 gap-4 self-start">
         {[
-          { label: 'H1 bars', value: h1?.bars ?? 26836, format: (v: number) => Math.round(v).toLocaleString('en-US') },
-          { label: 'D1 bars', value: d1?.bars ?? 1679, format: (v: number) => Math.round(v).toLocaleString('en-US') },
+          { label: 'H1 bars', value: h1?.bars ?? 27136, format: (v: number) => Math.round(v).toLocaleString('en-US') },
+          { label: 'D1 bars', value: d1?.bars ?? 1184, format: (v: number) => Math.round(v).toLocaleString('en-US') },
         ].map((s) => (
           <div key={s.label} className="panel p-4">
             <span className="label-caps">{s.label}</span>

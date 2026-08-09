@@ -131,9 +131,9 @@ export default function Methodology() {
                     <span className="font-mono text-[13px] text-text0">P(next-bar range &gt; 1.2 × ATR14)</span> — the
                     high-vol probability. OOS:{' '}
                     <span className="font-mono text-[13px] font-semibold text-text0">
-                      {((hvol.accuracy ?? 0.8008) * 100).toFixed(2)}% accuracy, AUC {(hvol.auc ?? 0.778).toFixed(3)}
+                      {((hvol.accuracy ?? 0.8003) * 100).toFixed(2)}% accuracy, AUC {(hvol.auc ?? 0.777).toFixed(3)}
                     </span>{' '}
-                    vs {(hvol.baseline_class_prior_auc ?? 0.7418).toFixed(4)} class-prior baseline.
+                    vs {(hvol.baseline_class_prior_auc ?? 0.7419).toFixed(4)} class-prior baseline.
                   </p>
                 </div>
                 <div className="panel border-l-2 border-l-gold p-4">
@@ -141,11 +141,11 @@ export default function Methodology() {
                   <p className="mt-2 text-[14px] leading-6">
                     Expected next-bar range in ATR units —{' '}
                     <span className="font-mono text-[13px] font-semibold text-text0">
-                      MAE {(hrange.mae ?? 0.346).toFixed(3)}
+                      MAE {(hrange.mae ?? 0.3457).toFixed(3)}
                     </span>{' '}
-                    vs {(hrange.baseline_mae ?? 0.4316).toFixed(4)} baseline,{' '}
+                    vs {(hrange.baseline_mae ?? 0.431).toFixed(4)} baseline,{' '}
                     <span className="font-mono text-[13px] font-semibold text-text0">
-                      R² {(hrange.r2 ?? 0.286).toFixed(3)}
+                      R² {(hrange.r2 ?? 0.289).toFixed(3)}
                     </span>
                     .
                   </p>

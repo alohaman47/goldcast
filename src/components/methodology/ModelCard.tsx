@@ -8,7 +8,7 @@ const LINES = [
   ['engine:', 'vol_engine.pkl (sklearn HistGradientBoosting)'],
   ['classifier:', 'P(range[t+1] > 1.2 × ATR14[t])'],
   ['regressor:', 'E[range[t+1] / ATR14[t]]'],
-  ['features:', 'hour_cos, hour_sin, ret1, rv20, rsi14, ...'],
+  ['features:', 'hour_sin, hour_cos, ret3, macd_hist_raw, rv20, ...'],
   ['validation:', 'walk-forward, out-of-sample only'],
   ['export:', 'latest.json · bars.json · sessions.json · truth.json'],
   ['direction:', 'NOT MODELLED — see /truth'],
