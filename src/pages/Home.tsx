@@ -19,6 +19,7 @@ import GapBanner from '@/components/live/GapBanner'
 import StaticBadge from '@/components/symbol/StaticBadge'
 import SymbolSessionStrip from '@/components/symbol/SymbolSessionStrip'
 import SymbolStatusBar from '@/components/symbol/SymbolStatusBar'
+import NewsWarningBar from '@/components/news/NewsWarningBar'
 
 const EASE = [0.16, 1, 0.3, 1] as [number, number, number, number]
 
@@ -160,6 +161,9 @@ function LiveDashboard({
       {/* GAP banner: static history frozen, prediction still live */}
       {liveActive && live.farGap && <GapBanner gapHours={live.gapHours} lastStaticT={lastStatic.t} />}
 
+      {/* Phase 17 — scheduled-news warning (calendar feed, tz-aware) */}
+      <NewsWarningBar className="mx-4 mt-4" />
+
       {/* terminal grid: chart + evidence rail / forecast / sessions */}
       <div className="grid flex-1 gap-4 p-4 xl:grid-cols-[1fr_380px]">
         {/* A. Chart panel */}
@@ -278,6 +282,9 @@ function StaticDashboard({
 
   return (
     <>
+      {/* Phase 17 — scheduled-news warning (calendar feed, tz-aware) */}
+      <NewsWarningBar className="mx-4 mt-4" />
+
       {/* terminal grid: chart + evidence rail / forecast / sessions */}
       <div className="grid flex-1 gap-4 p-4 xl:grid-cols-[1fr_380px]">
         {/* A. Chart panel */}

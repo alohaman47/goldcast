@@ -861,6 +861,52 @@ const main = async () => {
       homePage.includes("sessionsReusedFromGold"),
   );
 
+  // ---- CHECK 11 — Phase 17 Track B: economic calendar frontend -------------
+  // newsCurrencies registry field + useEconCalendar hook + NewsWarningBar
+  // wired into the Scalper's Clock and both dashboards, tz-aware, source-badged.
+  console.log("\n[CHECK 11 — Phase 17 Track B: economic calendar frontend]");
+  const EXPECTED_NEWS_CCYS = {
+    XAUUSD: ["USD"],
+    NAS100: ["USD"],
+    US30: ["USD"],
+    GER40: ["EUR", "USD"],
+    EURUSD: ["EUR", "USD"],
+    GBPUSD: ["GBP", "USD"],
+    USDJPY: ["USD", "JPY"],
+  };
+  check(
+    "newsCurrencies: every registry entry carries the expected feed currency codes (feed covers USD/EUR/GBP/JPY)",
+    Object.entries(EXPECTED_NEWS_CCYS).every(
+      ([id, ccys]) => JSON.stringify(SYMBOL_REGISTRY[id]?.newsCurrencies) === JSON.stringify(ccys),
+    ),
+  );
+  const econHook = await readSrc("hooks/useEconCalendar.ts");
+  check(
+    "useEconCalendar: locked contract (GET /api/economic-calendar, events/timeUtc/impact, source forexfactory|static-fallback)",
+    econHook.includes("'/api/economic-calendar'") &&
+      econHook.includes("timeUtc") &&
+      econHook.includes("forexfactory") &&
+      econHook.includes("static-fallback"),
+  );
+  const newsBar = await readSrc("components/news/NewsWarningBar.tsx");
+  check(
+    "NewsWarningBar: registry-driven currencies, tz-aware times, source badge, honest empty/error states",
+    newsBar.includes("entry.newsCurrencies") &&
+      newsBar.includes("useTimezone") &&
+      newsBar.includes("useEconCalendar") &&
+      newsBar.includes("static fallback") &&
+      newsBar.includes("calendar unavailable"),
+  );
+  check(
+    "NewsWarningBar wired into ScalperClock page",
+    scalperPage.includes("NewsWarningBar"),
+  );
+  check(
+    "NewsWarningBar wired into Home (live + static dashboards)",
+    homePage.includes("NewsWarningBar") &&
+      (homePage.match(/<NewsWarningBar/g) ?? []).length >= 2,
+  );
+
   await fs.unlink(uiOutfile).catch(() => {});
   await fs.unlink(dataOutfile).catch(() => {});
   await fs.unlink(outfile).catch(() => {});

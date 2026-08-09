@@ -12,6 +12,7 @@ import EconPanel from '@/components/scalper/EconPanel'
 import GuidancePanel from '@/components/scalper/GuidancePanel'
 import HourlyStrip from '@/components/scalper/HourlyStrip'
 import ScalperTfToggle from '@/components/scalper/ScalperTfToggle'
+import NewsWarningBar from '@/components/news/NewsWarningBar'
 import {
   TERMINAL_EASE,
   scalperVerdictChip,
@@ -48,6 +49,10 @@ export default function ScalperClock() {
   return (
     <div className="mx-auto w-full max-w-[1180px] px-6 pb-24 pt-14">
       <Hero data={data} now={now} loading={loading} symbol={symbol} stf={stf} setStf={setStf} tz={tz} />
+
+      {/* Phase 17 — scheduled-news warning (feed-driven, tz-aware; the slot
+          map is empirical seasonality, this bar is the CALENDAR). */}
+      <NewsWarningBar className="mt-10" />
 
       {error && (
         <div className="panel mt-10 border-l-2 border-l-down p-5 font-mono text-[13px] text-down">
