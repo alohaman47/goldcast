@@ -56,8 +56,23 @@ git push -u origin main
 3. Railway จะเจอ `Dockerfile` ของเราเองอัตโนมัติ → **ไม่ต้องตั้งค่าอะไรเพิ่ม** (build + serve อยู่ใน Dockerfile หมดแล้ว)
 4. รอ build สัก 2–4 นาที → ไปที่ **Settings → Networking → Generate Domain** → ได้ลิงก์สาธารณะ เช่น `goldcast-production.up.railway.app` 🎉
 
+### 🤖 เปิดใช้ AI Professor (ถ้าต้องการ — ไม่ตั้งก็ได้)
+
+แอปมีปุ่ม AI Professor ที่เรียก `POST /api/professor` ผ่าน backend proxy ตัวเล็กใน `server/index.js` — ต้องมี key ของ Kimi (Moonshot AI) ถึงจะใช้ได้:
+
+1. สมัคร/เอา key ที่ https://platform.moonshot.ai (หน้า API Keys)
+2. ใน Railway → เปิด **project → บริการ goldcast → Variables**
+3. เพิ่มตัวแปร:
+   - `MOONSHOT_API_KEY` = key ที่ได้มา (ขึ้นต้นด้วย `sk-...`) ← **บังคับถ้าจะใช้ AI**
+   - `KIMI_MODEL` = `kimi-k2.6` ← optional (ค่า default อยู่แล้ว เปลี่ยนได้ถ้าอยากใช้โมเดลอื่น)
+4. Railway จะ redeploy อัตโนมัติ → เปิดเว็บแล้วลองปุ่ม Professor ได้เลย
+
+**ถ้าไม่ตั้ง `MOONSHOT_API_KEY`** → API จะตอบ `501 {"error":"AI not configured"}` และหน้าเว็บจะขึ้น "ยังไม่ได้ตั้งค่า key" — ส่วนอื่นของแอปใช้ได้ปกติทั้งหมด
+
+> 🔒 key อยู่บน server เท่านั้น (ฝั่งหน้าเว็บไม่เห็น) — อย่าใส่ key จริงลงในโค้ดหรือ commit ไฟล์ `.env` เด็ดขาด ใช้ Railway Variables เท่านั้น
+
 ### สิ่งที่ต้องรู้
-- **ไม่ต้องตั้ง env อะไรเลย** — แอปไม่มี backend, ไม่มี database, ไม่มี API key (ฟีดราคาทองสดใช้ gold-api.com ที่ CORS เปิดอยู่แล้ว)
+- **ไม่ต้องตั้ง database หรือบริการอื่นเพิ่ม** — backend มีแค่ proxy AI ตัวเดียว (ฟีดราคาทองสดใช้ gold-api.com ที่ CORS เปิดอยู่แล้ว); ตัวแปรเดียวที่เกี่ยวคือ `MOONSHOT_API_KEY` (optional) ตามหัวข้อด้านบน
 - Railway ให้ **$5 credit ฟรีต่อเดือน** (แผน Hobby) — เว็บ static เบาๆ แบบนี้กินน้อยมาก
 - ทุกครั้งที่ push โค้ดใหม่ขึ้น GitHub → Railway **deploy ใหม่อัตโนมัติ**
 
