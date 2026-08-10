@@ -292,9 +292,9 @@ const main = async () => {
   );
   check(
     "Footer registry: all seven legacy exact lines (per-symbol scalper M15 + gold scalper M5 + per-symbol H1/H4 engine) pinned in SYMBOL_REGISTRY",
-    useSymbolSrc.includes("Data: MT5 XAUUSD M15 · 108,473 bars · Static research export · As of 2026-08-04 16:00 UTC") &&
+    useSymbolSrc.includes("Data: MT5 XAUUSD M15 · 110,882 bars · Static research export · As of 2026-08-10 20:15 UTC") &&
       useSymbolSrc.includes("Data: MT5 XAUUSD M5 · 325,160 bars · Static research export · As of 2026-08-04 16:00 UTC") &&
-      useSymbolSrc.includes("Data: MT5 NAS100 M15 · 108,290 bars · Static research export · As of 2026-08-04 16:00 UTC") &&
+      useSymbolSrc.includes("Data: MT5 NAS100 M15 · 110,699 bars · Static research export · As of 2026-08-10 20:15 UTC") &&
       useSymbolSrc.includes("Data: OANDA XAUUSD H1/D1 · Precomputed engine export · As of 2026-08-04 16:00 UTC") &&
       useSymbolSrc.includes("Data: OANDA XAUUSD H4/D1 · Precomputed engine export · As of 2026-07-03 16:00 UTC") &&
       useSymbolSrc.includes("Data: MT5 NAS100 H1/D1 · Precomputed engine export · As of 2026-08-04 16:00 UTC") &&

@@ -20,8 +20,8 @@ import { cn } from '@/lib/utils'
 
 /** Mirrors xauusd_m5_slots.json meta (bar_count 325,160 · last_bar 2026-08-04 16:00:00). */
 const M5_TITLE_FALLBACK = 'XAUUSD M5 — 325,160 bars, ends 2026-08-04'
-/** Mirrors xauusd_m15_slots.json meta (bar_count 108,473 · last_bar 2026-08-04 16:00:00). */
-const M15_TITLE_FALLBACK = 'XAUUSD M15 — 108,473 bars, ends 2026-08-04'
+/** Mirrors xauusd_m15_slots.json meta (bar_count 110,882 · last_bar 2026-08-10 20:15:00). */
+const M15_TITLE_FALLBACK = 'XAUUSD M15 — 110,882 bars, ends 2026-08-10'
 
 function segmentTitle(tf: ScalperTf, meta: ScalperClockData['meta'] | null): string {
   if (meta && meta.timeframe === tf) {
