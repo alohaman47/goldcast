@@ -80,12 +80,12 @@ const EXPECTED = {
     suffix: "",
     londonHours: [7, 8, 9, 10],
     validation: {
-      // Phase 17 Track D3 refresh: classic-GBM OOS on the refreshed
-      // 27,136-bar dataset (was 80.08 / 0.778 / 26,836 pre-refresh).
-      hvolAccuracyPct: 79.99,
-      hvolAuc: 0.775,
+      // Phase 19 Track R1a refresh: classic-GBM OOS on the refreshed
+      // 27,737-bar mito MT5 dataset (was 79.99 / 0.775 / 27,136 pre-refresh).
+      hvolAccuracyPct: 79.7,
+      hvolAuc: 0.776,
       hvolAucDecimals: 3,
-      bars: 27136,
+      bars: 27737,
       directionModelPct: 50.1,
       directionAlwaysUpPct: 52.1,
       driftPeriod: "2022–2026",
@@ -99,12 +99,12 @@ const EXPECTED = {
     suffix: "_nas100",
     londonHours: [7, 8, 9, 10, 11],
     validation: {
-      // Phase 18 refresh: classic-GBM OOS on the 2026-08-04 data
-      // (results/phase18_gbm_classic_nas100_oos.csv).
-      hvolAccuracyPct: 83.28,
-      hvolAuc: 0.8716,
+      // Phase 19 Track R1a refresh: classic-GBM OOS on the refreshed
+      // 27,679-bar mito MT5 dataset (was 83.28 / 0.8716 / 27,098 pre-refresh).
+      hvolAccuracyPct: 83.29,
+      hvolAuc: 0.8725,
       hvolAucDecimals: 4,
-      bars: 27098,
+      bars: 27679,
       directionModelPct: 51.63,
       directionAlwaysUpPct: 52.91,
       driftPeriod: "2022–2026",
@@ -295,9 +295,9 @@ const main = async () => {
     useSymbolSrc.includes("Data: MT5 XAUUSD M15 · 110,882 bars · Static research export · As of 2026-08-10 20:15 UTC") &&
       useSymbolSrc.includes("Data: MT5 XAUUSD M5 · 325,160 bars · Static research export · As of 2026-08-04 16:00 UTC") &&
       useSymbolSrc.includes("Data: MT5 NAS100 M15 · 110,699 bars · Static research export · As of 2026-08-10 20:15 UTC") &&
-      useSymbolSrc.includes("Data: OANDA XAUUSD H1/D1 · Precomputed engine export · As of 2026-08-04 16:00 UTC") &&
+      useSymbolSrc.includes("Data: MT5 XAUUSD H1/D1 · Precomputed engine export · As of 2026-08-10 19:00 UTC") &&
       useSymbolSrc.includes("Data: OANDA XAUUSD H4/D1 · Precomputed engine export · As of 2026-07-03 16:00 UTC") &&
-      useSymbolSrc.includes("Data: MT5 NAS100 H1/D1 · Precomputed engine export · As of 2026-08-04 16:00 UTC") &&
+      useSymbolSrc.includes("Data: MT5 NAS100 H1/D1 · Precomputed engine export · As of 2026-08-07 22:00 UTC") &&
       useSymbolSrc.includes("Data: MT5 NAS100 H4/D1 · Precomputed engine export · As of 2026-07-03 16:00 UTC"),
   );
 

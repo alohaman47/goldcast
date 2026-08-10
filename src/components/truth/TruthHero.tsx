@@ -35,7 +35,7 @@ export default function TruthHero({ data }: { data: TruthData | null }) {
     { scope: root, dependencies: [reduced] },
   )
 
-  const h1Bars = data ? fmtInt(data.dataset.h1.bars) : '27,136'
+  const h1Bars = data ? fmtInt(data.dataset.h1.bars) : '27,737'
 
   return (
     <section ref={root} className="relative overflow-hidden">
@@ -60,7 +60,7 @@ export default function TruthHero({ data }: { data: TruthData | null }) {
 
         <div className="mt-10 flex flex-wrap items-stretch gap-3">
           {[
-            { value: `${h1Bars} H1 bars`, label: 'Real OANDA XAUUSD data' },
+            { value: `${h1Bars} H1 bars`, label: 'Real MT5 XAUUSD data' },
             { value: '2× independently verified', label: 'Re-run and reconciled' },
             { value: 'Walk-forward OOS only', label: 'No in-sample bragging' },
           ].map((chip) => (

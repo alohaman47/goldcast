@@ -18,7 +18,7 @@ import { TERMINAL_EASE, bandForHour, fmtUsd, sessionDisplayName, rangeDigits, ra
  * engine config (Phase 15): entry.headline matches the legacy strings for
  * XAUUSD ("Gold has a schedule…") and NAS100 ("Nasdaq has a schedule…")
  * byte-for-byte; config.validation.bars equals the sum of sessions bar_count
- * for every dataset (27,136 gold · 27,098 NAS100), so the en-US grouping
+ * for every dataset (27,737 gold · 27,679 NAS100), so the en-US grouping
  * below reproduces the old per-symbol map exactly. */
 
 export default function Sessions() {

@@ -10,187 +10,187 @@
     },
     {
       "hour_utc": 1,
-      "avg_range_price": 48.742,
-      "avg_range_atr": 0.654,
-      "avg_abs_ret": 0.001814,
-      "p_high_vol_empirical": 0.0354,
-      "bar_count": 1187
+      "avg_range_price": 48.8139,
+      "avg_range_atr": 0.6557,
+      "avg_abs_ret": 0.001817,
+      "p_high_vol_empirical": 0.0355,
+      "bar_count": 1212
     },
     {
       "hour_utc": 2,
-      "avg_range_price": 39.6912,
-      "avg_range_atr": 0.5479,
-      "avg_abs_ret": 0.001084,
-      "p_high_vol_empirical": 0.0759,
-      "bar_count": 1186
+      "avg_range_price": 39.696,
+      "avg_range_atr": 0.5489,
+      "avg_abs_ret": 0.001082,
+      "p_high_vol_empirical": 0.0752,
+      "bar_count": 1211
     },
     {
       "hour_utc": 3,
-      "avg_range_price": 48.7586,
-      "avg_range_atr": 0.6828,
-      "avg_abs_ret": 0.001324,
-      "p_high_vol_empirical": 0.0396,
-      "bar_count": 1187
+      "avg_range_price": 48.7504,
+      "avg_range_atr": 0.6829,
+      "avg_abs_ret": 0.001327,
+      "p_high_vol_empirical": 0.0388,
+      "bar_count": 1212
     },
     {
       "hour_utc": 4,
-      "avg_range_price": 40.6499,
-      "avg_range_atr": 0.5894,
-      "avg_abs_ret": 0.001106,
-      "p_high_vol_empirical": 0.027,
-      "bar_count": 1187
+      "avg_range_price": 40.5982,
+      "avg_range_atr": 0.5888,
+      "avg_abs_ret": 0.001107,
+      "p_high_vol_empirical": 0.0281,
+      "bar_count": 1212
     },
     {
       "hour_utc": 5,
-      "avg_range_price": 34.2042,
-      "avg_range_atr": 0.5115,
-      "avg_abs_ret": 0.000913,
-      "p_high_vol_empirical": 0.0101,
-      "bar_count": 1187
+      "avg_range_price": 34.2254,
+      "avg_range_atr": 0.5117,
+      "avg_abs_ret": 0.000914,
+      "p_high_vol_empirical": 0.0099,
+      "bar_count": 1212
     },
     {
       "hour_utc": 6,
-      "avg_range_price": 29.818,
-      "avg_range_atr": 0.4611,
-      "avg_abs_ret": 0.000786,
-      "p_high_vol_empirical": 0.0186,
-      "bar_count": 1186
+      "avg_range_price": 29.7554,
+      "avg_range_atr": 0.4594,
+      "avg_abs_ret": 0.000787,
+      "p_high_vol_empirical": 0.0182,
+      "bar_count": 1211
     },
     {
       "hour_utc": 7,
-      "avg_range_price": 30.398,
-      "avg_range_atr": 0.4876,
-      "avg_abs_ret": 0.000831,
-      "p_high_vol_empirical": 0.0389,
-      "bar_count": 1185
+      "avg_range_price": 30.4388,
+      "avg_range_atr": 0.4885,
+      "avg_abs_ret": 0.000833,
+      "p_high_vol_empirical": 0.038,
+      "bar_count": 1210
     },
     {
       "hour_utc": 8,
-      "avg_range_price": 36.9226,
-      "avg_range_atr": 0.621,
-      "avg_abs_ret": 0.000998,
-      "p_high_vol_empirical": 0.0853,
-      "bar_count": 1185
+      "avg_range_price": 36.8631,
+      "avg_range_atr": 0.6205,
+      "avg_abs_ret": 0.000995,
+      "p_high_vol_empirical": 0.0835,
+      "bar_count": 1210
     },
     {
       "hour_utc": 9,
-      "avg_range_price": 43.394,
-      "avg_range_atr": 0.7719,
-      "avg_abs_ret": 0.001194,
-      "p_high_vol_empirical": 0.288,
-      "bar_count": 1185
+      "avg_range_price": 43.3651,
+      "avg_range_atr": 0.7713,
+      "avg_abs_ret": 0.001192,
+      "p_high_vol_empirical": 0.2862,
+      "bar_count": 1210
     },
     {
       "hour_utc": 10,
-      "avg_range_price": 58.645,
-      "avg_range_atr": 1.061,
-      "avg_abs_ret": 0.001648,
-      "p_high_vol_empirical": 0.2331,
-      "bar_count": 1185
+      "avg_range_price": 58.575,
+      "avg_range_atr": 1.0595,
+      "avg_abs_ret": 0.001649,
+      "p_high_vol_empirical": 0.2333,
+      "bar_count": 1210
     },
     {
       "hour_utc": 11,
-      "avg_range_price": 55.8574,
-      "avg_range_atr": 0.9925,
-      "avg_abs_ret": 0.001622,
-      "p_high_vol_empirical": 0.0903,
-      "bar_count": 1186
+      "avg_range_price": 55.9182,
+      "avg_range_atr": 0.9936,
+      "avg_abs_ret": 0.001623,
+      "p_high_vol_empirical": 0.0893,
+      "bar_count": 1211
     },
     {
       "hour_utc": 12,
-      "avg_range_price": 44.0239,
-      "avg_range_atr": 0.7959,
-      "avg_abs_ret": 0.001171,
-      "p_high_vol_empirical": 0.1098,
-      "bar_count": 1185
+      "avg_range_price": 43.9904,
+      "avg_range_atr": 0.7951,
+      "avg_abs_ret": 0.001172,
+      "p_high_vol_empirical": 0.1084,
+      "bar_count": 1210
     },
     {
       "hour_utc": 13,
-      "avg_range_price": 45.2292,
-      "avg_range_atr": 0.8221,
-      "avg_abs_ret": 0.001194,
-      "p_high_vol_empirical": 0.2118,
-      "bar_count": 1186
+      "avg_range_price": 45.1486,
+      "avg_range_atr": 0.8214,
+      "avg_abs_ret": 0.001195,
+      "p_high_vol_empirical": 0.2124,
+      "bar_count": 1211
     },
     {
       "hour_utc": 14,
-      "avg_range_price": 53.0409,
-      "avg_range_atr": 0.9529,
-      "avg_abs_ret": 0.001493,
-      "p_high_vol_empirical": 0.484,
-      "bar_count": 1185
+      "avg_range_price": 52.9924,
+      "avg_range_atr": 0.9528,
+      "avg_abs_ret": 0.001491,
+      "p_high_vol_empirical": 0.483,
+      "bar_count": 1210
     },
     {
       "hour_utc": 15,
-      "avg_range_price": 77.8289,
-      "avg_range_atr": 1.4135,
-      "avg_abs_ret": 0.002391,
-      "p_high_vol_empirical": 0.9612,
-      "bar_count": 1186
+      "avg_range_price": 77.5929,
+      "avg_range_atr": 1.4096,
+      "avg_abs_ret": 0.002381,
+      "p_high_vol_empirical": 0.962,
+      "bar_count": 1211
     },
     {
       "hour_utc": 16,
-      "avg_range_price": 130.9732,
-      "avg_range_atr": 2.153,
-      "avg_abs_ret": 0.003755,
-      "p_high_vol_empirical": 0.935,
-      "bar_count": 1186
+      "avg_range_price": 131.1514,
+      "avg_range_atr": 2.1568,
+      "avg_abs_ret": 0.00377,
+      "p_high_vol_empirical": 0.9364,
+      "bar_count": 1211
     },
     {
       "hour_utc": 17,
-      "avg_range_price": 133.852,
-      "avg_range_atr": 2.0178,
-      "avg_abs_ret": 0.003911,
-      "p_high_vol_empirical": 0.6853,
-      "bar_count": 1182
+      "avg_range_price": 133.9396,
+      "avg_range_atr": 2.0193,
+      "avg_abs_ret": 0.003904,
+      "p_high_vol_empirical": 0.6863,
+      "bar_count": 1208
     },
     {
       "hour_utc": 18,
-      "avg_range_price": 100.6168,
-      "avg_range_atr": 1.4488,
-      "avg_abs_ret": 0.002865,
-      "p_high_vol_empirical": 0.4535,
-      "bar_count": 1182
+      "avg_range_price": 100.6411,
+      "avg_range_atr": 1.4485,
+      "avg_abs_ret": 0.002868,
+      "p_high_vol_empirical": 0.452,
+      "bar_count": 1208
     },
     {
       "hour_utc": 19,
-      "avg_range_price": 85.6151,
-      "avg_range_atr": 1.212,
-      "avg_abs_ret": 0.002397,
-      "p_high_vol_empirical": 0.4002,
-      "bar_count": 1182
+      "avg_range_price": 85.483,
+      "avg_range_atr": 1.2098,
+      "avg_abs_ret": 0.002391,
+      "p_high_vol_empirical": 0.3957,
+      "bar_count": 1208
     },
     {
       "hour_utc": 20,
-      "avg_range_price": 84.7688,
-      "avg_range_atr": 1.1721,
-      "avg_abs_ret": 0.002523,
-      "p_high_vol_empirical": 0.3661,
-      "bar_count": 1161
+      "avg_range_price": 84.4668,
+      "avg_range_atr": 1.1686,
+      "avg_abs_ret": 0.002506,
+      "p_high_vol_empirical": 0.3631,
+      "bar_count": 1187
     },
     {
       "hour_utc": 21,
-      "avg_range_price": 85.9581,
-      "avg_range_atr": 1.1876,
-      "avg_abs_ret": 0.002457,
-      "p_high_vol_empirical": 0.4588,
-      "bar_count": 1140
+      "avg_range_price": 85.7145,
+      "avg_range_atr": 1.185,
+      "avg_abs_ret": 0.002452,
+      "p_high_vol_empirical": 0.4648,
+      "bar_count": 1166
     },
     {
       "hour_utc": 22,
-      "avg_range_price": 95.1218,
-      "avg_range_atr": 1.2501,
-      "avg_abs_ret": 0.002821,
-      "p_high_vol_empirical": 0.1011,
-      "bar_count": 1138
+      "avg_range_price": 95.5517,
+      "avg_range_atr": 1.2574,
+      "avg_abs_ret": 0.002844,
+      "p_high_vol_empirical": 0.0997,
+      "bar_count": 1164
     },
     {
       "hour_utc": 23,
-      "avg_range_price": 53.6081,
-      "avg_range_atr": 0.7017,
-      "avg_abs_ret": 0.001466,
+      "avg_range_price": 53.4425,
+      "avg_range_atr": 0.6999,
+      "avg_abs_ret": 0.001453,
       "p_high_vol_empirical": 0.0808,
-      "bar_count": 1139
+      "bar_count": 1164
     }
   ],
   "bands": {

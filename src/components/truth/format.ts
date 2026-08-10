@@ -16,7 +16,7 @@ export function fmtSigned(x: number, digits = 1): string {
   return sign + fmtFixed(Math.abs(x), digits)
 }
 
-/** 0.8003 → "80.03%" */
+/** 0.7999 → "79.99%" */
 export function fmtPct(x: number, digits = 2): string {
   return `${(x * 100).toFixed(digits)}%`
 }

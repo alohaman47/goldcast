@@ -16,7 +16,7 @@ export default function StatusBar({ latest, liveActive = false }: { latest: Late
         ) : (
           <>Engine export asof {fmtAsofInTz(latest?.asof, tz)} · </>
         )}
-        27,136 bars verified
+        27,737 bars verified
       </span>
       <span className="micro-mono hidden sm:inline">GoldCast shows risk, not signals · Not investment advice</span>
     </div>

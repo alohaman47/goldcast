@@ -24,10 +24,10 @@ export default function DataSection({ data }: { data: TruthData | null }) {
         className="flex flex-col gap-4 font-body text-[15px] leading-6 text-text1"
       >
         <p>
-          <span className="font-semibold text-text0">Source.</span> OANDA XAUUSD spot. Two timeframes: H1 (
-          {h1 ? `${h1.bars.toLocaleString('en-US')} bars, ${h1.start} → ${h1.end}` : '27,136 bars, 2022-01-03 → 2026-08-04'}
+          <span className="font-semibold text-text0">Source.</span> MT5 XAUUSD spot (mito export). Two timeframes: H1 (
+          {h1 ? `${h1.bars.toLocaleString('en-US')} bars, ${h1.start} → ${h1.end}` : '27,737 bars, 2021-12-01 → 2026-08-10'}
           ) for the engine, and D1 (
-          {d1 ? `${d1.bars.toLocaleString('en-US')} bars, ${d1.start} → ${d1.end}` : '1,184 bars, 2022-01-03 → 2026-08-04'}
+          {d1 ? `${d1.bars.toLocaleString('en-US')} bars, ${d1.start} → ${d1.end}` : '1,209 bars, 2021-12-01 → 2026-08-07'}
           ) for daily context.
         </p>
         <p>
