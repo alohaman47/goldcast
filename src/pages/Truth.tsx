@@ -42,10 +42,12 @@ export default function Truth() {
       {/* honesty caption: all research on this page is the XAUUSD record; the
           market list is derived from the registry so a new market can't leave
           this caption stale. Every market — gold included — is a static MT5
-          research export from the user's own broker data; no live feed. */}
+          research export from the user's own broker data. Gold additionally
+          polls a live spot price (gold-api.com) for its live browser engine. */}
       <p className="micro-mono mx-auto w-full max-w-[1180px] px-6 pt-5">
         Research shown for XAUUSD — every market ({STATIC_RESEARCH_MARKETS.join(' · ')}) ships as static MT5
-        research exports from the user&apos;s own broker data (H1 engines + M15 scalper clocks). No live feed.
+        research exports from the user&apos;s own broker data (H1 engines + M15 scalper clocks). XAUUSD adds a live
+        spot-price feed (gold-api.com, 60s poll) powering the live browser engine — no other market has a live feed.
       </p>
       <TruthHero data={data} />
       <DatasetSection data={data} />
