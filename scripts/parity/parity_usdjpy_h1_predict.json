@@ -1,23 +1,23 @@
 {
-  "asof": "2026-08-04 16:00:00",
-  "session": "ny",
+  "asof": "2026-08-10 19:00:00",
+  "session": "off",
   "regime": "neutral",
-  "p_high_vol": 0.6111,
-  "expected_range_atr": 1.511,
-  "expected_range_price": 0.4824,
+  "p_high_vol": 0.0695,
+  "expected_range_atr": 0.6848,
+  "expected_range_price": 0.1405,
   "cone": {
     "T1": {
-      "half_width": 0.4824
+      "half_width": 0.1405
     },
     "T2": {
-      "half_width": 0.6822
+      "half_width": 0.1987
     },
     "T3": {
-      "half_width": 0.8355
+      "half_width": 0.2434
     }
   },
   "direction_policy": "drift",
   "drift_sign": -1,
-  "confidence": 2,
-  "engine_version": "goldcast-gbm-classic-usdjpy-h1/15.0"
+  "confidence": 5,
+  "engine_version": "goldcast-gbm-classic-usdjpy-h1/19.0"
 }

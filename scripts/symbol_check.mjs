@@ -776,8 +776,9 @@ const main = async () => {
     ["XAUUSD", "NAS100", "US30", "GER40"].every((id) => SYMBOL_REGISTRY[id].econNote === null),
   );
   check(
-    "USDJPY range-model honesty: negative classic R² disclosed (engineRangeNote), other markets null",
+    "USDJPY range-model honesty: weak classic R² disclosed (engineRangeNote; improved −0.185 → +0.010 at the Phase-19 R1b 2026-08-10 refresh), other markets null",
     typeof SYMBOL_REGISTRY.USDJPY.engineRangeNote === "string" &&
+      SYMBOL_REGISTRY.USDJPY.engineRangeNote.includes("+0.010") &&
       SYMBOL_REGISTRY.USDJPY.engineRangeNote.includes("−0.185") &&
       REG_IDS.filter((id) => id !== "USDJPY").every((id) => SYMBOL_REGISTRY[id].engineRangeNote === null),
   );
@@ -839,7 +840,7 @@ const main = async () => {
   );
   const forecastStrip = await readSrc("components/dashboard/ForecastStrip.tsx");
   check(
-    "ForecastStrip: per-market range decimals + engineRangeNote disclosure (USDJPY negative R²)",
+    "ForecastStrip: per-market range decimals + engineRangeNote disclosure (USDJPY weak R²)",
     forecastStrip.includes("rangeDigits(config, 1)") && forecastStrip.includes("engineRangeNote"),
   );
   const sessionsPage = await readSrc("pages/Sessions.tsx");

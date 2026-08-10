@@ -286,9 +286,9 @@ export const XAUUSD_H4_CONFIG: SymbolConfig = {
  *
  * ALL FIVE ARE STATIC: hasLiveFeed false (fixed historical exports; as of
  * the Phase-18 refresh all five ended 2026-08-04 16:00 UTC — EURUSD was on a
- * 2026-07-03 16:00 UTC export before Phase 18; as of the Phase-19 Track R1a
- * refresh EURUSD alone moved to the mito MT5 export ending 2026-08-10 19:00
- * UTC, US30/GER40/GBPUSD/USDJPY stay on the 2026-08-04 16:00 UTC exports).
+ * 2026-07-03 16:00 UTC export before Phase 18. As of the Phase-19 refreshes
+ * ALL FIVE now end 2026-08-10 19:00 UTC on mito MT5 exports from 2021-12-01:
+ * EURUSD via Track R1a, US30/GER40/GBPUSD/USDJPY via Track R1b).
  * `sessions` reuses the gold H1 session profile (display metadata only;
  * nothing here feeds the engine — the engine's session field is pinned by
  * the parity gate to vol_engine.session_name's fixed windows).
@@ -314,12 +314,18 @@ export const US30_H1_CONFIG: SymbolConfig = {
   modelModules: { hvol: "./modelHvolUs30H1.js", range: "./modelRangeUs30H1.js" },
   hasLiveFeed: false,
   validation: {
-    // Phase-15 classic-GBM OOS (n_test 16434): acc 0.8320 / AUC 0.8887
-    // (HGB reference 0.8316 / 0.8876).
-    hvolAccuracyPct: 83.20,
-    hvolAuc: 0.8887,
+    // Phase 19 Track R1b refresh (mito data 2021-12-01 -> 2026-08-10 19:00,
+    // 28,015 bars): classic-GBM pooled OOS (results/
+    // phase19_gbm_classic_us30_oos.csv, n_test 16,806): acc 0.8340 /
+    // AUC 0.8890 — vs the HGB revalidation on the same refreshed data
+    // 0.8305 / 0.8874 and the pre-refresh verified 0.8316 / 0.8876
+    // (within the 0.01-AUC no-regression gate).
+    // directionModelPct/directionAlwaysUpPct remain the published Phase-15
+    // research numbers (direction NO-SHIP, display-only drift policy).
+    hvolAccuracyPct: 83.40,
+    hvolAuc: 0.8890,
     hvolAucDecimals: 4,
-    bars: 27396,
+    bars: 28015,
     directionModelPct: 50.62,     // research Model C T+1 — NO-SHIP
     directionAlwaysUpPct: 51.92,
     driftPeriod: "2022–2026",
@@ -344,12 +350,18 @@ export const GER40_H1_CONFIG: SymbolConfig = {
   modelModules: { hvol: "./modelHvolGer40H1.js", range: "./modelRangeGer40H1.js" },
   hasLiveFeed: false,
   validation: {
-    // Phase-15 classic-GBM OOS (n_test 15198): acc 0.7965 / AUC 0.8353
-    // (HGB reference 0.7982 / 0.8345).
-    hvolAccuracyPct: 79.65,
-    hvolAuc: 0.8353,
+    // Phase 19 Track R1b refresh (mito data 2021-12-01 -> 2026-08-10 19:00,
+    // 25,895 bars): classic-GBM pooled OOS (results/
+    // phase19_gbm_classic_ger40_oos.csv, n_test 15,534): acc 0.7990 /
+    // AUC 0.8368 — vs the HGB revalidation on the same refreshed data
+    // 0.7994 / 0.8369 and the pre-refresh verified 0.7982 / 0.8345
+    // (within the 0.01-AUC no-regression gate).
+    // directionModelPct/directionAlwaysUpPct remain the published Phase-15
+    // research numbers (direction NO-SHIP, display-only drift policy).
+    hvolAccuracyPct: 79.90,
+    hvolAuc: 0.8368,
     hvolAucDecimals: 4,
-    bars: 25332,
+    bars: 25895,
     directionModelPct: 50.41,     // research Model C T+1 — NO-SHIP
     directionAlwaysUpPct: 52.42,
     driftPeriod: "2022–2026",
@@ -411,12 +423,18 @@ export const GBPUSD_H1_CONFIG: SymbolConfig = {
   modelModules: { hvol: "./modelHvolGbpusdH1.js", range: "./modelRangeGbpusdH1.js" },
   hasLiveFeed: false,
   validation: {
-    // Phase-15 classic-GBM OOS (n_test 17118): acc 0.7947 / AUC 0.8374
-    // (HGB reference 0.7945 / 0.8409).
-    hvolAccuracyPct: 79.47,
-    hvolAuc: 0.8374,
+    // Phase 19 Track R1b refresh (mito data 2021-12-01 -> 2026-08-10 19:00,
+    // 29,189 bars): classic-GBM pooled OOS (results/
+    // phase19_gbm_classic_gbpusd_oos.csv, n_test 17,508): acc 0.7962 /
+    // AUC 0.8392 — vs the HGB revalidation on the same refreshed data
+    // 0.7960 / 0.8422 and the pre-refresh verified 0.7945 / 0.8409
+    // (within the 0.01-AUC no-regression gate).
+    // directionModelPct/directionAlwaysUpPct remain the published Phase-15
+    // research numbers (direction NO-SHIP, display-only drift policy).
+    hvolAccuracyPct: 79.62,
+    hvolAuc: 0.8392,
     hvolAucDecimals: 4,
-    bars: 28538,
+    bars: 29189,
     directionModelPct: 48.66,     // research Model C T+1 — NO-SHIP
     directionAlwaysUpPct: 49.81,
     driftPeriod: "2022–2026",
@@ -441,14 +459,21 @@ export const USDJPY_H1_CONFIG: SymbolConfig = {
   modelModules: { hvol: "./modelHvolUsdjpyH1.js", range: "./modelRangeUsdjpyH1.js" },
   hasLiveFeed: false,
   validation: {
-    // Phase-15 classic-GBM OOS (n_test 17118): acc 0.7784 / AUC 0.7683
-    // (HGB reference 0.7794 / 0.7685). Range R2 is weak on USDJPY
-    // (classic -0.1852 vs HGB 0.1255) — shipped per Track-A SHIP verdict
-    // but honestly disclosed.
-    hvolAccuracyPct: 77.84,
-    hvolAuc: 0.7683,
+    // Phase 19 Track R1b refresh (mito data 2021-12-01 -> 2026-08-10 19:00,
+    // 29,189 bars): classic-GBM pooled OOS (results/
+    // phase19_gbm_classic_usdjpy_oos.csv, n_test 17,508): acc 0.7776 /
+    // AUC 0.7668 — vs the HGB revalidation on the same refreshed data
+    // 0.7762 / 0.7662 and the pre-refresh verified 0.7794 / 0.7685
+    // (within the 0.01-AUC no-regression gate).
+    // Range R2 is still weak on USDJPY but IMPROVED at this refresh:
+    // classic +0.0103 vs HGB 0.1298 (was classic -0.1852 vs HGB 0.1255
+    // pre-refresh) — shipped per Track-A SHIP verdict, honestly disclosed.
+    // directionModelPct/directionAlwaysUpPct remain the published Phase-15
+    // research numbers (direction NO-SHIP, display-only drift policy).
+    hvolAccuracyPct: 77.76,
+    hvolAuc: 0.7668,
     hvolAucDecimals: 4,
-    bars: 28538,
+    bars: 29189,
     directionModelPct: 50.69,     // research Model C T+1 — NO-SHIP
     directionAlwaysUpPct: 51.54,
     driftPeriod: "2022–2026",

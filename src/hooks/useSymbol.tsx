@@ -80,8 +80,10 @@ export interface SymbolRegistryEntry {
   econNote: string | null
   /**
    * Engine range-model honesty note (spec §6): shown where range metrics are
-   * displayed. USDJPY's classic-GBM range R² is NEGATIVE (-0.1852 vs HGB
-   * 0.1255) — SHIP'ed per the Track-A verdict but honestly disclosed.
+   * displayed. USDJPY's classic-GBM range R² is WEAK — it was NEGATIVE
+   * (-0.1852 vs HGB 0.1255) pre-Phase-19 and improved to barely positive
+   * (+0.0103 vs HGB 0.1298) at the 2026-08-10 R1b refresh — SHIP'ed per the
+   * Track-A verdict but honestly disclosed.
    */
   engineRangeNote: string | null
   /**
@@ -171,7 +173,7 @@ export const SYMBOL_REGISTRY: Record<AppSymbolId, SymbolRegistryEntry> = {
     engineRangeNote: null,
     footer: {
       scalperM15: 'Data: MT5 US30 M15 · 111,958 bars · Static research export · As of 2026-08-10 20:15 UTC',
-      engineH1: 'Data: MT5 US30 H1/D1 · Precomputed engine export · As of 2026-08-04 16:00 UTC',
+      engineH1: 'Data: MT5 US30 H1/D1 · Precomputed engine export · As of 2026-08-10 19:00 UTC',
     },
     headline: 'US30 has a schedule. Volatility keeps it.',
   },
@@ -193,7 +195,7 @@ export const SYMBOL_REGISTRY: Record<AppSymbolId, SymbolRegistryEntry> = {
     engineRangeNote: null,
     footer: {
       scalperM15: 'Data: MT5 GER40 M15 · 102,427 bars · Static research export · As of 2026-08-10 20:15 UTC',
-      engineH1: 'Data: MT5 GER40 H1/D1 · Precomputed engine export · As of 2026-08-04 16:00 UTC',
+      engineH1: 'Data: MT5 GER40 H1/D1 · Precomputed engine export · As of 2026-08-10 19:00 UTC',
     },
     headline: 'GER40 has a schedule. Volatility keeps it.',
   },
@@ -237,7 +239,7 @@ export const SYMBOL_REGISTRY: Record<AppSymbolId, SymbolRegistryEntry> = {
     engineRangeNote: null,
     footer: {
       scalperM15: 'Data: MT5 GBPUSD M15 · 116,743 bars · Static research export · As of 2026-08-10 20:15 UTC',
-      engineH1: 'Data: MT5 GBPUSD H1/D1 · Precomputed engine export · As of 2026-08-04 16:00 UTC',
+      engineH1: 'Data: MT5 GBPUSD H1/D1 · Precomputed engine export · As of 2026-08-10 19:00 UTC',
     },
     headline: 'GBPUSD has a schedule. Volatility keeps it.',
   },
@@ -257,10 +259,10 @@ export const SYMBOL_REGISTRY: Record<AppSymbolId, SymbolRegistryEntry> = {
     econKind: 'commission-analogy',
     econNote: 'commission $7/lot (user account) — applied to USDJPY by analogy',
     engineRangeNote:
-      'range model weak on USDJPY: classic-GBM OOS R² = −0.185 (HGB reference 0.126) — shipped per the research verdict, honestly disclosed',
+      'range model weak on USDJPY: classic-GBM OOS R² = +0.010 (HGB reference 0.130; was −0.185 before the 2026-08-10 refresh) — shipped per the research verdict, honestly disclosed',
     footer: {
       scalperM15: 'Data: MT5 USDJPY M15 · 116,728 bars · Static research export · As of 2026-08-10 20:15 UTC',
-      engineH1: 'Data: MT5 USDJPY H1/D1 · Precomputed engine export · As of 2026-08-04 16:00 UTC',
+      engineH1: 'Data: MT5 USDJPY H1/D1 · Precomputed engine export · As of 2026-08-10 19:00 UTC',
     },
     headline: 'USDJPY has a schedule. Volatility keeps it.',
   },
