@@ -59,8 +59,10 @@ export default function ForecastStrip({
      cone must never collapse to "± 0.0". */
   const rd = rangeDigits(config, 1)
   /* Engine range-model honesty note (spec §6): USDJPY's classic-GBM range
-     R² is NEGATIVE — SHIP'ed per the research verdict, disclosed wherever
-     range metrics are shown. Null for every other market (no UI change). */
+     R² is WEAK (negative −0.185 pre-Phase-19, barely positive +0.010 after
+     the 2026-08-10 R1b refresh) — SHIP'ed per the research verdict,
+     disclosed wherever range metrics are shown. Null for every other
+     market (no UI change). */
   const rangeNote = entryForSymbol(config.symbol).engineRangeNote
 
   return (
