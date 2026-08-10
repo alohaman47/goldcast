@@ -41,11 +41,37 @@
 
 | Parameter | ค่าเริ่มต้น | ความหมาย |
 |---|---|---|
-| `InpSymbolMap` | `XAUUSD=XAUUSD,US100=US100,US30=US30,GER40=GER40,EURUSD=EURUSD,GBPUSD=GBPUSD,USDJPY=USDJPY` | คู่ `ชื่อมาตรฐาน=ชื่อ symbol ของโบรก` คั่นด้วยลูกน้ำ |
+| `InpSymbolMap` | `XAUUSD=XAUUSD,US100=US100,US30=US30,GER40=GER40,EURUSD=EURUSD,GBPUSD=GBPUSD,USDJPY=USDJPY` | คู่ `ชื่อมาตรฐาน=ชื่อ symbol ของโบรก` คั่นด้วยลูกน้ำ (v2 ลองชื่อสำรองให้เองถ้าหาไม่เจอ) |
 | `InpTimeframes` | `D1,H1,M15` | timeframe ที่ export (รองรับ `M5,M15,M30,H1,H4,D1,W1,MN1`) |
 | `InpFromDate` | `2021.12.01 00:00` | วันที่เริ่มดึงข้อมูล (ครอบช่วงข้อมูลเดิมของ pipeline ที่เริ่มราว 2021.12–2022.01) |
 | `InpMaxBars` | `200000` | เพดาน bar ต่อไฟล์ (เกินจะตัดเอาชุดล่าสุด + เตือนใน log) |
 | `InpSkipCurrentBar` | `true` | ข้าม bar ล่าสุดที่ยังไม่ปิด เพื่อให้ไฟล์มีแต่ bar สมบูรณ์ |
+| `InpUploadEnabled` | `true` | ส่ง CSV ขึ้นเซิร์ฟเวอร์อัตโนมัติหลัง export แต่ละไฟล์เสร็จ |
+| `InpUploadBaseUrl` | `https://goldcast-production.up.railway.app` | base URL ของเว็บ GoldCast (ต้องตรงกับที่เพิ่มใน WebRequest allow-list) |
+| `InpUploadToken` | _(ว่าง)_ | PIN (ตรงกับ `UPLOAD_TOKEN` บน Railway) — ว่าง = ข้ามการอัปโหลด |
+| `InpUploadTimeoutMs` | `20000` | timeout ของการอัปโหลดต่อไฟล์ (มิลลิวินาที) |
+
+## ส่งไฟล์อัตโนมัติ (ตั้งค่าครั้งเดียว)
+
+ตั้งแต่ v2 สคริปต์จะ POST ไฟล์ CSV ขึ้นเว็บ GoldCast เองทีละไฟล์หลัง export
+เสร็จ — ไม่ต้อง zip ไม่ต้องอัปโหลดมือ ตั้งค่าครั้งเดียวตามนี้:
+
+1. **เปิดสิทธิ์ WebRequest** — ใน MT5 ไปที่ **Tools → Options → Expert Advisors**
+   → ติ๊ก **"Allow WebRequest for listed URL"** → เพิ่ม
+   `https://goldcast-production.up.railway.app` เข้าไปในรายการ → กด OK
+2. **ใส่ PIN** — ตอนรันสคริปต์ ใส่ PIN ในช่อง **`InpUploadToken`**
+   (PIN เดียวกับ `UPLOAD_TOKEN` ที่ตั้งไว้บน Railway) — MT5 จำค่า Inputs
+   ล่าสุดให้ รอบต่อไปไม่ต้องพิมพ์ใหม่
+3. **รันปกติ** — ไฟล์จะบินขึ้นเว็บเอง ดูผลได้ในแท็บ Experts
+   (`อัปโหลด ... สำเร็จ` ทีละไฟล์ + สรุป `อัปโหลดอัตโนมัติ: X/Y สำเร็จ` ท้ายรัน)
+
+ถ้าลืมทำข้อ 1 สคริปต์จะเตือนใน Experts ว่ายังไม่ได้อนุญาต WebRequest
+แล้ว export ไฟล์ลงดิสก์ต่อตามปกติ (เปิดสิทธิ์แล้วรันใหม่ได้เลย)
+ถ้า PIN ผิดจะเจอ HTTP 403; ถ้าเซิร์ฟเวอร์ยังไม่ได้ตั้ง `UPLOAD_TOKEN` จะเจอ HTTP 501
+
+> **หมายเหตุ:** อัปโหลดแล้วตัวเลขในเว็บ**ไม่เปลี่ยนทันที** —
+> ไฟล์จะถูกเก็บไว้ให้ pipeline หยิบไป retrain รอบถัดไป รอรอบ retrain ก่อน
+> ตัวเลขหน้าเว็บถึงจะขยับ
 
 ## ตารางแก้ชื่อ symbol ถ้าโบรกต่างจากค่าเริ่มต้น
 

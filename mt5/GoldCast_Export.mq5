@@ -13,6 +13,15 @@
 //|  5. ไฟล์ CSV ออกที่ File → Open Data Folder →                     |
 //|     MQL5/Files/GoldCast/<SYMBOL>_<TF>.csv                          |
 //|                                                                   |
+//| v2 — ส่ง CSV ขึ้นเว็บอัตโนมัติหลัง export (ตั้งค่าครั้งเดียว):       |
+//|  1. ใน MT5 ไปที่ Tools → Options → Expert Advisors →              |
+//|     ติ๊ก "Allow WebRequest for listed URL" แล้วเพิ่ม               |
+//|     https://goldcast-production.up.railway.app                     |
+//|  2. ใส่ PIN ในช่อง InpUploadToken ตอนรัน (ว่างไว้ = ข้ามอัปโหลด)    |
+//|  3. รันปกติ — ไฟล์จะถูก POST ขึ้นเว็บเองทีละไฟล์หลัง export เสร็จ   |
+//| v2 — ถ้าโบรกใช้ชื่อ symbol ต่างจากค่าเริ่มต้น สคริปต์ลองชื่อสำรอง    |
+//|      ให้เองอัตโนมัติ (เช่น US100→NAS100/USTEC, XAUUSD→GOLD)         |
+//|                                                                   |
 //| รูปแบบไฟล์ที่ออก: ตรงกับไฟล์ export เดิมของ pipeline GoldCast     |
 //| เป๊ะ — คั่นด้วย TAB, จบบรรทัด CRLF, มี header แบบ <DATE>...        |
 //|  - D1  : <DATE> <OPEN> <HIGH> <LOW> <CLOSE> <TICKVOL> <VOL>        |
@@ -22,13 +31,14 @@
 //|  - <SPREAD> เป็นหน่วย point (ตัวเลขจำนวนเต็ม) เหมือนไฟล์เดิม       |
 //+------------------------------------------------------------------+
 #property copyright "GoldCast"
-#property version   "1.00"
+#property version   "2.00"
 #property script_show_inputs
 
 //--- mapping "ชื่อมาตรฐาน=ชื่อ symbol ของโบรก" คั่นด้วยลูกน้ำ
 //--- ถ้าโบรกของคุณใช้ชื่ออื่น ให้แก้ฝั่งขวาของเครื่องหมาย =
 //---   เช่น "XAUUSD=XAUUSD.pro" , "GER40=GER40.cash" , "US100=USTEC"
 //--- ชื่อฝั่งซ้าย (มาตรฐาน) จะถูกใช้เป็นชื่อไฟล์ผลลัพธ์
+//--- (v2: ถ้าชื่อฝั่งขวาหาไม่เจอ สคริปต์จะลองชื่อสำรองของตลาดนั้นให้เอง)
 input string   InpSymbolMap  = "XAUUSD=XAUUSD,US100=US100,US30=US30,GER40=GER40,EURUSD=EURUSD,GBPUSD=GBPUSD,USDJPY=USDJPY";
 //--- timeframe ที่ต้องการ export คั่นด้วยลูกน้ำ (รองรับ M5,M15,M30,H1,H4,D1,W1,MN1)
 input string   InpTimeframes = "D1,H1,M15";
@@ -39,6 +49,19 @@ input datetime InpFromDate   = D'2021.12.01 00:00';
 input int      InpMaxBars    = 200000;
 //--- true = ข้าม bar ล่าสุดที่ยังไม่ปิด (bar ปัจจุบัน) เพื่อให้ไฟล์มีแต่ bar สมบูรณ์
 input bool     InpSkipCurrentBar = true;
+
+//--- ส่ง CSV ขึ้นเซิร์ฟเวอร์อัตโนมัติหลัง export แต่ละไฟล์เสร็จ
+//--- (ต้องเปิด "Allow WebRequest for listed URL" ใน Tools → Options →
+//---  Expert Advisors แล้วเพิ่ม URL ด้านล่างไว้ในรายการก่อน)
+input bool   InpUploadEnabled   = true;   // ส่ง CSV ขึ้นเซิร์ฟเวอร์อัตโนมัติหลัง export
+input string InpUploadBaseUrl   = "https://goldcast-production.up.railway.app";
+input string InpUploadToken     = "";     // PIN (UPLOAD_TOKEN บน Railway) — ว่าง = ข้ามการอัปโหลด
+input int    InpUploadTimeoutMs = 20000;
+
+//--- ตัวนับผลการอัปโหลด + ธงหยุดเมื่อยังไม่ได้อนุญาต WebRequest (4060)
+int  g_uploadOk   = 0;
+int  g_uploadFail = 0;
+bool g_wrBlocked  = false;
 
 //+------------------------------------------------------------------+
 //| แปลงข้อความ timeframe ("M15","H1",...) เป็น ENUM_TIMEFRAMES       |
@@ -82,19 +105,157 @@ string Trim(const string s)
   }
 
 //+------------------------------------------------------------------+
+//| ชื่อสำรอง (alias) ของแต่ละตลาด คั่นด้วยลูกน้ำ เรียงตามลำดับที่ลอง  |
+//+------------------------------------------------------------------+
+string FallbackAliases(const string stdName)
+  {
+   string s = stdName;
+   StringToUpper(s);
+   if(s=="US100")  return("NAS100,USTEC,US100,NAS100.");
+   if(s=="GER40")  return("GER40,DE40,DE40.,GER40.");
+   if(s=="US30")   return("US30,DJ30,DJI,US30.");
+   if(s=="XAUUSD") return("XAUUSD,GOLD,XAUUSD.");
+   if(s=="EURUSD" || s=="GBPUSD" || s=="USDJPY") return(s + "," + s + ".");
+   return("");
+  }
+
+//+------------------------------------------------------------------+
+//| หา symbol ที่ใช้จริง: ลองชื่อจาก InpSymbolMap ก่อน ถ้าไม่เจอค่อย   |
+//| ลอง alias สำรองตามลำดับ — คืน true พร้อม outSym ถ้าเจอ             |
+//+------------------------------------------------------------------+
+bool ResolveBrokerSymbol(const string stdName, const string preferred, string &outSym)
+  {
+   if(preferred != "" && SymbolSelect(preferred, true))
+     {
+      outSym = preferred;
+      return(true);
+     }
+
+   string aliases = FallbackAliases(stdName);
+   if(aliases != "")
+     {
+      string parts[];
+      int n = StringSplit(aliases, ',', parts);
+      for(int i=0; i<n; i++)
+        {
+         string cand = Trim(parts[i]);
+         if(cand == "" || cand == preferred)
+            continue;
+         if(SymbolSelect(cand, true))
+           {
+            outSym = cand;
+            PrintFormat("[GoldCast] ใช้ symbol '%s' แทน '%s' (ตลาด %s) — "
+                        "ชื่อจาก InpSymbolMap ไม่พบที่โบรก",
+                        cand, preferred, stdName);
+            return(true);
+           }
+        }
+     }
+   return(false);
+  }
+
+//+------------------------------------------------------------------+
+//| market key สำหรับ URL อัปโหลด (ฝั่งเซิร์ฟเวอร์เรียก US100 ว่า nas100)|
+//+------------------------------------------------------------------+
+string MarketKeyFromStd(const string stdName)
+  {
+   string s = stdName;
+   StringToUpper(s);
+   if(s=="US100") return("nas100");
+   StringToLower(s);
+   return(s);
+  }
+
+//+------------------------------------------------------------------+
+//| tf key สำหรับ URL อัปโหลด (D1→d1, H1→h1, M15→m15, ...)             |
+//+------------------------------------------------------------------+
+string TfKeyFromLabel(const string tfLabel)
+  {
+   string s = tfLabel;
+   StringToLower(s);
+   return(s);
+  }
+
+//+------------------------------------------------------------------+
+//| POST เนื้อหา CSV ขึ้นเซิร์ฟเวอร์ (เนื้อหา pure ASCII — bytes ที่   |
+//| ส่งตรงกับไฟล์ที่เขียนลงดิสก์เป๊ะ)                                    |
+//+------------------------------------------------------------------+
+void UploadCsv(const string stdName, const string tfLabel, const string content)
+  {
+   if(g_wrBlocked)
+      return;
+
+   string url     = InpUploadBaseUrl + "/api/data-upload/"
+                  + MarketKeyFromStd(stdName) + "/" + TfKeyFromLabel(tfLabel);
+   string headers = "x-upload-token: " + InpUploadToken + "\r\nContent-Type: text/plain";
+
+   char data[];
+   int sz = StringToCharArray(content, data, 0, WHOLE_ARRAY, CP_ACP);
+   if(sz <= 1)
+     {
+      PrintFormat("[GoldCast] อัปโหลด %s %s ล้มเหลว: แปลงเนื้อหาเป็น bytes ไม่ได้",
+                  stdName, tfLabel);
+      g_uploadFail++;
+      return;
+     }
+   ArrayResize(data, sz - 1);   // ตัด null terminator ตัวท้ายออก
+
+   char   result[];
+   string resHeaders;
+   ResetLastError();
+   int res = WebRequest("POST", url, headers, InpUploadTimeoutMs, data, result, resHeaders);
+
+   if(res == -1)
+     {
+      int err = GetLastError();
+      if(err == 4060)
+        {
+         g_wrBlocked = true;
+         PrintFormat("[GoldCast] ยังไม่ได้อนุญาต WebRequest — ไปที่ Tools → Options → "
+                     "Expert Advisors → ติ๊ก Allow WebRequest for listed URL → เพิ่ม %s "
+                     "แล้วรันใหม่ (ข้ามการอัปโหลดไฟล์ที่เหลือ)", InpUploadBaseUrl);
+         return;
+        }
+      PrintFormat("[GoldCast] อัปโหลด %s %s ล้มเหลว: WebRequest err=%d",
+                  stdName, tfLabel, err);
+      g_uploadFail++;
+      return;
+     }
+
+   if(res == 200)
+     {
+      PrintFormat("[GoldCast] อัปโหลด %s_%s.csv สำเร็จ (%d bytes)",
+                  stdName, tfLabel, ArraySize(data));
+      g_uploadOk++;
+      return;
+     }
+
+   g_uploadFail++;
+   string body = CharArrayToString(result, 0, WHOLE_ARRAY, CP_UTF8);
+   if(res == 403)
+      PrintFormat("[GoldCast] อัปโหลด %s %s ล้มเหลว (HTTP 403): PIN ไม่ถูกต้อง "
+                  "(ตรงกับ UPLOAD_TOKEN บน Railway ไหม)", stdName, tfLabel);
+   else if(res == 501)
+      PrintFormat("[GoldCast] อัปโหลด %s %s ล้มเหลว (HTTP 501): "
+                  "เซิร์ฟเวอร์ยังไม่ได้ตั้ง UPLOAD_TOKEN", stdName, tfLabel);
+   else if(res == 400)
+      PrintFormat("[GoldCast] อัปโหลด %s %s ล้มเหลว (HTTP 400): %s",
+                  stdName, tfLabel, body);
+   else
+      PrintFormat("[GoldCast] อัปโหลด %s %s ล้มเหลว (HTTP %d): %s",
+                  stdName, tfLabel, res, body);
+  }
+
+//+------------------------------------------------------------------+
 //| Export symbol เดียว timeframe เดียว ออกเป็นไฟล์ CSV               |
 //| คืนค่า: จำนวนแถวข้อมูลที่เขียนได้ (ไม่นับ header) หรือ -1 ถ้าล้มเหลว |
+//| content: เนื้อหาทั้งไฟล์ (รวม header) เหมือนที่เขียนลงดิสก์ทุกไบต์   |
 //+------------------------------------------------------------------+
 int ExportOne(const string stdName, const string brokerSym,
-              const string tfLabel, const ENUM_TIMEFRAMES tf)
+              const string tfLabel, const ENUM_TIMEFRAMES tf,
+              string &content)
   {
-   //--- เลือก symbol ให้ปรากฏใน Market Watch (ถ้าโบรกไม่มี symbol นี้จะข้าม)
-   if(!SymbolSelect(brokerSym, true))
-     {
-      PrintFormat("[GoldCast] ไม่พบ symbol '%s' (ตลาด %s) ที่โบรก — ข้าม "
-                  "(แก้ชื่อได้ที่ InpSymbolMap)", brokerSym, stdName);
-      return(-1);
-     }
+   content = "";
 
    const int digits = (int)SymbolInfoInteger(brokerSym, SYMBOL_DIGITS);
 
@@ -155,13 +316,15 @@ int ExportOne(const string stdName, const string brokerSym,
    //--- header: D1/W1/MN1 ไม่มีคอลัมน์ <TIME> ตามรูปแบบไฟล์เดิม
    bool dateOnly = IsDateOnlyTF(tf);
    if(dateOnly)
-      FileWriteString(h, "<DATE>\t<OPEN>\t<HIGH>\t<LOW>\t<CLOSE>\t<TICKVOL>\t<VOL>\t<SPREAD>\r\n");
+      content = "<DATE>\t<OPEN>\t<HIGH>\t<LOW>\t<CLOSE>\t<TICKVOL>\t<VOL>\t<SPREAD>\r\n";
    else
-      FileWriteString(h, "<DATE>\t<TIME>\t<OPEN>\t<HIGH>\t<LOW>\t<CLOSE>\t<TICKVOL>\t<VOL>\t<SPREAD>\r\n");
+      content = "<DATE>\t<TIME>\t<OPEN>\t<HIGH>\t<LOW>\t<CLOSE>\t<TICKVOL>\t<VOL>\t<SPREAD>\r\n";
+   FileWriteString(h, content);
 
    //--- เขียนทีละแถว: วันที่ YYYY.MM.DD / เวลา HH:MM:SS / ราคาตาม digits /
    //--- TICKVOL = tick_volume, VOL = real_volume (FX ส่วนมากเป็น 0),
    //--- SPREAD = spread หน่วย point — ตรงไฟล์เดิมทุกประการ
+   //--- (สะสมลง content ไปพร้อมกัน เพื่อใช้ POST ขึ้นเซิร์ฟเวอร์ทีหลัง)
    int rows = 0;
    for(int i=startIdx; i<=endIdx; i++)
      {
@@ -177,6 +340,7 @@ int ExportOne(const string stdName, const string brokerSym,
             + "\t" + IntegerToString(rates[i].spread)
             + "\r\n";
       FileWriteString(h, line);
+      content += line;
       rows++;
      }
    FileClose(h);
@@ -216,6 +380,9 @@ void OnStart()
       return;
      }
 
+   //--- เงื่อนไขอัปโหลดรวม: เปิดไว้ + มี PIN (ว่าง = ข้ามอัปโหลดเงียบๆ)
+   bool doUpload = (InpUploadEnabled && InpUploadToken != "");
+
    int okFiles = 0, failFiles = 0;
    long totalRows = 0;
 
@@ -231,7 +398,18 @@ void OnStart()
          continue;
         }
       string stdName   = Trim(kv[0]);
-      string brokerSym = Trim(kv[1]);
+      string preferred = Trim(kv[1]);
+
+      //--- หา symbol ที่ใช้จริงครั้งเดียวต่อตลาด (InpSymbolMap → alias สำรอง)
+      string brokerSym;
+      if(!ResolveBrokerSymbol(stdName, preferred, brokerSym))
+        {
+         PrintFormat("[GoldCast] ไม่พบ symbol '%s' (ตลาด %s) ที่โบรก "
+                     "(ลองชื่อสำรองแล้วก็ไม่เจอ) — ข้ามตลาดนี้ "
+                     "(แก้ชื่อได้ที่ InpSymbolMap)", preferred, stdName);
+         failFiles += tfCount;
+         continue;
+        }
 
       for(int t=0; t<tfCount; t++)
         {
@@ -245,15 +423,37 @@ void OnStart()
             continue;
            }
 
-         int rows = ExportOne(stdName, brokerSym, tfLabel, tf);
-         if(rows >= 0) { okFiles++; totalRows += rows; }
-         else          { failFiles++; }
+         string content;
+         int rows = ExportOne(stdName, brokerSym, tfLabel, tf, content);
+         if(rows >= 0)
+           {
+            okFiles++;
+            totalRows += rows;
+            if(doUpload)
+               UploadCsv(stdName, tfLabel, content);
+           }
+         else
+           {
+            failFiles++;
+           }
         }
      }
 
+   //--- สรุปผลอัปโหลดต่อท้ายบรรทัดสรุปเดิม
+   string uploadSummary;
+   if(!InpUploadEnabled)
+      uploadSummary = " | อัปโหลด: ข้าม (ปิดไว้ใน Inputs)";
+   else if(InpUploadToken == "")
+      uploadSummary = " | อัปโหลด: ข้าม (ไม่มี PIN — ใส่ InpUploadToken ตอนรัน)";
+   else if(g_wrBlocked)
+      uploadSummary = " | อัปโหลด: ข้าม (ไม่ได้อนุญาต WebRequest)";
+   else
+      uploadSummary = StringFormat(" | อัปโหลดอัตโนมัติ: %d/%d สำเร็จ",
+                                   g_uploadOk, g_uploadOk + g_uploadFail);
+
    //--- สรุปท้ายรัน
    PrintFormat("[GoldCast] เสร็จสิ้น: %d ไฟล์สำเร็จ (รวม %I64d แถว), "
-               "%d รายการล้มเหลว/ข้าม — ไฟล์อยู่ที่ MQL5/Files/GoldCast/",
-               okFiles, totalRows, failFiles);
+               "%d รายการล้มเหลว/ข้าม — ไฟล์อยู่ที่ MQL5/Files/GoldCast/%s",
+               okFiles, totalRows, failFiles, uploadSummary);
   }
 //+------------------------------------------------------------------+
