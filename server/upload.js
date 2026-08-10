@@ -22,6 +22,15 @@
 //     2022.01.03\t1828.40\t1831.74\t1798.32\t1801.17\t90188\t0\t5
 // คอลัมน์ TICKVOL/VOL/SPREAD เป็นทางเลือก — บันทึก hasTickvol/hasSpread ไว้ใน
 // sidecar ให้ pipeline รู้ ไม่บังคับมี
+//
+// Contract สำหรับ pipeline นอกเว็บ (pull ไฟล์กลับ — ทุก endpoint ผ่าน PIN เดียวกัน):
+//   1. GET /api/data-upload/status?token=…
+//        → ดูรายการไฟล์ที่รับไว้ทั้งหมด + ผล validate (rows/firstBar/lastBar)
+//   2. GET /api/data-upload/file/:market/:tf?token=…
+//        → ดึง CSV "ล่าสุด" ของคู่นั้นทีละไฟล์
+//          200 text/plain; charset=utf-8 — body เป็น bytes ของไฟล์เป๊ะ ๆ
+//          + header X-GoldCast-Received-At และ X-GoldCast-Rows (จาก sidecar)
+//          404 ถ้ายังไม่เคยมีอัปโหลดของคู่นั้น, 400 ถ้า market/tf ไม่รองรับ
 
 import express from "express";
 import { promises as fs } from "node:fs";
@@ -269,6 +278,16 @@ async function listUploads() {
   return out;
 }
 
+// หาไฟล์ล่าสุดของ market/tf (receivedAt สูงสุด) จาก sidecar — reuse listUploads
+// คืน { csvPath, meta } หรือ null ถ้ายังไม่เคยมีอัปโหลดของคู่นั้น
+async function findLatestCsvPath(market, tf) {
+  const files = await listUploads();
+  const matches = files.filter((f) => f.market === market && f.tf === tf);
+  if (matches.length === 0) return null;
+  const latest = matches[matches.length - 1]; // sort ตาม receivedAt แล้ว — ตัวท้ายคือล่าสุด
+  return { csvPath: path.join(uploadDir(), latest.dir, `${market}_${tf}.csv`), meta: latest };
+}
+
 /* ── router ──────────────────────────────────────────────────────────────── */
 export function createUploadRouter() {
   const router = express.Router();
@@ -286,6 +305,34 @@ export function createUploadRouter() {
       files,
       note: "ไฟล์บน disk อาจหายเมื่อ redeploy (ephemeral) — มีไว้ให้ pipeline นอกเว็บมาหยิบไป retrain เท่านั้น",
     });
+  });
+
+  // GET /api/data-upload/file/:market/:tf?token=… — pipeline นอกเว็บดึงไฟล์กลับ
+  // (ตอบ bytes ของ CSV ล่าสุดเป๊ะ ๆ เป็น text/plain — ดู contract ที่หัวไฟล์)
+  router.get("/file/:market/:tf", requireUploadToken, async (req, res) => {
+    const market = String(req.params.market).toLowerCase();
+    const tf = String(req.params.tf).toLowerCase();
+    if (!MARKETS.has(market)) {
+      return res.status(400).json({ error: `market ไม่รองรับ: ${req.params.market} (รองรับ: ${[...MARKETS].join(", ")})` });
+    }
+    if (!TFS.has(tf)) {
+      return res.status(400).json({ error: `timeframe ไม่รองรับ: ${req.params.tf} (รองรับ: ${[...TFS].join(", ")})` });
+    }
+
+    const found = await findLatestCsvPath(market, tf);
+    if (!found) {
+      return res.status(404).json({ error: `ยังไม่มีไฟล์ของ ${market}/${tf} — อัปโหลดก่อน`, market, tf });
+    }
+    let text;
+    try {
+      text = await fs.readFile(found.csvPath, "utf8");
+    } catch {
+      // sidecar มีแต่ไฟล์ CSV หาย (ephemeral disk) — ถือว่าไม่มีไฟล์
+      return res.status(404).json({ error: `ยังไม่มีไฟล์ของ ${market}/${tf} — อัปโหลดก่อน`, market, tf });
+    }
+    res.set("X-GoldCast-Received-At", String(found.meta.receivedAt ?? ""));
+    res.set("X-GoldCast-Rows", String(found.meta.rows ?? ""));
+    return res.type("text/plain").send(text);
   });
 
   // POST /api/data-upload/:market/:tf — รับ raw CSV (text body)

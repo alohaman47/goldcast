@@ -14,6 +14,13 @@
  *   T9  market ไม่รองรับ → 400
  *   T10 D1 (8 คอลัมน์ ไม่มี <TIME>) → 200, duplicate ตรวจจาก DATE อย่างเดียว
  *   T11 intraday ขาดคอลัมน์ TIME → 400
+ *   ── Phase 20 Track S: GET /file/:market/:tf (pull endpoint) ──
+ *   T12 GET file โดย UPLOAD_TOKEN unset → 501
+ *   T13 GET file ไม่ใส่ token / token ผิด → 403
+ *   T14 GET file market มั่ว → 400, tf มั่ว → 400
+ *   T15 GET file คู่ที่ยังไม่เคยอัปโหลด (token ถูก) → 404
+ *   T16 POST แล้ว GET file → 200, body byte-identical + headers X-GoldCast-* ถูก
+ *   T17 POST 2 รอบ (คนละเนื้อ) แล้ว GET → ได้เนื้อรอบล่าสุดเท่านั้น
  *
  * Usage: DATA_UPLOAD_DIR=/tmp/uploadtest node server/upload.stub-test.mjs
  *   (exit 0 = PASS, 1 = FAIL)
@@ -73,6 +80,19 @@ async function post(market, tf, body, token) {
 async function getStatus(token) {
   const res = await fetch(`${BASE}/api/data-upload/status?token=${encodeURIComponent(token)}`);
   return { status: res.status, body: await res.json().catch(() => null) };
+}
+async function getFile(market, tf, token) {
+  const qs = token !== undefined ? `?token=${encodeURIComponent(token)}` : "";
+  const res = await fetch(`${BASE}/api/data-upload/file/${market}/${tf}${qs}`);
+  const ct = res.headers.get("content-type") || "";
+  const body = ct.includes("json") ? await res.json().catch(() => null) : await res.text();
+  return {
+    status: res.status,
+    body,
+    ct,
+    receivedAt: res.headers.get("x-goldcast-received-at"),
+    rows: res.headers.get("x-goldcast-rows"),
+  };
 }
 
 await fs.rm(DIR, { recursive: true, force: true });
@@ -212,6 +232,60 @@ const t11 = await post("xauusd", "h1", mt5D1csv(D1_ROWS), "test-pin-1234");
 check("T11 ไฟล์ D1 (8 คอลัมน์) ส่งเป็น h1 → 400 บอกขาด TIME",
   t11.status === 400 && /TIME/.test(t11.body?.error ?? ""),
   `got ${t11.status} ${JSON.stringify(t11.body)}`);
+
+/* ══ Phase 20 Track S — GET /file/:market/:tf (pull endpoint) ══════════════ */
+
+/* ── T12: GET file โดย UPLOAD_TOKEN unset → 501 ───────────────────────────── */
+delete process.env.UPLOAD_TOKEN;
+const t12 = await getFile("xauusd", "h1", "whatever");
+check("T12 GET file โดยไม่มี UPLOAD_TOKEN → 501", t12.status === 501, `got ${t12.status} ${JSON.stringify(t12.body)}`);
+process.env.UPLOAD_TOKEN = "test-pin-1234";
+
+/* ── T13: GET file ไม่ใส่ token / token ผิด → 403 ─────────────────────────── */
+const t13a = await getFile("xauusd", "h1", undefined);
+check("T13 GET file ไม่ใส่ token → 403", t13a.status === 403, `got ${t13a.status}`);
+const t13b = await getFile("xauusd", "h1", "wrong-pin-0000");
+check("T13b GET file token ผิด → 403", t13b.status === 403, `got ${t13b.status}`);
+
+/* ── T14: GET file market/tf มั่ว → 400 ───────────────────────────────────── */
+const t14a = await getFile("btcusd", "h1", "test-pin-1234");
+check("T14 GET file market ไม่รองรับ → 400", t14a.status === 400 && /market ไม่รองรับ/.test(t14a.body?.error ?? ""), `got ${t14a.status} ${JSON.stringify(t14a.body)}`);
+const t14b = await getFile("xauusd", "w1", "test-pin-1234");
+check("T14b GET file tf ไม่รองรับ → 400", t14b.status === 400 && /timeframe ไม่รองรับ/.test(t14b.body?.error ?? ""), `got ${t14b.status} ${JSON.stringify(t14b.body)}`);
+
+/* ── T15: GET file คู่ที่ยังไม่เคยอัปโหลด (token ถูก) → 404 ───────────────── */
+// us30/h1 ไม่เคยถูก POST สำเร็จในเทสต์ชุดนี้ (T6 ส่ง us30/d1 แต่โดน 400)
+const t15 = await getFile("us30", "h1", "test-pin-1234");
+check("T15 GET file คู่ที่ยังไม่เคยอัปโหลด → 404", t15.status === 404, `got ${t15.status} ${JSON.stringify(t15.body)}`);
+check("T15 404 body มี error/market/tf",
+  /ยังไม่มีไฟล์ของ us30\/h1/.test(t15.body?.error ?? "") && t15.body?.market === "us30" && t15.body?.tf === "h1",
+  JSON.stringify(t15.body));
+
+/* ── T16: POST แล้ว GET file → 200 + byte-identical + headers ─────────────── */
+const pullCsv1 = mt5csv(GOLD_ROWS);
+const t16post = await post("nas100", "m15", pullCsv1, "test-pin-1234");
+check("T16 POST nas100/m15 → 200", t16post.status === 200 && t16post.body?.ok === true, `got ${t16post.status} ${JSON.stringify(t16post.body)}`);
+const t16 = await getFile("nas100", "m15", "test-pin-1234");
+check("T16 GET file → 200", t16.status === 200, `got ${t16.status} ${JSON.stringify(t16.body)}`);
+check("T16 Content-Type เป็น text/plain; charset=utf-8",
+  /text\/plain/.test(t16.ct) && /utf-8/i.test(t16.ct), t16.ct);
+check("T16 body byte-identical กับที่ POST", t16.body === pullCsv1,
+  `len ${String(t16.body).length} vs ${pullCsv1.length}`);
+check("T16 X-GoldCast-Received-At เป็น ISO string",
+  typeof t16.receivedAt === "string" && /^\d{4}-\d{2}-\d{2}T/.test(t16.receivedAt), String(t16.receivedAt));
+check("T16 X-GoldCast-Rows = 4 ตรงกับ sidecar", t16.rows === "4", String(t16.rows));
+
+/* ── T17: POST 2 รอบ (คนละเนื้อ) แล้ว GET → ได้รอบล่าสุดเท่านั้น ──────────── */
+const pullCsv2 = mt5csv(FX_ROWS); // 3 แถว เนื้อต่างจาก pullCsv1 (4 แถว)
+const t17post = await post("nas100", "m15", pullCsv2, "test-pin-1234");
+check("T17 POST รอบสอง nas100/m15 → 200", t17post.status === 200 && t17post.body?.ok === true, `got ${t17post.status} ${JSON.stringify(t17post.body)}`);
+const t17 = await getFile("nas100", "m15", "test-pin-1234");
+check("T17 GET file → 200 + ได้เนื้อรอบล่าสุดเป๊ะ (byte-identical กับ pullCsv2)",
+  t17.status === 200 && t17.body === pullCsv2,
+  `status ${t17.status}, len ${String(t17.body).length} vs ${pullCsv2.length}`);
+check("T17 เนื้อรอบแรกไม่หลงเหลือ (ไม่มีแถว 1828.40 ของ GOLD_ROWS)",
+  !String(t17.body).includes("1828.40"), String(t17.body).slice(0, 80));
+check("T17 X-GoldCast-Rows = 3 ของรอบล่าสุด", t17.rows === "3", String(t17.rows));
 
 server.close();
 console.log(failures === 0 ? "\nALL PASS" : `\n${failures} FAILURE(S)`);
