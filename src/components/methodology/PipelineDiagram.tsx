@@ -3,7 +3,7 @@ import { motion } from 'framer-motion'
 const EASE = [0.16, 1, 0.3, 1] as [number, number, number, number]
 
 const STEPS = [
-  { n: '1', name: 'RAW BARS', caption: 'OANDA XAUUSD, H1 + D1' },
+  { n: '1', name: 'RAW BARS', caption: 'MT5 XAUUSD, H1 + D1' },
   { n: '2', name: 'FEATURES', caption: 'time, returns, RV, RSI, ATR' },
   { n: '3', name: 'GBM ENGINE', caption: 'HistGradientBoosting' },
   { n: '4', name: 'WALK-FORWARD', caption: 'out-of-sample validation' },

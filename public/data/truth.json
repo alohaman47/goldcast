@@ -1,16 +1,16 @@
 {
   "dataset": {
     "h1": {
-      "bars": 27136,
-      "start": "2022-01-03",
-      "end": "2026-08-04",
+      "bars": 27737,
+      "start": "2021-12-01",
+      "end": "2026-08-10",
       "instrument": "XAUUSD",
       "timeframe": "H1"
     },
     "d1": {
-      "bars": 1184,
-      "start": "2022-01-03",
-      "end": "2026-08-04",
+      "bars": 1209,
+      "start": "2021-12-01",
+      "end": "2026-08-07",
       "instrument": "XAUUSD",
       "timeframe": "D1"
     }
@@ -32,23 +32,23 @@
     "description": "Volatility is learnable; direction is not; fundamentals add ~nothing on top of price. (Revalidated 2026-08 on the refreshed dataset.)",
     "h1_hvol": {
       "model": "gbm_price (HistGradientBoosting)",
-      "accuracy": 0.8003,
-      "auc": 0.777,
-      "baseline_class_prior_auc": 0.7419
+      "accuracy": 0.7999,
+      "auc": 0.779,
+      "baseline_class_prior_auc": 0.742
     },
     "h1_range": {
       "model": "gbm_price regressor",
-      "mae": 0.3457,
-      "r2": 0.289,
+      "mae": 0.3494,
+      "r2": 0.277,
       "baseline_mae": 0.431
     },
     "fundamentals_delta": 0.0,
     "top_features": [
-      "hour_sin",
       "hour_cos",
-      "ret3",
+      "hour_sin",
       "macd_hist_raw",
-      "rv20"
+      "rv20",
+      "dow_sin"
     ]
   },
   "phase3": {

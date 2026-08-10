@@ -103,15 +103,15 @@ export default function DatasetSection({ data }: { data: TruthData | null }) {
     <section ref={root} className="mx-auto w-full max-w-[1180px] px-6 py-20">
       <SectionTitle>THE DATASET</SectionTitle>
       <p className="mt-3 max-w-[640px] font-body text-[15px] leading-6 text-text1">
-        Real OANDA XAUUSD data. No synthetic fills, no cherry-picked windows.
+        Real MT5 XAUUSD data. No synthetic fills, no cherry-picked windows.
       </p>
 
       <div ref={statsRef} className="mt-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
         <StatBlock
-          value={h1?.bars ?? 27136}
+          value={h1?.bars ?? 27737}
           format={(v) => Math.round(v).toLocaleString('en-US')}
           label="H1 bars"
-          sub={h1 ? `${h1.start} → ${h1.end}` : '2022-01-03 → 2026-08-04'}
+          sub={h1 ? `${h1.start} → ${h1.end}` : '2021-12-01 → 2026-08-10'}
           started={statsInView}
         />
         <StatBlock

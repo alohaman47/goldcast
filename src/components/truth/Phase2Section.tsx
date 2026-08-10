@@ -27,7 +27,7 @@ const STEPS = [
   {
     key: 'result',
     title: 'THE RESULT',
-    body: 'High-vol classifier: 80.03% accuracy, AUC 0.777 vs 74.19% baseline. Range regression: R² 0.289, MAE 0.346 ATR vs 0.4310 baseline. Real, learnable, out-of-sample.',
+    body: 'High-vol classifier: 79.99% accuracy, AUC 0.779 vs 74.20% baseline. Range regression: R² 0.277, MAE 0.349 ATR vs 0.4312 baseline. Real, learnable, out-of-sample.',
   },
   {
     key: 'catch',
@@ -38,16 +38,16 @@ const STEPS = [
 
 /**
  * Phase 2 (truth.md §4): pinned scroll story, mirrored layout — volatility is learnable.
- * Gauge sweeps to AUC 0.777 (baseline 0.7419 marked), feature bars prove the edge is the clock.
+ * Gauge sweeps to AUC 0.779 (baseline 0.7420 marked), feature bars prove the edge is the clock.
  */
 export default function Phase2Section({ data }: { data: TruthData | null }) {
   const root = useRef<HTMLElement | null>(null)
   const reduced = useReducedMotion()
 
   const hvol = (data?.phase2.h1_hvol ?? {}) as HvolMetrics
-  const auc = hvol.auc ?? 0.777
-  const baselineAuc = hvol.baseline_class_prior_auc ?? 0.7419
-  const topFeatures = data?.phase2.top_features ?? ['hour_sin', 'hour_cos', 'ret3', 'macd_hist_raw', 'rv20']
+  const auc = hvol.auc ?? 0.779
+  const baselineAuc = hvol.baseline_class_prior_auc ?? 0.7420
+  const topFeatures = data?.phase2.top_features ?? ['hour_cos', 'hour_sin', 'macd_hist_raw', 'rv20', 'dow_sin']
 
   // Gauge maps AUC ∈ [0.5, 1.0] onto the 180° semicircle (pathLength 100).
   const frac = (v: number) => Math.max(0, Math.min(1, (v - 0.5) / 0.5))
@@ -165,7 +165,7 @@ export default function Phase2Section({ data }: { data: TruthData | null }) {
                   AUC {auc.toFixed(3)}
                 </div>
                 <div className="micro-mono mt-1">
-                  baseline {baselineAuc.toFixed(4)} (dashed) · accuracy 80.03%
+                  baseline {baselineAuc.toFixed(4)} (dashed) · accuracy 79.99%
                 </div>
               </div>
               <div

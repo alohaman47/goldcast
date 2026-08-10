@@ -1,24 +1,24 @@
 {
-  "asof": "2026-08-04 16:00:00",
-  "session": "ny",
-  "regime": "ranging",
-  "p_high_vol": 0.6672,
-  "expected_range_atr": 1.7376,
-  "expected_range_price": 28.1541,
+  "asof": "2026-08-10 19:00:00",
+  "session": "off",
+  "regime": "neutral",
+  "p_high_vol": 0.0955,
+  "expected_range_atr": 0.7779,
+  "expected_range_price": 13.7062,
   "cone": {
     "T1": {
-      "half_width": 28.1541
+      "half_width": 13.7062
     },
     "T2": {
-      "half_width": 39.8159
+      "half_width": 19.3835
     },
     "T3": {
-      "half_width": 48.7643
+      "half_width": 23.7398
     }
   },
   "direction_policy": "drift",
-  "drift_sign": -1,
-  "confidence": 3,
-  "price": 4084.37,
-  "atr14": 16.203
+  "drift_sign": 1,
+  "confidence": 5,
+  "price": 4356.73,
+  "atr14": 17.6202
 }
