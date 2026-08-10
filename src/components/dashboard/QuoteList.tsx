@@ -48,8 +48,7 @@ export default function QuoteList({ bars, latest }: { bars: Bar[]; latest: Lates
         ))}
       </div>
       <p className="micro-mono mt-2 flex items-center gap-1.5">
-        Data source: OANDA, TradingView, Investing.com · Auto-updated{' '}
-        <span className="h-1.5 w-1.5 rounded-full bg-up animate-pulse-dot" />
+        XAUUSD: latest MT5 engine snapshot · DXY/US10Y: fixed context values, not real-time
       </p>
     </section>
   )

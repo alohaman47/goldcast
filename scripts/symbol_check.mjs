@@ -45,8 +45,10 @@
  * v7-fix note: two CHECK-6 assertions were ADDED (nothing existing weakened
  * or removed):
  *   - per-symbol data-source labels: SymbolStatusBar + Home chart headers
- *     must use dataSourceLabel(config) (OANDA for XAUUSD / MT5 for NAS100,
- *     matching the Footer provenance matrix) with no hardcoded "OANDA" left;
+ *     must use dataSourceLabel(config) (MT5 for every market — Phase 19 R3:
+ *     gold's engine data has been the user's MT5 broker export since
+ *     v14/v16), matching the Footer provenance matrix, with no stale
+ *     hardcoded source label left;
  *   - honest update indicator: Footer must show a neutral "Static export"
  *     label for static contexts (scalper-clock dataLines / hasLiveFeed ===
  *     false) while keeping the pulsing "Auto-updated" for live gold H1.
@@ -296,18 +298,20 @@ const main = async () => {
       useSymbolSrc.includes("Data: MT5 XAUUSD M5 · 325,160 bars · Static research export · As of 2026-08-04 16:00 UTC") &&
       useSymbolSrc.includes("Data: MT5 NAS100 M15 · 110,699 bars · Static research export · As of 2026-08-10 20:15 UTC") &&
       useSymbolSrc.includes("Data: MT5 XAUUSD H1/D1 · Precomputed engine export · As of 2026-08-10 19:00 UTC") &&
-      useSymbolSrc.includes("Data: OANDA XAUUSD H4/D1 · Precomputed engine export · As of 2026-07-03 16:00 UTC") &&
+      useSymbolSrc.includes("Data: MT5 XAUUSD H4/D1 · Precomputed engine export · As of 2026-07-03 16:00 UTC") &&
       useSymbolSrc.includes("Data: MT5 NAS100 H1/D1 · Precomputed engine export · As of 2026-08-07 22:00 UTC") &&
       useSymbolSrc.includes("Data: MT5 NAS100 H4/D1 · Precomputed engine export · As of 2026-07-03 16:00 UTC"),
   );
 
-  // v7-fix: per-symbol data-source label (OANDA gold / MT5 NAS100, matching
-  // the Footer provenance matrix) — no hardcoded "OANDA" left in the three
-  // call sites; gold rendered strings stay byte-identical via the helper.
+  // v7-fix: per-symbol data-source label via dataSourceLabel(config),
+  // matching the Footer provenance matrix — no hardcoded source label left
+  // in the call sites. Phase 19 R3: gold is MT5 too (user's broker export
+  // since v14/v16), so every rendered label is now "MT5"; the negative
+  // assertions below guard against the old OANDA hardcode creeping back.
   const statusBar = await readSrc("components/symbol/SymbolStatusBar.tsx");
   const home = await readSrc("pages/Home.tsx");
   check(
-    "data-source label: dataSourceLabel(config) in SymbolStatusBar + Home chart headers (no hardcoded OANDA)",
+    "data-source label: dataSourceLabel(config) in SymbolStatusBar + Home chart headers (no stale OANDA hardcode)",
     statusBar.includes("dataSourceLabel(config)") &&
       !statusBar.includes("Data: OANDA") &&
       home.includes("dataSourceLabel(config)") &&
@@ -611,8 +615,8 @@ const main = async () => {
 
   // 10c — legacy entries unchanged -------------------------------------------
   check(
-    "legacy entries unchanged: XAUUSD OANDA/live/H4+M5, NAS100 MT5/static/H4, range units USD/pts",
-    SYMBOL_REGISTRY.XAUUSD.dataSource === "OANDA" &&
+    "legacy entries unchanged: XAUUSD MT5/live/H4+M5, NAS100 MT5/static/H4, range units USD/pts",
+    SYMBOL_REGISTRY.XAUUSD.dataSource === "MT5" &&
       SYMBOL_REGISTRY.XAUUSD.h1.hasLiveFeed === true &&
       SYMBOL_REGISTRY.XAUUSD.h4 === "xauusd-h4" &&
       SYMBOL_REGISTRY.XAUUSD.scalperM5 === "/data/xauusd_m5_slots.json" &&
@@ -631,10 +635,10 @@ const main = async () => {
       SYMBOL_REGISTRY.NAS100.headline === "Nasdaq has a schedule. Volatility keeps it.",
   );
   check(
-    "legacy units/dataSource via helpers: priceUnit USD/pts · dataSourceLabel OANDA/MT5",
+    "legacy units/dataSource via helpers: priceUnit USD/pts · dataSourceLabel MT5/MT5",
     priceUnit(SYMBOL_REGISTRY.XAUUSD.h1) === "USD" &&
       priceUnit(SYMBOL_REGISTRY.NAS100.h1) === "pts" &&
-      dataSourceLabel(SYMBOL_REGISTRY.XAUUSD.h1) === "OANDA" &&
+      dataSourceLabel(SYMBOL_REGISTRY.XAUUSD.h1) === "MT5" &&
       dataSourceLabel(SYMBOL_REGISTRY.NAS100.h1) === "MT5",
   );
 

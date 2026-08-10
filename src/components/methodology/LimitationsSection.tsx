@@ -6,7 +6,7 @@ const EASE = [0.16, 1, 0.3, 1] as [number, number, number, number]
 const ROWS = [
   'R² 0.277 means most range variance is not explained — cones are envelopes, not promises.',
   'Regime shifts can degrade any statistical edge; session seasonality is stable but not a law of physics.',
-  'Exports are snapshots (asof 2026-08-10 19:00 UTC), not a live feed.',
+  'Exports are static snapshots — each shows its own asof timestamp — not a live feed.',
   'GoldCast is a risk display and research artifact. Nothing here is investment advice.',
 ]
 

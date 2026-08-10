@@ -15,9 +15,11 @@ import { useLenis } from '@/components/truth/motion'
 
 const EASE = [0.16, 1, 0.3, 1] as [number, number, number, number]
 
-/** Markets whose research reaches the UI only as static MT5 exports (H1
- *  engines + M15 scalper clocks) — everything except live-feed XAUUSD.
- *  Derived from SYMBOL_REGISTRY.dataSource, not hardcoded (Phase 15). */
+/** Markets whose research reaches the UI as static MT5 exports (H1 engines
+ *  + M15 scalper clocks). Phase 19 R3: this is now EVERY market, gold
+ *  included — all engine data is trained from the user's own MT5 broker
+ *  exports and there is no live feed anywhere in the app. Derived from
+ *  SYMBOL_REGISTRY.dataSource, not hardcoded (Phase 15). */
 const STATIC_RESEARCH_MARKETS = (Object.keys(SYMBOL_REGISTRY) as AppSymbolId[]).filter(
   (id) => SYMBOL_REGISTRY[id].dataSource === 'MT5',
 )
@@ -50,12 +52,13 @@ function Hero() {
         GoldCast&apos;s forecasts are precomputed by a production scikit-learn gradient-boosting engine and exported
         as JSON. No live black box, no hidden overrides. Here&apos;s exactly what&apos;s inside.
       </motion.p>
-      {/* honesty caption: this audit documents the XAUUSD engine; the
-          static-market list is derived from the registry (every MT5-sourced
-          market) so a new market can't leave this caption stale */}
+      {/* honesty caption: this audit documents the XAUUSD engine; the market
+          list is derived from the registry so a new market can't leave this
+          caption stale. Every market — gold included — is a static MT5
+          research export from the user's own broker data; no live feed. */}
       <p className="micro-mono mt-4">
-        Research shown for XAUUSD (live OANDA feed) — {STATIC_RESEARCH_MARKETS.join(' · ')} ship as static MT5
-        research exports (H1 engines + M15 scalper clocks).
+        Research shown for XAUUSD — every market ({STATIC_RESEARCH_MARKETS.join(' · ')}) ships as static MT5
+        research exports from the user&apos;s own broker data (H1 engines + M15 scalper clocks). No live feed.
       </p>
     </div>
   )

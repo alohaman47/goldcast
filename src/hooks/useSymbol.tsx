@@ -60,8 +60,11 @@ export interface SymbolRegistryEntry {
   rangeUnit: 'USD' | 'pts' | 'JPY'
   /** Short human name for the instrument (Navbar / headings). */
   displayName: string
-  /** Engine data source for chart headers / status bars / Footer matrix. */
-  dataSource: 'OANDA' | 'MT5'
+  /** Engine data source for chart headers / status bars / Footer matrix.
+   *  Phase 19 R3: every market — gold included — is trained from the user's
+   *  own MT5 broker exports, so this is 'MT5' everywhere today. Widen the
+   *  union if a market with a different source is ever added. */
+  dataSource: 'MT5'
   /** Scalper economics family (drives the EconPanel schema + honesty notes). */
   econKind: EconKind
   /**
@@ -120,7 +123,7 @@ export const SYMBOL_REGISTRY: Record<AppSymbolId, SymbolRegistryEntry> = {
     scalperM5: '/data/xauusd_m5_slots.json',
     rangeUnit: 'USD',
     displayName: 'Gold / U.S. Dollar',
-    dataSource: 'OANDA',
+    dataSource: 'MT5',
     econKind: 'spread',
     econNote: null,
     engineRangeNote: null,
@@ -128,7 +131,7 @@ export const SYMBOL_REGISTRY: Record<AppSymbolId, SymbolRegistryEntry> = {
       scalperM15: 'Data: MT5 XAUUSD M15 · 110,882 bars · Static research export · As of 2026-08-10 20:15 UTC',
       scalperM5: 'Data: MT5 XAUUSD M5 · 325,160 bars · Static research export · As of 2026-08-04 16:00 UTC',
       engineH1: 'Data: MT5 XAUUSD H1/D1 · Precomputed engine export · As of 2026-08-10 19:00 UTC',
-      engineH4: 'Data: OANDA XAUUSD H4/D1 · Precomputed engine export · As of 2026-07-03 16:00 UTC',
+      engineH4: 'Data: MT5 XAUUSD H4/D1 · Precomputed engine export · As of 2026-07-03 16:00 UTC',
     },
     headline: 'Gold has a schedule. Volatility keeps it.',
   },
@@ -390,9 +393,9 @@ export function symbolDisplayName(config: SymbolConfig): string {
 
 /**
  * Data-source label for chart headers / status bars, matching the Footer
- * provenance matrix: gold engine data is OANDA, every MT5 static export
- * (NAS100 + the five Phase-15 markets) is MT5. XAUUSD/NAS100 output stays
- * byte-identical to the legacy hardcode.
+ * provenance matrix. Phase 19 R3: every market is MT5 — gold's engine data
+ * has been the user's MT5 broker export since v14/v16, so the label is
+ * 'MT5' for every config.
  */
 export function dataSourceLabel(config: SymbolConfig): string {
   return entryForSymbol(config.symbol).dataSource
