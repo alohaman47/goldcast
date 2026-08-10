@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from 'react'
-import { FileUp, KeyRound, ListChecks, TriangleAlert } from 'lucide-react'
+import { Download, FileUp, KeyRound, ListChecks, TriangleAlert } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -236,6 +236,28 @@ export default function Upload() {
           <li>ไฟล์บนเซิร์ฟเวอร์อาจหายเมื่อ redeploy — เก็บต้นฉบับไว้ด้วย</li>
         </ul>
       </div>
+
+      {/* สคริปต์ MT5 สำหรับ export CSV */}
+      <section className="panel mt-6 p-5" aria-label="สคริปต์ MT5">
+        <h2 className="panel-title flex items-center gap-2">
+          <Download className="h-3.5 w-3.5 text-gold" /> สคริปต์ MT5 (GoldCast_Export.mq5)
+        </h2>
+        <p className="mt-3 max-w-[640px] font-body text-[12px] leading-5 text-text1">
+          สคริปต์ MQL5 ที่ export ข้อมูล OHLC ทุกตลาดออกเป็น CSV ในคลิกเดียว — รูปแบบไฟล์ตรงกับที่หน้านี้รับเป๊ะ
+          (วิธีติดตั้งและใช้งานอยู่ในคอมเมนต์หัวไฟล์ หรือถามผู้ดูแล)
+        </p>
+        <div className="mt-4">
+          <Button
+            asChild
+            variant="outline"
+            className="border-line bg-bg3 font-mono text-[12px] text-gold hover:bg-bg4 hover:text-goldhi"
+          >
+            <a href="/mt5/GoldCast_Export.mq5" download="GoldCast_Export.mq5">
+              ดาวน์โหลดสคริปต์ MT5 (GoldCast_Export.mq5)
+            </a>
+          </Button>
+        </div>
+      </section>
 
       {/* PIN */}
       <section className="panel mt-8 p-5" aria-label="PIN">
