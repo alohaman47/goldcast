@@ -298,7 +298,7 @@ const main = async () => {
       useSymbolSrc.includes("Data: MT5 XAUUSD M5 · 325,160 bars · Static research export · As of 2026-08-04 16:00 UTC") &&
       useSymbolSrc.includes("Data: MT5 NAS100 M15 · 110,781 bars · Static research export · As of 2026-08-11 17:45 UTC") &&
       useSymbolSrc.includes("Data: MT5 XAUUSD H1/D1 · Precomputed engine export · As of 2026-08-11 17:00 UTC") &&
-      useSymbolSrc.includes("Data: MT5 XAUUSD H4/D1 · Precomputed engine export · As of 2026-07-03 16:00 UTC") &&
+      useSymbolSrc.includes("Data: MT5 XAUUSD H4/D1 · Precomputed engine export · As of 2026-08-11 16:00 UTC") &&
       useSymbolSrc.includes("Data: MT5 NAS100 H1/D1 · Precomputed engine export · As of 2026-08-11 17:00 UTC") &&
       useSymbolSrc.includes("Data: MT5 NAS100 H4/D1 · Precomputed engine export · As of 2026-07-03 16:00 UTC"),
   );
@@ -428,8 +428,8 @@ const main = async () => {
     // validation metrics — the verified gold H4 numbers the UI must render
     const ghv = gh4.validation ?? {};
     check(
-      "H4 validation: 76.14% OOS accuracy · AUC 0.735 (3dp) · 6,971 bars",
-      ghv.hvolAccuracyPct === 76.14 && ghv.hvolAuc === 0.735 && ghv.hvolAucDecimals === 3 && ghv.bars === 6971,
+      "H4 validation: 76.82% OOS accuracy · AUC 0.746 (3dp) · 7,133 bars",
+      ghv.hvolAccuracyPct === 76.82 && ghv.hvolAuc === 0.746 && ghv.hvolAucDecimals === 3 && ghv.bars === 7133,
       `got ${JSON.stringify(ghv)}`,
     );
     check(

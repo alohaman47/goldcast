@@ -131,7 +131,7 @@ export const SYMBOL_REGISTRY: Record<AppSymbolId, SymbolRegistryEntry> = {
       scalperM15: 'Data: MT5 XAUUSD M15 · 110,964 bars · Static research export · As of 2026-08-11 17:45 UTC',
       scalperM5: 'Data: MT5 XAUUSD M5 · 325,160 bars · Static research export · As of 2026-08-04 16:00 UTC',
       engineH1: 'Data: MT5 XAUUSD H1/D1 · Precomputed engine export · As of 2026-08-11 17:00 UTC',
-      engineH4: 'Data: MT5 XAUUSD H4/D1 · Precomputed engine export · As of 2026-07-03 16:00 UTC',
+      engineH4: 'Data: MT5 XAUUSD H4/D1 · Precomputed engine export · As of 2026-08-11 16:00 UTC',
     },
     headline: 'Gold has a schedule. Volatility keeps it.',
   },

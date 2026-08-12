@@ -232,7 +232,7 @@ export const NAS100_H4_CONFIG: SymbolConfig = {
  *
  * *** hasLiveFeed: false — LOUD OVERRIDE *** GOLD_CONFIG has a live feed,
  * but the live feed drives GOLD H1 ONLY. The XAUUSD H4 engine is STATIC
- * (H4 bars are a fixed historical export, last bar 2026-07-03 16:00 UTC);
+ * (H4 bars are a fixed historical export, last bar 2026-08-11 16:00 UTC);
  * this field OVERRIDES the `true` inherited from the GOLD_CONFIG spread.
  *
  * Registered as a SEPARATE variant key ("xauusd-h4") so the existing
@@ -251,14 +251,20 @@ export const XAUUSD_H4_CONFIG: SymbolConfig = {
   // STATIC — live feed drives gold H1 only; overrides GOLD_CONFIG's true.
   hasLiveFeed: false,
   validation: {
-    // Phase-12 classic-GBM H4 OOS (results/phase12_gbm_classic_xauusd_h4_oos.csv,
-    // n_test 4182): hvol acc 0.7614 / AUC 0.7352 (HGB reference 0.7585/0.7267).
+    // Phase-22 (v19) classic-GBM H4 refresh on mito's 2022-01-03→2026-08-11
+    // MT5 export (out_h4/models/gbm_classic_xauusd_h4.pkl, variant-B
+    // walk-forward, pooled OOS 4,266 bars): hvol acc 0.7682 / AUC 0.7460,
+    // +2.45pp over the per-hour class-prior baseline (0.7216) — SHIP per the
+    // ≥0.70 / ≥+2pp gate. Supersedes Phase-12 (0.7614 / 0.7352 on 6,971
+    // bars); harness-old on the truncated new CSV reproduced 0.7434, so the
+    // true data effect vs the old pin is +0.0026 (same protocol noise as
+    // v18). Still honestly labelled WEAKER than gold H1 (0.746 vs 0.774).
     // Direction T+1 (Phase-12 research): Model C 52.21% vs always_up 53.98%
     // (best baseline htf_trend 54.27%) — NO-SHIP, display-only drift policy.
     ...GOLD_CONFIG.validation,
-    hvolAccuracyPct: 76.14,
-    hvolAuc: 0.735,
-    bars: 6971,
+    hvolAccuracyPct: 76.82,
+    hvolAuc: 0.746,
+    bars: 7133,
     directionModelPct: 52.21,
     directionAlwaysUpPct: 53.98,
     driftPeriod: "2022–2026",
