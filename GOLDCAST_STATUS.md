@@ -17,7 +17,7 @@ GoldCast = market-volatility intelligence terminal 7 ตลาด (XAUUSD, NAS10
 - Pipeline ดึงไฟล์: GET /api/data-upload/status + /api/data-upload/file/:market/:tf?token=PIN
 - PIN: ผู้ช่วยเก็บไว้ใน memory ถาวรแล้ว — ถ้าใช้ไม่ได้ (403) แปลว่า mito เปลี่ยน ให้ถามตัวใหม่
 - ข้อมูลข่าว: /api/economic-calendar (forexfactory + fallback) + Professor อ่านข่าวได้
-- Version ledger: v14=21ee625, v15=4699535, v16=01f6b50, v17=02720a4, v18=55864b7 (ปัจจุบัน)
+- Version ledger: v14=21ee625, v15=4699535, v16=01f6b50, v17=02720a4, v18=20ed887 (ปัจจุบัน)
 
 ## พิธีกรรมรีเฟรชข้อมูลของ mito (ทำเองได้)
 1. เปิด chart NAS100 ทิ้งไว้ 1 นาที (ให้ history โหลดครบ)
