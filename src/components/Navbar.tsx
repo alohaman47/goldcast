@@ -11,6 +11,7 @@ import { cn } from '@/lib/utils'
 
 const NAV_LINKS = [
   { to: '/', label: 'Dashboard' },
+  { to: '/daily-focus', label: 'Daily Focus' },
   { to: '/sessions', label: 'Session Radar' },
   { to: '/scalper-clock', label: 'Scalper Clock' },
   { to: '/truth', label: 'The Truth' },

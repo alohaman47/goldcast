@@ -2,6 +2,7 @@ import { Routes, Route } from 'react-router'
 import Layout from '@/components/Layout'
 import Home from '@/pages/Home'
 import Sessions from '@/pages/Sessions'
+import DailyFocus from '@/pages/DailyFocus'
 import Truth from '@/pages/Truth'
 import Methodology from '@/pages/Methodology'
 import ScalperClock from '@/pages/ScalperClock'
@@ -12,6 +13,7 @@ export default function App() {
     <Routes>
       <Route element={<Layout />}>
         <Route index element={<Home />} />
+        <Route path="daily-focus" element={<DailyFocus />} />
         <Route path="sessions" element={<Sessions />} />
         <Route path="truth" element={<Truth />} />
         <Route path="methodology" element={<Methodology />} />

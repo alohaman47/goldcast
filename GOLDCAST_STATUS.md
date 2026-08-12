@@ -26,6 +26,7 @@ GoldCast = market-volatility intelligence terminal 7 ตลาด (XAUUSD, NAS10
 
 ## งานค้าง ณ 2026-08-12
 - ไม่มีงานค้างจาก v18 — รอบหน้า: mito รันสคริปต์ GoldCast_Export ตามพิธีกรรมด้านบน → retrain v19
+- Phase 21 Track DF (หลัง v18): หน้า Daily Focus (/daily-focus) — LONDON countdown, verdict HOT/NORMAL/QUIET จาก percentile p_high_vol เทียบ 400 แท่ง (display convention ไม่ใช่ trading rule), LONDON heat จาก M15 slots จริง, news risk จาก calendar API, standing rules (gold only, ตัวเลขวิจัย verified)
 
 ## กฎเหล็กของโปรเจกต์ (ห้ามลืม)
 - ความซื่อสัตย์คือฟีเจอร์: ทุก artifact บอกวันสุดท้ายของข้อมูลตัวเอง, ไม่พลิก verdict ถ้าไม่มีข้อมูลใหม่, ความผิดพลาดต้องเปิดเผย
