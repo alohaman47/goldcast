@@ -82,12 +82,12 @@ const EXPECTED = {
     suffix: "",
     londonHours: [7, 8, 9, 10],
     validation: {
-      // Phase 19 Track R1a refresh: classic-GBM OOS on the refreshed
-      // 27,737-bar mito MT5 dataset (was 79.99 / 0.775 / 27,136 pre-refresh).
-      hvolAccuracyPct: 79.7,
-      hvolAuc: 0.776,
+      // Phase 20 (v18) refresh: classic-GBM OOS on the refreshed
+      // 27,758-bar mito MT5 dataset (was 79.70 / 0.776 / 27,737 at Phase 19).
+      hvolAccuracyPct: 79.66,
+      hvolAuc: 0.774,
       hvolAucDecimals: 3,
-      bars: 27737,
+      bars: 27758,
       directionModelPct: 50.1,
       directionAlwaysUpPct: 52.1,
       driftPeriod: "2022–2026",
@@ -101,12 +101,12 @@ const EXPECTED = {
     suffix: "_nas100",
     londonHours: [7, 8, 9, 10, 11],
     validation: {
-      // Phase 19 Track R1a refresh: classic-GBM OOS on the refreshed
-      // 27,679-bar mito MT5 dataset (was 83.28 / 0.8716 / 27,098 pre-refresh).
-      hvolAccuracyPct: 83.29,
-      hvolAuc: 0.8725,
+      // Phase 20 (v18) refresh: classic-GBM OOS on the refreshed
+      // 27,720-bar mito MT5 dataset (was 83.29 / 0.8725 / 27,679 at Phase 19).
+      hvolAccuracyPct: 83.45,
+      hvolAuc: 0.8729,
       hvolAucDecimals: 4,
-      bars: 27679,
+      bars: 27720,
       directionModelPct: 51.63,
       directionAlwaysUpPct: 52.91,
       driftPeriod: "2022–2026",
@@ -294,12 +294,12 @@ const main = async () => {
   );
   check(
     "Footer registry: all seven legacy exact lines (per-symbol scalper M15 + gold scalper M5 + per-symbol H1/H4 engine) pinned in SYMBOL_REGISTRY",
-    useSymbolSrc.includes("Data: MT5 XAUUSD M15 · 110,882 bars · Static research export · As of 2026-08-10 20:15 UTC") &&
+    useSymbolSrc.includes("Data: MT5 XAUUSD M15 · 110,964 bars · Static research export · As of 2026-08-11 17:45 UTC") &&
       useSymbolSrc.includes("Data: MT5 XAUUSD M5 · 325,160 bars · Static research export · As of 2026-08-04 16:00 UTC") &&
-      useSymbolSrc.includes("Data: MT5 NAS100 M15 · 110,699 bars · Static research export · As of 2026-08-10 20:15 UTC") &&
-      useSymbolSrc.includes("Data: MT5 XAUUSD H1/D1 · Precomputed engine export · As of 2026-08-10 19:00 UTC") &&
+      useSymbolSrc.includes("Data: MT5 NAS100 M15 · 110,781 bars · Static research export · As of 2026-08-11 17:45 UTC") &&
+      useSymbolSrc.includes("Data: MT5 XAUUSD H1/D1 · Precomputed engine export · As of 2026-08-11 17:00 UTC") &&
       useSymbolSrc.includes("Data: MT5 XAUUSD H4/D1 · Precomputed engine export · As of 2026-07-03 16:00 UTC") &&
-      useSymbolSrc.includes("Data: MT5 NAS100 H1/D1 · Precomputed engine export · As of 2026-08-07 22:00 UTC") &&
+      useSymbolSrc.includes("Data: MT5 NAS100 H1/D1 · Precomputed engine export · As of 2026-08-11 17:00 UTC") &&
       useSymbolSrc.includes("Data: MT5 NAS100 H4/D1 · Precomputed engine export · As of 2026-07-03 16:00 UTC"),
   );
 
@@ -780,9 +780,9 @@ const main = async () => {
     ["XAUUSD", "NAS100", "US30", "GER40"].every((id) => SYMBOL_REGISTRY[id].econNote === null),
   );
   check(
-    "USDJPY range-model honesty: weak classic R² disclosed (engineRangeNote; improved −0.185 → +0.010 at the Phase-19 R1b 2026-08-10 refresh), other markets null",
+    "USDJPY range-model honesty: weak classic R² disclosed (engineRangeNote; −0.185 → +0.010 (Phase-19 R1b) → +0.114 (Phase-20 v18)), other markets null",
     typeof SYMBOL_REGISTRY.USDJPY.engineRangeNote === "string" &&
-      SYMBOL_REGISTRY.USDJPY.engineRangeNote.includes("+0.010") &&
+      SYMBOL_REGISTRY.USDJPY.engineRangeNote.includes("+0.114") &&
       SYMBOL_REGISTRY.USDJPY.engineRangeNote.includes("−0.185") &&
       REG_IDS.filter((id) => id !== "USDJPY").every((id) => SYMBOL_REGISTRY[id].engineRangeNote === null),
   );

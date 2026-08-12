@@ -108,7 +108,7 @@ export default function DatasetSection({ data }: { data: TruthData | null }) {
 
       <div ref={statsRef} className="mt-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
         <StatBlock
-          value={h1?.bars ?? 27737}
+          value={h1?.bars ?? 27758}
           format={(v) => Math.round(v).toLocaleString('en-US')}
           label="H1 bars"
           sub={h1 ? `${h1.start} → ${h1.end}` : '2021-12-01 → 2026-08-10'}

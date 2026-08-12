@@ -1,7 +1,7 @@
 /**
  * Forming-bar construction for GoldCast LIVE.
  *
- * Given the static H1 history (bars.json, last completed bar 2026-08-10 19:00
+ * Given the static H1 history (bars.json, last completed bar 2026-08-11 17:00
  * UTC) and live spot ticks, build the CURRENT forming H1 bar:
  *
  *   open  = first tick of the current UTC hour, else last known close
